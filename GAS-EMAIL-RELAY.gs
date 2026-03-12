@@ -303,6 +303,15 @@ var EMAIL_STRINGS = {
   }
 };
 
+// ── HTML escape helper ──────────────────────────────────────
+function esc(s) {
+  return String(s || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 // ── Translation helper ─────────────────────────────────────
 function t(key, lang) {
   var l = (lang === 'es') ? 'es' : 'en';
@@ -339,8 +348,8 @@ function doPost(e) {
   }
 }
 
-function doGet(e) {
-  return ContentService.createTextOutput(JSON.stringify({ status: 'Choice Properties Email Relay active' })).setMimeType(ContentService.MimeType.JSON);
+function doGet() {
+  return ContentService.createTextOutput('Not found').setMimeType(ContentService.MimeType.TEXT);
 }
 
 // ── Dispatcher ────────────────────────────────────────────
@@ -397,20 +406,20 @@ function sendApplicationConfirmation(to, cc, d, cfg) {
     ? '<div class="section"><div class="section-label">' + t('paymentMethodsLabel', lang) + '</div><div class="callout amber"><h4>' + t('payFeeTitle', lang) + ' \u2014 ' + feeLabel + '</h4><p style="margin-bottom:12px;">' + t('payFeeIntro', lang) + '</p><div>' + payMethods.map(function(m){ return '<span class="pay-pill">' + m + '</span>'; }).join('') + '</div></div></div>'
     : '<div class="section"><div class="callout green"><h4>' + t('noFeeTitle', lang) + '</h4><p>' + t('noFeeDesc', lang) + '</p></div></div>';
   var nextSteps = hasFee
-    ? '<ul class="steps-list"><li><span class="step-num">1</span><span><strong>' + t('nextFee1Title', lang) + '</strong> \u2014 ' + t('nextFee1Body', lang) + ' <strong>' + d.phone + '</strong> ' + t('nextFee1Body2', lang) + ' <strong>' + feeLabel + '</strong>.</span></li><li><span class="step-num">2</span><span><strong>' + t('nextFee2Title', lang) + '</strong> \u2014 ' + t('nextFee2Body', lang) + '</span></li><li><span class="step-num">3</span><span><strong>' + t('nextFee3Title', lang) + '</strong> \u2014 ' + t('nextFee3Body', lang) + '</span></li><li><span class="step-num">4</span><span><strong>' + t('nextFee4Title', lang) + '</strong> \u2014 ' + t('nextFee4Body', lang) + '</span></li></ul>'
+    ? '<ul class="steps-list"><li><span class="step-num">1</span><span><strong>' + t('nextFee1Title', lang) + '</strong> \u2014 ' + t('nextFee1Body', lang) + ' <strong>' + esc(d.phone) + '</strong> ' + t('nextFee1Body2', lang) + ' <strong>' + feeLabel + '</strong>.</span></li><li><span class="step-num">2</span><span><strong>' + t('nextFee2Title', lang) + '</strong> \u2014 ' + t('nextFee2Body', lang) + '</span></li><li><span class="step-num">3</span><span><strong>' + t('nextFee3Title', lang) + '</strong> \u2014 ' + t('nextFee3Body', lang) + '</span></li><li><span class="step-num">4</span><span><strong>' + t('nextFee4Title', lang) + '</strong> \u2014 ' + t('nextFee4Body', lang) + '</span></li></ul>'
     : '<ul class="steps-list"><li><span class="step-num">1</span><span><strong>' + t('nextFree1Title', lang) + '</strong> \u2014 ' + t('nextFree1Body', lang) + '</span></li><li><span class="step-num">2</span><span><strong>' + t('nextFree2Title', lang) + '</strong> \u2014 ' + t('nextFree2Body', lang) + '</span></li><li><span class="step-num">3</span><span><strong>' + t('nextFree3Title', lang) + '</strong> \u2014 ' + t('nextFree3Body', lang) + '</span></li></ul>';
   send(to, cc, t('appConfirmSubject', lang) + d.app_id,
     wrap(t('appConfirmTitle', lang), d.app_id, lang,
-      statusBanner + '<div class="email-body"><p class="greeting">' + t('dear', lang) + ' ' + d.first_name + ',</p><p class="intro-text">' + t('appConfirmIntro', lang) + '</p>' +
+      statusBanner + '<div class="email-body"><p class="greeting">' + t('dear', lang) + ' ' + esc(d.first_name) + ',</p><p class="intro-text">' + t('appConfirmIntro', lang) + '</p>' +
       '<div class="section"><div class="section-label">' + t('appSummaryLabel', lang) + '</div><table class="info-table">' +
       '<tr><td>' + t('appIdLabel', lang) + '</td><td><strong>' + d.app_id + '</strong></td></tr>' +
-      '<tr><td>' + t('applicantNameLabel', lang) + '</td><td>' + d.first_name + ' ' + d.last_name + '</td></tr>' +
-      '<tr><td>' + t('propertyInterestLabel', lang) + '</td><td>' + (d.property_address || t('toBeConfirmed', lang)) + '</td></tr>' +
+      '<tr><td>' + t('applicantNameLabel', lang) + '</td><td>' + esc(d.first_name) + ' ' + esc(d.last_name) + '</td></tr>' +
+      '<tr><td>' + t('propertyInterestLabel', lang) + '</td><td>' + esc(d.property_address || t('toBeConfirmed', lang)) + '</td></tr>' +
       '<tr><td>' + t('requestedMoveInLabel', lang) + '</td><td>' + (d.requested_move_in_date || t('notSpecified', lang)) + '</td></tr>' +
       '<tr><td>' + t('leaseTermLabel', lang) + '</td><td>' + (d.desired_lease_term || t('notSpecified', lang)) + '</td></tr>' +
       '<tr><td>' + t('appFeeLabel', lang) + '</td><td>' + feeLabel + '</td></tr>' +
-      '<tr><td>' + t('emailOnFileLabel', lang) + '</td><td>' + d.email + '</td></tr>' +
-      '<tr><td>' + t('phoneOnFileLabel', lang) + '</td><td>' + d.phone + '</td></tr>' +
+      '<tr><td>' + t('emailOnFileLabel', lang) + '</td><td>' + esc(d.email) + '</td></tr>' +
+      '<tr><td>' + t('phoneOnFileLabel', lang) + '</td><td>' + esc(d.phone) + '</td></tr>' +
       '</table></div>' + paymentSection +
       '<div class="section"><div class="section-label">' + t('whatHappensNext', lang) + '</div>' + nextSteps + '</div>' +
       '<div class="callout"><h4>' + t('saveAppIdTitle', lang) + '</h4><p>' + t('saveAppIdBody', lang) + ' <strong>' + d.app_id + '</strong>. ' + t('saveAppIdBody2', lang) + '</p></div>' +
@@ -434,10 +443,10 @@ function sendAdminNotification(to, cc, d, cfg) {
     wrap('New Application Received', d.app_id, 'en',
       statusBanner + '<div class="email-body"><p class="greeting">New Application Alert,</p><p class="intro-text">' + (hasFee ? 'A new rental application has been received. Contact applicant within 24 hours to arrange the fee.' : 'A new rental application has been received. No fee required \u2014 proceed to review.') + '</p>' +
       '<div class="section"><div class="section-label">Applicant Overview</div><table class="info-table">' +
-      '<tr><td>Full Name</td><td><strong>' + d.first_name + ' ' + d.last_name + '</strong></td></tr>' +
-      '<tr><td>Email</td><td>' + d.email + '</td></tr>' +
-      '<tr><td>Phone</td><td><strong>' + d.phone + '</strong> (Text preferred)</td></tr>' +
-      '<tr><td>Property</td><td>' + (d.property_address || 'Not specified') + '</td></tr>' +
+      '<tr><td>Full Name</td><td><strong>' + esc(d.first_name) + ' ' + esc(d.last_name) + '</strong></td></tr>' +
+      '<tr><td>Email</td><td>' + esc(d.email) + '</td></tr>' +
+      '<tr><td>Phone</td><td><strong>' + esc(d.phone) + '</strong> (Text preferred)</td></tr>' +
+      '<tr><td>Property</td><td>' + esc(d.property_address || 'Not specified') + '</td></tr>' +
       '<tr><td>Move-In</td><td>' + (d.requested_move_in_date || 'Not specified') + '</td></tr>' +
       '<tr><td>Lease Term</td><td>' + (d.desired_lease_term || 'Not specified') + '</td></tr>' +
       '<tr><td>App Fee</td><td>' + feeLabel + '</td></tr>' +
@@ -447,7 +456,7 @@ function sendAdminNotification(to, cc, d, cfg) {
       '</table></div>' + paymentBlock +
       '<div class="section"><div class="section-label">Employment &amp; Income</div><table class="info-table">' +
       '<tr><td>Status</td><td>' + (d.employment_status || 'Not specified') + '</td></tr>' +
-      '<tr><td>Employer</td><td>' + (d.employer || 'N/A') + '</td></tr>' +
+      '<tr><td>Employer</td><td>' + esc(d.employer || 'N/A') + '</td></tr>' +
       '<tr><td>Monthly Income</td><td>' + (d.monthly_income ? '$' + parseFloat(d.monthly_income).toLocaleString() : 'Not specified') + '</td></tr>' +
       '</table></div>' +
       '<div class="section"><div class="section-label">Quick Actions</div><div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:4px;">' +
@@ -464,11 +473,11 @@ function sendLandlordNotification(to, cc, d, cfg) {
     '[Choice Properties] New Application for ' + (d.propertyAddress || d.property_address || 'your listing') + ' \u2014 ' + (d.applicantName || d.first_name + ' ' + d.last_name),
     wrap('New Rental Application', d.app_id, 'en',
       '<div class="status-line status-pending">\ud83d\udccb &nbsp; Someone applied to your property</div>' +
-      '<div class="email-body"><p class="greeting">Hi ' + (d.landlordName || 'there') + ',</p><p class="intro-text">A new rental application has been submitted for <strong>' + (d.propertyAddress || d.property_address || 'your property') + '</strong>. Log in to your landlord dashboard to review.</p>' +
+      '<div class="email-body"><p class="greeting">Hi ' + esc(d.landlordName || 'there') + ',</p><p class="intro-text">A new rental application has been submitted for <strong>' + esc(d.propertyAddress || d.property_address || 'your property') + '</strong>. Log in to your landlord dashboard to review.</p>' +
       '<div class="section"><div class="section-label">Applicant</div><table class="info-table">' +
-      '<tr><td>Name</td><td><strong>' + d.first_name + ' ' + d.last_name + '</strong></td></tr>' +
-      '<tr><td>Email</td><td>' + d.email + '</td></tr>' +
-      '<tr><td>Phone</td><td>' + d.phone + '</td></tr>' +
+      '<tr><td>Name</td><td><strong>' + esc(d.first_name) + ' ' + esc(d.last_name) + '</strong></td></tr>' +
+      '<tr><td>Email</td><td>' + esc(d.email) + '</td></tr>' +
+      '<tr><td>Phone</td><td>' + esc(d.phone) + '</td></tr>' +
       '<tr><td>Move-In</td><td>' + (d.requested_move_in_date || 'Not specified') + '</td></tr>' +
       '<tr><td>Lease Term</td><td>' + (d.desired_lease_term || 'Not specified') + '</td></tr>' +
       '<tr><td>App ID</td><td style="font-family:monospace">' + d.app_id + '</td></tr>' +
@@ -489,7 +498,7 @@ function sendPaymentConfirmation(to, cc, d, cfg) {
       '<div class="email-body"><p class="greeting">' + t('dear', lang) + ' ' + firstName + ',</p><p class="intro-text">' + t('payConfirmIntro', lang) + '</p>' +
       '<div class="section"><div class="section-label">' + t('payConfirmSectionLabel', lang) + '</div><div class="callout green"><h4>' + t('payConfirmSuccess', lang) + '</h4>' +
       '<div class="financial-row"><span class="f-label">' + t('payConfirmAppId', lang) + '</span><span class="f-value">' + d.app_id + '</span></div>' +
-      '<div class="financial-row"><span class="f-label">' + t('payConfirmApplicant', lang) + '</span><span class="f-value">' + d.applicant_name + '</span></div>' +
+      '<div class="financial-row"><span class="f-label">' + t('payConfirmApplicant', lang) + '</span><span class="f-value">' + esc(d.applicant_name) + '</span></div>' +
       '<div class="financial-row"><span class="f-label">' + t('payConfirmDate', lang) + '</span><span class="f-value">' + fmtDatetime(lang) + '</span></div>' +
       '<div class="financial-row"><span class="f-label">' + t('payConfirmStatus2', lang) + '</span><span class="f-value" style="color:#059669;">' + t('underReview', lang) + '</span></div>' +
       '</div></div><div class="section"><div class="section-label">' + t('whatHappensNext', lang) + '</div><ul class="steps-list">' +
@@ -508,12 +517,12 @@ function sendStatusUpdate(to, cc, d, cfg) {
   var isApproved = d.status === 'approved';
   var body = isApproved
     ? '<p class="intro-text">' + t('approvedIntro', lang) + '</p><div class="callout green"><h4>' + t('approvedCalloutTitle', lang) + '</h4><p>' + t('approvedCalloutBody', lang) + '</p></div><div class="section"><div class="section-label">' + t('approvedNextLabel', lang) + '</div><ul class="steps-list"><li><span class="step-num">1</span><span><strong>' + t('approvedNext1Title', lang) + '</strong> \u2014 ' + t('approvedNext1Body', lang) + '</span></li><li><span class="step-num">2</span><span><strong>' + t('approvedNext2Title', lang) + '</strong> \u2014 ' + t('approvedNext2Body', lang) + '</span></li><li><span class="step-num">3</span><span><strong>' + t('approvedNext3Title', lang) + '</strong> \u2014 ' + t('approvedNext3Body', lang) + '</span></li><li><span class="step-num">4</span><span><strong>' + t('approvedNext4Title', lang) + '</strong> \u2014 ' + t('approvedNext4Body', lang) + '</span></li></ul></div>'
-    : '<p class="intro-text">' + t('deniedIntro', lang) + '</p><div class="callout red"><h4>' + t('deniedCalloutTitle', lang) + '</h4><p>' + (d.reason ? t('deniedCalloutBodyPre', lang) + ' <strong>' + d.reason + '</strong>. ' + t('deniedCalloutBodyPost', lang) : t('deniedCalloutBodyNone', lang)) + '</p></div><div class="section"><div class="section-label">' + t('lookingAheadLabel', lang) + '</div><ul class="steps-list"><li><span class="step-num">1</span><span><strong>' + t('deniedNext1Title', lang) + '</strong> \u2014 ' + t('deniedNext1Body', lang) + '</span></li><li><span class="step-num">2</span><span><strong>' + t('deniedNext2Title', lang) + '</strong> \u2014 ' + t('deniedNext2Body', lang) + '</span></li></ul></div>';
+    : '<p class="intro-text">' + t('deniedIntro', lang) + '</p><div class="callout red"><h4>' + t('deniedCalloutTitle', lang) + '</h4><p>' + (d.reason ? t('deniedCalloutBodyPre', lang) + ' <strong>' + esc(d.reason) + '</strong>. ' + t('deniedCalloutBodyPost', lang) : t('deniedCalloutBodyNone', lang)) + '</p></div><div class="section"><div class="section-label">' + t('lookingAheadLabel', lang) + '</div><ul class="steps-list"><li><span class="step-num">1</span><span><strong>' + t('deniedNext1Title', lang) + '</strong> \u2014 ' + t('deniedNext1Body', lang) + '</span></li><li><span class="step-num">2</span><span><strong>' + t('deniedNext2Title', lang) + '</strong> \u2014 ' + t('deniedNext2Body', lang) + '</span></li></ul></div>';
   send(to, cc,
     (isApproved ? t('approvedSubject', lang) : t('statusSubject', lang)) + d.app_id,
     wrap(isApproved ? t('approvedTitle', lang) : t('statusTitle', lang), d.app_id, lang,
       '<div class="status-line ' + (isApproved ? 'status-approved' : 'status-denied') + '">' + (isApproved ? t('approvedStatus', lang) : t('deniedStatus', lang)) + '</div>' +
-      '<div class="email-body"><p class="greeting">' + t('dear', lang) + ' ' + d.first_name + ',</p>' + body +
+      '<div class="email-body"><p class="greeting">' + t('dear', lang) + ' ' + esc(d.first_name) + ',</p>' + body +
       '<div class="cta-wrap"><a href="' + dashLink + '" class="cta-btn">' + t('viewAppBtn', lang) + '</a></div>' +
       '<div class="contact-row"><strong>' + t('questions', lang) + '</strong> &nbsp; ' + t('textUs', lang) + ' ' + cfg.companyPhone + ' &nbsp;&middot;&nbsp; ' + cfg.companyEmail + '</div>' +
       '<div class="email-closing"><div class="sign-off">' + t('closingTeam', lang) + '</div></div></div>', cfg), cfg);
@@ -525,7 +534,7 @@ function sendLeaseSent(to, cc, d, cfg) {
   send(to, cc, t('leaseSentSubject', lang) + d.app_id + ')',
     wrap(t('leaseSentTitle', lang), d.app_id, lang,
       '<div class="status-line status-lease">' + t('leaseSentStatus', lang) + '</div>' +
-      '<div class="email-body"><p class="greeting">' + t('dear', lang) + ' ' + d.tenant_name.split(' ')[0] + ',</p><p class="intro-text">' + t('leaseSentIntro', lang) + '</p>' +
+      '<div class="email-body"><p class="greeting">' + t('dear', lang) + ' ' + (d.tenant_name || '').split(' ')[0] || 'Tenant' + ',</p><p class="intro-text">' + t('leaseSentIntro', lang) + '</p>' +
       '<div class="section"><div class="section-label">' + t('leaseSummaryLabel', lang) + '</div><table class="info-table">' +
       '<tr><td>' + t('leasePropertyLabel', lang) + '</td><td><strong>' + d.property + '</strong></td></tr>' +
       '<tr><td>' + t('leaseTermLabel2', lang) + '</td><td>' + d.term + '</td></tr>' +
@@ -548,7 +557,7 @@ function sendLeaseSignedTenant(to, cc, d, cfg) {
   send(to, cc, t('leaseSignedSubject', lang) + d.app_id + ')',
     wrap(t('leaseSignedTitle', lang), d.app_id, lang,
       '<div class="status-line status-approved">' + t('leaseSignedStatus', lang) + '</div>' +
-      '<div class="email-body"><p class="greeting">' + t('dear', lang) + ' ' + d.first_name + ',</p><p class="intro-text">' + t('leaseSignedIntro', lang) + '</p>' +
+      '<div class="email-body"><p class="greeting">' + t('dear', lang) + ' ' + esc(d.first_name) + ',</p><p class="intro-text">' + t('leaseSignedIntro', lang) + '</p>' +
       '<div class="section"><div class="section-label">' + t('tenancyConfirmLabel', lang) + '</div><div class="callout green"><h4>' + t('tenancyConfirmTitle', lang) + '</h4>' +
       '<div class="financial-row"><span class="f-label">' + t('leasePropertyLabel', lang) + '</span><span class="f-value">' + d.property + '</span></div>' +
       '<div class="financial-row"><span class="f-label">' + t('moveInDateLabel', lang) + '</span><span class="f-value">' + d.start_date + '</span></div>' +
@@ -576,11 +585,11 @@ function sendLeaseSignedAdmin(to, cc, d, cfg) {
       '<div class="status-line status-approved">\u270d\ufe0f &nbsp; Tenant Has Executed the Lease \u2014 Collect Move-In Payment</div>' +
       '<div class="email-body"><p class="greeting">Leasing Team,</p><p class="intro-text">Lease <strong>' + d.app_id + '</strong> has been electronically signed. Please initiate contact to coordinate the move-in payment.</p>' +
       '<div class="section"><div class="section-label">Execution Details</div><div class="callout green"><h4>\u2713 Lease Successfully Executed</h4>' +
-      '<div class="financial-row"><span class="f-label">Tenant</span><span class="f-value">' + d.tenant_name + '</span></div>' +
+      '<div class="financial-row"><span class="f-label">Tenant</span><span class="f-value">' + esc(d.tenant_name) + '</span></div>' +
       '<div class="financial-row"><span class="f-label">Property</span><span class="f-value">' + d.property + '</span></div>' +
-      '<div class="financial-row"><span class="f-label">Email</span><span class="f-value">' + d.email + '</span></div>' +
-      '<div class="financial-row"><span class="f-label">Phone</span><span class="f-value">' + d.phone + '</span></div>' +
-      '<div class="financial-row"><span class="f-label">Signature</span><span class="f-value" style="font-style:italic;">"' + d.signature + '"</span></div>' +
+      '<div class="financial-row"><span class="f-label">Email</span><span class="f-value">' + esc(d.email) + '</span></div>' +
+      '<div class="financial-row"><span class="f-label">Phone</span><span class="f-value">' + esc(d.phone) + '</span></div>' +
+      '<div class="financial-row"><span class="f-label">Signature</span><span class="f-value" style="font-style:italic;">"' + esc(d.signature) + '"</span></div>' +
       '<div class="financial-row"><span class="f-label">Executed At</span><span class="f-value">' + new Date().toLocaleString('en-US', {weekday:'long',year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'}) + '</span></div>' +
       '</div></div><div class="section"><div class="section-label">Quick Actions</div><div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:4px;">' +
       '<a href="' + adminUrl + '" style="display:inline-block;background:#0a1628;color:white;text-decoration:none;padding:11px 22px;border-radius:3px;font-size:13px;font-weight:600;">Admin Dashboard</a>' +
@@ -607,16 +616,16 @@ function sendMoveInConfirmation(to, cc, d, cfg) {
     '.footer{text-align:center;font-size:12px;color:#94a3b8;padding:16px 40px 24px;}' +
     '</style></head><body><div class="wrap"><div class="card">' +
     '<div class="hdr"><div style="font-size:52px;">\ud83c\udfe0</div>' +
-    '<h1>' + t('moveInHeadline', lang) + ' ' + d.first_name + '!</h1>' +
+    '<h1>' + t('moveInHeadline', lang) + ' ' + esc(d.first_name) + '!</h1>' +
     '<p>' + t('moveInSubheadline', lang) + '</p></div>' +
     '<div class="body"><div class="greeting">' + t('moveInCongrats', lang) + '</div>' +
-    '<p class="intro">' + t('moveInIntro', lang) + ' <strong>' + d.property + '</strong> ' + t('moveInIntro2', lang) + '</p>' +
+    '<p class="intro">' + t('moveInIntro', lang) + ' <strong>' + esc(d.property) + '</strong> ' + t('moveInIntro2', lang) + '</p>' +
     '<div class="detail-card">' +
     '<div class="dr"><span class="dl">' + t('moveInPropertyLabel', lang) + '</span><span class="dv">' + d.property + '</span></div>' +
     '<div class="dr"><span class="dl">' + t('moveInDateLabel2', lang) + '</span><span class="dv">' + d.move_in_date + '</span></div>' +
     '<div class="dr"><span class="dl">' + t('moveInRentLabel', lang) + '</span><span class="dv">$' + fmtCurrency(d.rent, lang) + '</span></div>' +
     '<div class="dr"><span class="dl">' + t('moveInAppIdLabel', lang) + '</span><span class="dv">' + d.app_id + '</span></div>' +
-    (d.notes ? '<div class="dr"><span class="dl">' + t('moveInNotesLabel', lang) + '</span><span class="dv">' + d.notes + '</span></div>' : '') +
+    (d.notes ? '<div class="dr"><span class="dl">' + t('moveInNotesLabel', lang) + '</span><span class="dv">' + esc(d.notes) + '</span></div>' : '') +
     '</div><p style="font-size:14px;color:#475569;line-height:1.7;">' + t('moveInDueNote', lang) + '</p>' +
     '<a href="' + dashLink + '" class="cta">' + t('moveInDashBtn', lang) + '</a>' +
     '<p style="text-align:center;font-size:13px;color:#64748b;">' + t('textUs', lang) + ' <strong>' + cfg.companyPhone + '</strong> \u00b7 ' + cfg.companyEmail + '</p></div>' +
@@ -631,8 +640,8 @@ function sendAdminMessage(to, cc, d, cfg) {
   var dashLink = cfg.dashboardUrl + '/apply/dashboard.html?id=' + d.app_id;
   send(to, cc, t('adminMsgSubject', lang) + d.app_id,
     wrap(t('adminMsgTitle', lang), d.app_id, lang,
-      '<div class="email-body"><p class="greeting">' + t('dear', lang) + ' ' + d.first_name + ',</p><p class="intro-text">' + t('adminMsgIntro', lang) + ' <strong>' + d.app_id + '</strong>.</p>' +
-      '<div class="section"><div class="section-label">' + t('adminMsgLabel', lang) + '</div><div class="callout" style="font-size:15px;line-height:1.7;color:#1a1a1a;">' + d.message + '</div></div>' +
+      '<div class="email-body"><p class="greeting">' + t('dear', lang) + ' ' + esc(d.first_name) + ',</p><p class="intro-text">' + t('adminMsgIntro', lang) + ' <strong>' + d.app_id + '</strong>.</p>' +
+      '<div class="section"><div class="section-label">' + t('adminMsgLabel', lang) + '</div><div class="callout" style="font-size:15px;line-height:1.7;color:#1a1a1a;">' + esc(d.message) + '</div></div>' +
       '<div class="cta-wrap"><a href="' + dashLink + '" class="cta-btn">' + t('replyBtn', lang) + '</a></div>' +
       '<div class="contact-row"><strong>' + t('questions', lang) + '</strong> &nbsp; ' + t('textUs', lang) + ' ' + cfg.companyPhone + ' &nbsp;&middot;&nbsp; ' + cfg.companyEmail + '</div>' +
       '<div class="email-closing"><div class="sign-off">' + t('closingTeam', lang) + '</div></div></div>', cfg), cfg);
@@ -643,8 +652,8 @@ function sendInquiryReply(to, cc, d, cfg) {
   var lang = d.preferred_language || 'en';
   send(to, cc, t('inquiryReplySubject', lang) + d.property,
     wrap(t('inquiryReplyTitle', lang), null, lang,
-      '<div class="email-body"><p class="greeting">' + t('dear', lang) + ' ' + d.name + ',</p><p class="intro-text">' + t('inquiryReplyIntro1', lang) + ' <strong>' + d.property + '</strong>. ' + t('inquiryReplyIntro2', lang) + '</p>' +
-      '<div class="callout"><h4>' + t('inquiryDetailsTitle', lang) + '</h4><p>' + d.message + '</p></div>' +
+      '<div class="email-body"><p class="greeting">' + t('dear', lang) + ' ' + esc(d.name) + ',</p><p class="intro-text">' + t('inquiryReplyIntro1', lang) + ' <strong>' + d.property + '</strong>. ' + t('inquiryReplyIntro2', lang) + '</p>' +
+      '<div class="callout"><h4>' + t('inquiryDetailsTitle', lang) + '</h4><p>' + esc(d.message) + '</p></div>' +
       '<div class="contact-row"><strong>' + t('questions', lang) + '</strong> &nbsp; ' + t('textUs', lang) + ' ' + cfg.companyPhone + ' &nbsp;&middot;&nbsp; ' + cfg.companyEmail + '</div>' +
       '<div class="email-closing"><p class="closing-text">' + t('inquiryClosingNote', lang) + '</p><div class="sign-off">' + t('closingTeam', lang) + '</div><div class="sign-company">' + cfg.companyEmail + '</div></div></div>', cfg), cfg);
 }
@@ -655,10 +664,10 @@ function sendNewInquiry(to, cc, d, cfg) {
     wrap('New Property Inquiry', null, 'en',
       '<div class="email-body"><p class="greeting">You have a new inquiry!</p><p class="intro-text">Someone has sent a message about <strong>' + d.property + '</strong>. Reach out directly to follow up.</p>' +
       '<div class="section"><div class="section-label">Prospective Tenant</div><table style="width:100%;border-collapse:collapse;font-size:14px">' +
-      '<tr><td style="padding:8px 0;color:#666;width:140px">Name</td><td style="padding:8px 0;font-weight:600">' + d.tenantName + '</td></tr>' +
+      '<tr><td style="padding:8px 0;color:#666;width:140px">Name</td><td style="padding:8px 0;font-weight:600">' + esc(d.tenantName) + '</td></tr>' +
       '<tr><td style="padding:8px 0;color:#666">Email</td><td style="padding:8px 0"><a href="mailto:' + d.tenantEmail + '" style="color:#1a5276">' + d.tenantEmail + '</a></td></tr>' +
       '<tr><td style="padding:8px 0;color:#666">Phone</td><td style="padding:8px 0">' + (d.tenantPhone || 'Not provided') + '</td></tr>' +
-      '</table></div><div class="callout"><h4>Their Message</h4><p style="white-space:pre-line">' + d.message + '</p></div>' +
+      '</table></div><div class="callout"><h4>Their Message</h4><p style="white-space:pre-line">' + esc(d.message) + '</p></div>' +
       '<div class="contact-row"><strong>Questions?</strong> &nbsp; Text: ' + cfg.companyPhone + ' &nbsp;&middot;&nbsp; ' + cfg.companyEmail + '</div>' +
       '<div class="email-closing"><div class="sign-off">Choice Properties</div><div class="sign-company">' + cfg.companyEmail + '</div></div></div>', cfg), cfg);
 }
@@ -681,7 +690,7 @@ function sendLeaseSentCoApplicant(to, cc, d, cfg) {
   send(to, cc, t('leaseCoSubject', lang) + d.app_id + ')',
     wrap(t('leaseCoTitle', lang), d.app_id, lang,
       '<div class="status-line status-lease">' + t('leaseCoStatus', lang) + '</div>' +
-      '<div class="email-body"><p class="greeting">' + t('dear', lang) + ' ' + d.tenant_name.split(' ')[0] + ',</p><p class="intro-text">' + t('leaseCoIntro1', lang) + ' <strong>' + d.primary_name + '</strong>. ' + t('leaseCoIntro2', lang) + '</p>' +
+      '<div class="email-body"><p class="greeting">' + t('dear', lang) + ' ' + (d.tenant_name || '').split(' ')[0] || 'Tenant' + ',</p><p class="intro-text">' + t('leaseCoIntro1', lang) + ' <strong>' + esc(d.primary_name) + '</strong>. ' + t('leaseCoIntro2', lang) + '</p>' +
       '<p style="margin-bottom:16px">' + t('leaseCoLiability', lang) + '</p>' +
       '<div class="section"><div class="section-label">' + t('leaseSummaryLabel', lang) + '</div><table class="info-table">' +
       '<tr><td>' + t('leasePropertyLabel', lang) + '</td><td><strong>' + d.property + '</strong></td></tr>' +
@@ -724,7 +733,7 @@ function sendCoApplicantNotification(to, cc, d, cfg) {
     '<div class="info-box">' +
     '<p><strong>Application ID:</strong> ' + (d.app_id || '—') + '</p>' +
     '<p><strong>Primary Applicant:</strong> ' + (d.primary_applicant || '—') + '</p>' +
-    '<p><strong>Property:</strong> ' + (d.property_address || '—') + '</p>' +
+    '<p><strong>Property:</strong> ' + esc(d.property_address || '—') + '</p>' +
     '</div>' +
     '<p>Our leasing team may contact you as part of the review process. If you have questions or did not authorise this listing, please reach out to us directly.</p>' +
     '<div class="contact-row"><strong>Questions?</strong> &nbsp; Text or call ' + cfg.companyPhone + ' &nbsp;&middot;&nbsp; ' + cfg.companyEmail + '</div>' +
@@ -748,13 +757,13 @@ function sendNewMessageLandlord(to, cc, d, cfg) {
     '[Choice Properties] New Message from ' + (d.tenantName || 'Tenant') + ' \u2014 ' + propertyLabel,
     wrap('New Message from Tenant', d.app_id || null, 'en',
       '<div class="status-line" style="color:#1e40af;background:#eff6ff">\ud83d\udcac &nbsp; You have a new message from a tenant</div>' +
-      '<div class="email-body"><p class="greeting">Hi ' + (d.landlordName || 'there') + ',</p>' +
+      '<div class="email-body"><p class="greeting">Hi ' + esc(d.landlordName || 'there') + ',</p>' +
       '<p class="intro-text">You have received a new message regarding <strong>' + propertyLabel + '</strong>.</p>' +
       '<div class="section"><div class="section-label">Sender</div><table style="width:100%;border-collapse:collapse;font-size:14px">' +
-      '<tr><td style="padding:8px 0;color:#666;width:140px">Name</td><td style="padding:8px 0;font-weight:600">' + (d.tenantName || 'Tenant') + '</td></tr>' +
+      '<tr><td style="padding:8px 0;color:#666;width:140px">Name</td><td style="padding:8px 0;font-weight:600">' + esc(d.tenantName || 'Tenant') + '</td></tr>' +
       senderLine +
       '</table></div>' +
-      '<div class="callout"><h4>Message</h4><p style="white-space:pre-line;font-size:14px;line-height:1.7">' + (d.message || '') + '</p></div>' +
+      '<div class="callout"><h4>Message</h4><p style="white-space:pre-line;font-size:14px;line-height:1.7">' + esc(d.message) + '</p></div>' +
       (d.app_id ? '<div class="cta-wrap"><a href="' + dashLink + '" class="cta-btn">View in Dashboard &rarr;</a></div>' : '') +
       '<div class="contact-row"><strong>Questions?</strong> &nbsp; Text: ' + cfg.companyPhone + ' &nbsp;&middot;&nbsp; ' + cfg.companyEmail + '</div>' +
       '<div class="email-closing"><div class="sign-off">Choice Properties</div><div class="sign-company">' + cfg.companyEmail + '</div></div></div>', cfg), cfg);
@@ -780,10 +789,10 @@ function sendNewMessageTenant(to, cc, d, cfg) {
   var replyBtnEs = 'Responder en Mi Panel';
   send(to, cc, subject,
     wrap(lang === 'es' ? titleEs : titleEn, d.app_id, lang,
-      '<div class="email-body"><p class="greeting">' + t('dear', lang) + ' ' + (d.first_name || '') + ',</p>' +
+      '<div class="email-body"><p class="greeting">' + t('dear', lang) + ' ' + esc(d.first_name) + ',</p>' +
       '<p class="intro-text">' + (lang === 'es' ? introEs : introEn) + '</p>' +
       '<div class="section"><div class="section-label">' + (lang === 'es' ? msgLabelEs : msgLabelEn) + '</div>' +
-      '<div class="callout" style="font-size:15px;line-height:1.7;color:#1a1a1a;">' + (d.message || '') + '</div></div>' +
+      '<div class="callout" style="font-size:15px;line-height:1.7;color:#1a1a1a;">' + esc(d.message) + '</div></div>' +
       '<div class="cta-wrap"><a href="' + dashLink + '" class="cta-btn">' + (lang === 'es' ? replyBtnEs : replyBtnEn) + '</a></div>' +
       '<div class="contact-row"><strong>' + t('questions', lang) + '</strong> &nbsp; ' + t('textUs', lang) + ' ' + cfg.companyPhone + ' &nbsp;&middot;&nbsp; ' + cfg.companyEmail + '</div>' +
       '<div class="email-closing"><div class="sign-off">' + senderName + '</div><div class="sign-company">' + cfg.companyEmail + '</div></div></div>', cfg), cfg);
@@ -794,14 +803,14 @@ function sendNewMessageTenant(to, cc, d, cfg) {
 // Data: { app_id, applicantName, propertyAddress, landlordName, monthly_rent?, email, phone }
 function sendNewApplication(to, cc, d, cfg) {
   var dashLink = cfg.dashboardUrl + '/landlord/applications.html';
-  var applicantName = d.applicantName || ((d.first_name || '') + ' ' + (d.last_name || '')).trim() || 'Applicant';
+  var applicantName = d.applicantName || (esc(d.first_name) + ' ' + esc(d.last_name)).trim() || 'Applicant';
   var propertyAddr  = d.propertyAddress || d.property_address || 'your property';
   var rentLabel = d.monthly_rent ? ('$' + parseFloat(d.monthly_rent).toLocaleString('en-US', { minimumFractionDigits: 2 })) : 'See dashboard';
   send(to, cc,
     '[Choice Properties] New Application \u2014 ' + applicantName + ' \u2014 ' + propertyAddr,
     wrap('New Rental Application', d.app_id, 'en',
       '<div class="status-line status-pending">\ud83d\udccb &nbsp; A new application has been submitted for your property</div>' +
-      '<div class="email-body"><p class="greeting">Hi ' + (d.landlordName || 'there') + ',</p>' +
+      '<div class="email-body"><p class="greeting">Hi ' + esc(d.landlordName || 'there') + ',</p>' +
       '<p class="intro-text">A new rental application has been submitted for <strong>' + propertyAddr + '</strong>. Log in to your landlord dashboard to review the full application.</p>' +
       '<div class="section"><div class="section-label">Application Summary</div><table class="info-table">' +
       '<tr><td>Applicant</td><td><strong>' + applicantName + '</strong></td></tr>' +
