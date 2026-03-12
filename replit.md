@@ -38,6 +38,38 @@ Replit is used **ONLY as a code editor**. Nothing more.
 
 ---
 
+## MANDATORY AFTER EVERY TASK — Documentation Update Rule
+
+After completing **any** task — no matter how small — you must update documentation before considering the work done. This is not optional.
+
+### Which file to update and when:
+
+| File | Update when... |
+|---|---|
+| `CHANGELOG.md` | **Every single task, no exceptions** — append one entry at the top |
+| `replit.md` | Project structure, tech stack, or AI rules change |
+| `README.md` | A major feature is added, removed, or renamed |
+| `ARCHITECTURE.md` | A service, Edge Function, database table, or security model changes |
+| `SETUP.md` | Deployment steps, required secrets, or environment variables change |
+| `IMAGEKIT-SETUP.md` | ImageKit configuration or workflow changes |
+
+### CHANGELOG.md entry format (always prepend — newest at top):
+
+```
+## [YYYY-MM-DD] — Short title of what changed
+
+- What was changed and why
+- Any files affected
+```
+
+### Rules:
+- Always prepend to `CHANGELOG.md` — never append. Most recent entry must be first.
+- Be specific — name the files changed, not just "updated styles"
+- One entry per task session, even if multiple files were touched
+- Do not skip this step even for single-line edits
+
+---
+
 # Choice Properties — Rental Marketplace
 
 ## Project Overview
