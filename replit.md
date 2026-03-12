@@ -1,3 +1,43 @@
+# ⚠️ CRITICAL — READ THIS BEFORE DOING ANYTHING
+
+This project is a **STATIC WEBSITE** deployed on **CLOUDFLARE PAGES**.
+Replit is used **ONLY as a code editor**. Nothing more.
+
+## ABSOLUTE PROHIBITIONS — Never do any of the following:
+
+- Do **NOT** install a Replit database, Neon database, or any database
+- Do **NOT** install Drizzle ORM, Prisma, or any ORM
+- Do **NOT** create `server.js`, `db.ts`, `schema.ts`, `storage.ts`, or any backend files
+- Do **NOT** install Express, Fastify, or any Node.js server framework
+- Do **NOT** add backend dependencies to `package.json`
+- Do **NOT** run `db:push`, `db:migrate`, or any database migration command
+- Do **NOT** provision any Replit-managed infrastructure
+- Do **NOT** modify the Supabase Edge Functions unless explicitly asked by the user
+- Do **NOT** run `npm install` unless explicitly asked for a specific package
+- Do **NOT** attempt to "migrate" this project — it is already complete and production-ready
+- Do **NOT** touch `SCHEMA.sql` or `SECURITY-PATCHES.sql` — these are for Supabase only
+
+## What This Project IS
+
+- Pure static **HTML / CSS / JS** files — no build pipeline, no framework
+- **Backend** = Supabase Edge Functions (hosted on Supabase's cloud, not here)
+- **Database** = Supabase PostgreSQL (hosted on Supabase's cloud, not here)
+- **Deployment target** = Cloudflare Pages (not Replit)
+- **Local preview** = `python3 -m http.server 5000` (already configured, do not change)
+- **Email** = Google Apps Script relay (`GAS-EMAIL-RELAY.gs`)
+- **Images** = ImageKit.io CDN
+- **Address autocomplete** = Geoapify API
+
+## The ONLY Things You Should Do in Replit
+
+- Edit HTML, CSS, or JS files **when explicitly asked**
+- Edit Supabase Edge Function code in `supabase/functions/` **when explicitly asked**
+- Answer questions about the codebase or setup
+
+## If You Are Ever Unsure — ASK FIRST. Do Not Act.
+
+---
+
 # Choice Properties — Rental Marketplace
 
 ## Project Overview
@@ -10,11 +50,11 @@ A comprehensive nationwide rental marketplace connecting quality tenants with ve
 - **Maps**: Leaflet.js
 - **Icons**: FontAwesome 6
 - **Backend**: Supabase (PostgreSQL + Auth + Realtime)
-- **Edge Functions**: Supabase Edge Functions (TypeScript)
+- **Edge Functions**: Supabase Edge Functions (TypeScript/Deno)
 - **Email**: Google Apps Script relay
 - **Images**: ImageKit.io
 - **Deployment**: Cloudflare Pages (with `generate-config.js` for env injection)
-- **Dev Server**: Python 3 HTTP server (`server.py`) on port 5000
+- **Local Preview**: Python 3 HTTP server on port 5000
 
 ## Design System (Zillow-Inspired — v17)
 
@@ -55,8 +95,8 @@ The entire site uses a **Zillow-inspired design system** with a centralized toke
 ├── how-to-apply.html
 ├── about.html / faq.html
 ├── css/
-│   ├── main.css            # Design tokens + global components (NAV, BTN, MODAL, etc.)
-│   ├── listings.css        # Hero, search bar, property cards, filter bar, footer
+│   ├── main.css            # Design tokens + global components
+│   ├── listings.css        # Hero, search bar, property cards
 │   ├── property.css        # Gallery, detail layout, inquiry form
 │   ├── apply.css           # Multi-step application form
 │   ├── landlord.css        # Landlord portal styles
@@ -66,27 +106,42 @@ The entire site uses a **Zillow-inspired design system** with a centralized toke
 ├── landlord/               # Landlord portal pages
 ├── admin/                  # Admin portal pages
 ├── apply/                  # Tenant application dashboard
-├── config.js               # Supabase + ImageKit config (injected at build)
-├── config.example.js       # Template for config.js
-├── generate-config.js      # Build-time env → config.js generator
-├── supabase/               # Edge functions + migrations
-└── SCHEMA.sql              # Database schema
+├── supabase/functions/     # 10 Deno Edge Functions (deployed to Supabase)
+├── config.js               # Auto-generated at Cloudflare build time (gitignored)
+├── config.example.js       # Template — safe to edit
+├── generate-config.js      # Cloudflare build script: env vars → config.js
+├── GAS-EMAIL-RELAY.gs      # Google Apps Script email relay source
+├── SCHEMA.sql              # Full Supabase database schema (run once in Supabase)
+└── SECURITY-PATCHES.sql    # Security patches (run once in Supabase after schema)
 ```
 
-## Running Locally
+## Cloudflare Pages Build Settings
 
-The workflow runs `python3 -m http.server 5000` which serves the repository root on port 5000 for development.
+| Setting | Value |
+|---|---|
+| Framework preset | None |
+| Build command | `node generate-config.js` |
+| Build output directory | `.` |
 
-## Environment Variables
+## Environment Variables (Set in Cloudflare Pages Dashboard)
 
-Set these in Cloudflare Pages → Settings → Environment variables:
 - `SUPABASE_URL` — Supabase project URL
-- `SUPABASE_ANON_KEY` — Supabase anonymous key
-- `IMAGEKIT_URL` — ImageKit URL endpoint (e.g. `https://ik.imagekit.io/yourId`)
+- `SUPABASE_ANON_KEY` — Supabase anonymous/public key
+- `IMAGEKIT_URL` — ImageKit URL endpoint
 - `IMAGEKIT_PUBLIC_KEY` — ImageKit public key
-- `GEOAPIFY_API_KEY` — Geoapify key for address autocomplete
+- `GEOAPIFY_API_KEY` — Geoapify address autocomplete key
 - `COMPANY_NAME`, `COMPANY_EMAIL`, `COMPANY_PHONE`, `COMPANY_ADDRESS` — Branding
-- `ADMIN_EMAILS` — Comma-separated list of admin email addresses
+- `ADMIN_EMAILS` — Comma-separated admin email addresses
+
+## Supabase Edge Function Secrets (Set in Supabase Dashboard)
+
+- `GAS_EMAIL_URL` — Google Apps Script Web App URL
+- `GAS_RELAY_SECRET` — Shared secret (must match GAS Script Properties)
+- `IMAGEKIT_PRIVATE_KEY` — ImageKit private key
+- `IMAGEKIT_URL_ENDPOINT` — ImageKit URL endpoint
+- `ADMIN_EMAIL` — Admin notification email
+- `DASHBOARD_URL` — Live site URL (used in lease signing links)
+- `FRONTEND_ORIGIN` — Same as DASHBOARD_URL
 
 ## Key Features
 
