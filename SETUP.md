@@ -90,9 +90,9 @@ The build command runs `generate-config.js` which injects your environment varia
 2. Connect your GitHub account and select your repository
 3. Under **Set up builds and deployments**:
    - **Framework preset**: None
-   - **Root directory**: `cp-v22-fixed` *(the subdirectory containing the frontend)*
+   - **Root directory**: `/` *(repository root)*
    - **Build command**: `node generate-config.js`
-   - **Build output directory**: `/` *(relative to the root directory above)*
+   - **Build output directory**: `.`
 4. Under **Environment variables**, click **Add variable** for each:
 
 | Variable | Value |

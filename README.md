@@ -15,13 +15,11 @@ All server-side logic runs on fully hosted third-party platforms:
 
 ## Architecture
 
-See [`cp-v22-fixed/ARCHITECTURE.md`](cp-v22-fixed/ARCHITECTURE.md) for a full breakdown of every component, all Edge Functions, database tables, the security model, and an explicit list of what does **not** exist in this repository.
+See [`ARCHITECTURE.md`](ARCHITECTURE.md) for a full breakdown of every component, all Edge Functions, database tables, the security model, and an explicit list of what does **not** exist in this repository.
 
 ## Deployment
 
-The site is deployed from the `cp-v22-fixed/` subdirectory.
-
-- **Cloudflare Pages root directory:** `cp-v22-fixed`
+- **Cloudflare Pages root directory:** `/` (repository root)
 - **Build command:** `node generate-config.js`
 - **Build output directory:** `.`
 

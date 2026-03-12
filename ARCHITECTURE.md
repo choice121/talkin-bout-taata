@@ -144,7 +144,7 @@ Signed URLs (7-day expiry) are generated on-demand by the `get-application-statu
 Any static file server works. No build pipeline is needed for local development.
 
 ```bash
-# From the cp-v22-fixed/ directory:
+# From the repository root:
 python3 -m http.server 8080
 # OR
 npx serve .

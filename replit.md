@@ -47,7 +47,7 @@ The entire site uses a **Zillow-inspired design system** with a centralized toke
 ## Project Structure
 
 ```
-cp-v22-fixed/
+/ (repository root)
 ├── index.html              # Main listings/homepage
 ├── property.html           # Property detail page
 ├── apply.html              # Rental application form
@@ -69,14 +69,13 @@ cp-v22-fixed/
 ├── config.js               # Supabase + ImageKit config (injected at build)
 ├── config.example.js       # Template for config.js
 ├── generate-config.js      # Build-time env → config.js generator
-├── server.py               # Dev server with no-cache headers
 ├── supabase/               # Edge functions + migrations
 └── SCHEMA.sql              # Database schema
 ```
 
 ## Running Locally
 
-The workflow runs `python3 /home/runner/workspace/server.py` which serves the `cp-v22-fixed/` directory on port 5000 with no-cache headers for development.
+The workflow runs `python3 -m http.server 5000` which serves the repository root on port 5000 for development.
 
 ## Environment Variables
 
