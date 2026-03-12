@@ -1,0 +1,93 @@
+Perform a full technical audit of the Google Apps Script (GAS) email relay used in this project.
+
+Scope of audit:
+The GAS relay is responsible for sending all system emails triggered by Supabase Edge Functions. It receives HTTP POST requests containing a template name and data payload, then sends emails using Gmail via Google Apps Script.
+
+Your task is to analyze the GAS script and its integration with the rest of the system.
+
+Do not modify code yet. First produce a complete audit report.
+
+Audit the following areas:
+
+1. Relay Endpoint Security
+- Verify that the relay requires a shared secret or token for authorization.
+- Ensure requests are rejected when the secret is missing or incorrect.
+- Confirm the secret is never exposed in client-side code.
+- Verify that only POST requests are accepted.
+- Confirm there is no open endpoint that anonymous users could abuse to send emails.
+
+2. Template Dispatch System
+- Enumerate every email template supported by the relay.
+- Confirm each template has a dedicated handler function.
+- Confirm the dispatch table correctly maps template names to handler functions.
+- Verify the following templates exist and function correctly:
+  - new_message_landlord
+  - new_message_tenant
+  - new_application
+  - application_confirmation
+  - admin_notification
+  - payment_confirmation
+  - status_update
+  - lease_sent
+  - lease_sent_co_applicant
+  - lease_signed_tenant
+  - lease_signed_admin
+  - move_in_confirmation
+  - admin_message
+  - inquiry_reply
+  - new_inquiry
+  - landlord_notification
+  - app_id_recovery
+  - co_applicant_notification
+
+3. Input Validation
+- Verify the script validates the payload structure.
+- Ensure required fields exist before email generation.
+- Confirm the script cannot crash if a field is missing.
+- Ensure the script safely handles unexpected input.
+
+4. Email Safety
+- Confirm HTML email bodies are safely constructed.
+- Ensure user input is sanitized or escaped where necessary.
+- Check that subject lines and recipients cannot be manipulated to send spam or arbitrary emails.
+
+5. Abuse Protection
+- Verify that the relay cannot be used as an open email proxy.
+- Confirm recipient addresses are derived from trusted sources (payload fields validated).
+- Ensure attackers cannot send arbitrary emails by modifying the payload.
+
+6. Error Handling
+- Confirm the relay returns structured JSON responses:
+  success / error message.
+- Verify that errors are properly caught and do not crash the script.
+- Confirm failures can be logged or traced.
+
+7. Performance and Limits
+- Evaluate whether the relay risks hitting Gmail sending limits.
+- Check if batch operations could overwhelm the script.
+- Suggest improvements for reliability if needed.
+
+8. Logging and Observability
+- Confirm whether the script logs requests or failures.
+- Evaluate whether debugging information is available.
+- Recommend improvements for monitoring delivery issues.
+
+9. Deployment Configuration
+- Verify the script is deployed as a Web App with correct permissions.
+- Ensure the deployment setting prevents public abuse (e.g., “Anyone” vs appropriate restrictions).
+- Confirm the URL endpoint is stable and suitable for production use.
+
+Output Format:
+Produce a structured audit report with:
+
+PASS — no issues found
+PARTIAL PASS — minor improvement recommended
+FAIL — broken or exploitable
+
+For each issue provide:
+- description
+- severity (LOW / MEDIUM / HIGH)
+- recommended fix (but do not apply fixes yet)
+
+Goal:
+Ensure the Google Apps Script relay is secure, reliable, abuse-resistant, and production-grade.
