@@ -415,8 +415,8 @@ function sendApplicationConfirmation(to, cc, d, cfg) {
       '<tr><td>' + t('appIdLabel', lang) + '</td><td><strong>' + d.app_id + '</strong></td></tr>' +
       '<tr><td>' + t('applicantNameLabel', lang) + '</td><td>' + esc(d.first_name) + ' ' + esc(d.last_name) + '</td></tr>' +
       '<tr><td>' + t('propertyInterestLabel', lang) + '</td><td>' + esc(d.property_address || t('toBeConfirmed', lang)) + '</td></tr>' +
-      '<tr><td>' + t('requestedMoveInLabel', lang) + '</td><td>' + (d.requested_move_in_date || t('notSpecified', lang)) + '</td></tr>' +
-      '<tr><td>' + t('leaseTermLabel', lang) + '</td><td>' + (d.desired_lease_term || t('notSpecified', lang)) + '</td></tr>' +
+      '<tr><td>' + t('requestedMoveInLabel', lang) + '</td><td>' + esc(d.requested_move_in_date || t('notSpecified', lang)) + '</td></tr>' +
+      '<tr><td>' + t('leaseTermLabel', lang) + '</td><td>' + esc(d.desired_lease_term || t('notSpecified', lang)) + '</td></tr>' +
       '<tr><td>' + t('appFeeLabel', lang) + '</td><td>' + feeLabel + '</td></tr>' +
       '<tr><td>' + t('emailOnFileLabel', lang) + '</td><td>' + esc(d.email) + '</td></tr>' +
       '<tr><td>' + t('phoneOnFileLabel', lang) + '</td><td>' + esc(d.phone) + '</td></tr>' +
@@ -447,15 +447,15 @@ function sendAdminNotification(to, cc, d, cfg) {
       '<tr><td>Email</td><td>' + esc(d.email) + '</td></tr>' +
       '<tr><td>Phone</td><td><strong>' + esc(d.phone) + '</strong> (Text preferred)</td></tr>' +
       '<tr><td>Property</td><td>' + esc(d.property_address || 'Not specified') + '</td></tr>' +
-      '<tr><td>Move-In</td><td>' + (d.requested_move_in_date || 'Not specified') + '</td></tr>' +
-      '<tr><td>Lease Term</td><td>' + (d.desired_lease_term || 'Not specified') + '</td></tr>' +
+      '<tr><td>Move-In</td><td>' + esc(d.requested_move_in_date || 'Not specified') + '</td></tr>' +
+      '<tr><td>Lease Term</td><td>' + esc(d.desired_lease_term || 'Not specified') + '</td></tr>' +
       '<tr><td>App Fee</td><td>' + feeLabel + '</td></tr>' +
       '<tr><td>Preferred Language</td><td>' + (d.preferred_language === 'es' ? 'Spanish / Espa\u00f1ol' : 'English') + '</td></tr>' +
-      '<tr><td>Contact Pref.</td><td>' + (d.preferred_contact_method || 'Not specified') + '</td></tr>' +
-      '<tr><td>Best Times</td><td>' + (d.preferred_time || 'Any') + '</td></tr>' +
+      '<tr><td>Contact Pref.</td><td>' + esc(d.preferred_contact_method || 'Not specified') + '</td></tr>' +
+      '<tr><td>Best Times</td><td>' + esc(d.preferred_time || 'Any') + '</td></tr>' +
       '</table></div>' + paymentBlock +
       '<div class="section"><div class="section-label">Employment &amp; Income</div><table class="info-table">' +
-      '<tr><td>Status</td><td>' + (d.employment_status || 'Not specified') + '</td></tr>' +
+      '<tr><td>Status</td><td>' + esc(d.employment_status || 'Not specified') + '</td></tr>' +
       '<tr><td>Employer</td><td>' + esc(d.employer || 'N/A') + '</td></tr>' +
       '<tr><td>Monthly Income</td><td>' + (d.monthly_income ? '$' + parseFloat(d.monthly_income).toLocaleString() : 'Not specified') + '</td></tr>' +
       '</table></div>' +
@@ -478,8 +478,8 @@ function sendLandlordNotification(to, cc, d, cfg) {
       '<tr><td>Name</td><td><strong>' + esc(d.first_name) + ' ' + esc(d.last_name) + '</strong></td></tr>' +
       '<tr><td>Email</td><td>' + esc(d.email) + '</td></tr>' +
       '<tr><td>Phone</td><td>' + esc(d.phone) + '</td></tr>' +
-      '<tr><td>Move-In</td><td>' + (d.requested_move_in_date || 'Not specified') + '</td></tr>' +
-      '<tr><td>Lease Term</td><td>' + (d.desired_lease_term || 'Not specified') + '</td></tr>' +
+      '<tr><td>Move-In</td><td>' + esc(d.requested_move_in_date || 'Not specified') + '</td></tr>' +
+      '<tr><td>Lease Term</td><td>' + esc(d.desired_lease_term || 'Not specified') + '</td></tr>' +
       '<tr><td>App ID</td><td style="font-family:monospace">' + d.app_id + '</td></tr>' +
       '</table></div>' +
       '<div class="section"><a href="' + dashLink + '" style="display:inline-block;background:#0a1628;color:white;text-decoration:none;padding:12px 24px;border-radius:3px;font-size:14px;font-weight:600;">View in Landlord Dashboard \u2192</a></div>' +
@@ -495,7 +495,7 @@ function sendPaymentConfirmation(to, cc, d, cfg) {
   send(to, cc, t('payConfirmSubject', lang) + d.app_id,
     wrap(t('payConfirmTitle', lang), d.app_id, lang,
       '<div class="status-line status-paid">' + t('payConfirmStatus', lang) + '</div>' +
-      '<div class="email-body"><p class="greeting">' + t('dear', lang) + ' ' + firstName + ',</p><p class="intro-text">' + t('payConfirmIntro', lang) + '</p>' +
+      '<div class="email-body"><p class="greeting">' + t('dear', lang) + ' ' + esc(firstName) + ',</p><p class="intro-text">' + t('payConfirmIntro', lang) + '</p>' +
       '<div class="section"><div class="section-label">' + t('payConfirmSectionLabel', lang) + '</div><div class="callout green"><h4>' + t('payConfirmSuccess', lang) + '</h4>' +
       '<div class="financial-row"><span class="f-label">' + t('payConfirmAppId', lang) + '</span><span class="f-value">' + d.app_id + '</span></div>' +
       '<div class="financial-row"><span class="f-label">' + t('payConfirmApplicant', lang) + '</span><span class="f-value">' + esc(d.applicant_name) + '</span></div>' +
@@ -534,12 +534,12 @@ function sendLeaseSent(to, cc, d, cfg) {
   send(to, cc, t('leaseSentSubject', lang) + d.app_id + ')',
     wrap(t('leaseSentTitle', lang), d.app_id, lang,
       '<div class="status-line status-lease">' + t('leaseSentStatus', lang) + '</div>' +
-      '<div class="email-body"><p class="greeting">' + t('dear', lang) + ' ' + (d.tenant_name || '').split(' ')[0] || 'Tenant' + ',</p><p class="intro-text">' + t('leaseSentIntro', lang) + '</p>' +
+      '<div class="email-body"><p class="greeting">' + t('dear', lang) + ' ' + esc((d.tenant_name || '').split(' ')[0] || 'Tenant') + ',</p><p class="intro-text">' + t('leaseSentIntro', lang) + '</p>' +
       '<div class="section"><div class="section-label">' + t('leaseSummaryLabel', lang) + '</div><table class="info-table">' +
-      '<tr><td>' + t('leasePropertyLabel', lang) + '</td><td><strong>' + d.property + '</strong></td></tr>' +
-      '<tr><td>' + t('leaseTermLabel2', lang) + '</td><td>' + d.term + '</td></tr>' +
-      '<tr><td>' + t('leaseStartLabel', lang) + '</td><td>' + d.start_date + '</td></tr>' +
-      '<tr><td>' + t('leaseEndLabel', lang) + '</td><td>' + d.end_date + '</td></tr>' +
+      '<tr><td>' + t('leasePropertyLabel', lang) + '</td><td><strong>' + esc(d.property) + '</strong></td></tr>' +
+      '<tr><td>' + t('leaseTermLabel2', lang) + '</td><td>' + esc(d.term) + '</td></tr>' +
+      '<tr><td>' + t('leaseStartLabel', lang) + '</td><td>' + esc(d.start_date) + '</td></tr>' +
+      '<tr><td>' + t('leaseEndLabel', lang) + '</td><td>' + esc(d.end_date) + '</td></tr>' +
       '</table></div><div class="section"><div class="section-label">' + t('financialSummaryLabel', lang) + '</div><div class="callout"><h4>' + t('moveInBreakdownTitle', lang) + '</h4>' +
       '<div class="financial-row"><span class="f-label">' + t('monthlyRentLabel', lang) + '</span><span class="f-value">$' + fmtCurrency(d.rent, lang) + '</span></div>' +
       '<div class="financial-row"><span class="f-label">' + t('securityDepositLabel', lang) + '</span><span class="f-value">$' + fmtCurrency(d.deposit, lang) + '</span></div>' +
@@ -559,9 +559,9 @@ function sendLeaseSignedTenant(to, cc, d, cfg) {
       '<div class="status-line status-approved">' + t('leaseSignedStatus', lang) + '</div>' +
       '<div class="email-body"><p class="greeting">' + t('dear', lang) + ' ' + esc(d.first_name) + ',</p><p class="intro-text">' + t('leaseSignedIntro', lang) + '</p>' +
       '<div class="section"><div class="section-label">' + t('tenancyConfirmLabel', lang) + '</div><div class="callout green"><h4>' + t('tenancyConfirmTitle', lang) + '</h4>' +
-      '<div class="financial-row"><span class="f-label">' + t('leasePropertyLabel', lang) + '</span><span class="f-value">' + d.property + '</span></div>' +
-      '<div class="financial-row"><span class="f-label">' + t('moveInDateLabel', lang) + '</span><span class="f-value">' + d.start_date + '</span></div>' +
-      '<div class="financial-row"><span class="f-label">' + t('leaseEndDateLabel', lang) + '</span><span class="f-value">' + d.end_date + '</span></div>' +
+      '<div class="financial-row"><span class="f-label">' + t('leasePropertyLabel', lang) + '</span><span class="f-value">' + esc(d.property) + '</span></div>' +
+      '<div class="financial-row"><span class="f-label">' + t('moveInDateLabel', lang) + '</span><span class="f-value">' + esc(d.start_date) + '</span></div>' +
+      '<div class="financial-row"><span class="f-label">' + t('leaseEndDateLabel', lang) + '</span><span class="f-value">' + esc(d.end_date) + '</span></div>' +
       '<div class="financial-row"><span class="f-label">' + t('monthlyRentLabel2', lang) + '</span><span class="f-value">$' + fmtCurrency(d.rent, lang) + '</span></div>' +
       '<div class="financial-row"><span class="f-label">' + t('moveInTotalLabel', lang) + '</span><span class="f-value">$' + fmtCurrency(d.move_in_costs, lang) + '</span></div>' +
       '<div class="financial-row"><span class="f-label">' + t('appRefLabel', lang) + '</span><span class="f-value">' + d.app_id + '</span></div>' +
@@ -586,7 +586,7 @@ function sendLeaseSignedAdmin(to, cc, d, cfg) {
       '<div class="email-body"><p class="greeting">Leasing Team,</p><p class="intro-text">Lease <strong>' + d.app_id + '</strong> has been electronically signed. Please initiate contact to coordinate the move-in payment.</p>' +
       '<div class="section"><div class="section-label">Execution Details</div><div class="callout green"><h4>\u2713 Lease Successfully Executed</h4>' +
       '<div class="financial-row"><span class="f-label">Tenant</span><span class="f-value">' + esc(d.tenant_name) + '</span></div>' +
-      '<div class="financial-row"><span class="f-label">Property</span><span class="f-value">' + d.property + '</span></div>' +
+      '<div class="financial-row"><span class="f-label">Property</span><span class="f-value">' + esc(d.property) + '</span></div>' +
       '<div class="financial-row"><span class="f-label">Email</span><span class="f-value">' + esc(d.email) + '</span></div>' +
       '<div class="financial-row"><span class="f-label">Phone</span><span class="f-value">' + esc(d.phone) + '</span></div>' +
       '<div class="financial-row"><span class="f-label">Signature</span><span class="f-value" style="font-style:italic;">"' + esc(d.signature) + '"</span></div>' +
@@ -621,8 +621,8 @@ function sendMoveInConfirmation(to, cc, d, cfg) {
     '<div class="body"><div class="greeting">' + t('moveInCongrats', lang) + '</div>' +
     '<p class="intro">' + t('moveInIntro', lang) + ' <strong>' + esc(d.property) + '</strong> ' + t('moveInIntro2', lang) + '</p>' +
     '<div class="detail-card">' +
-    '<div class="dr"><span class="dl">' + t('moveInPropertyLabel', lang) + '</span><span class="dv">' + d.property + '</span></div>' +
-    '<div class="dr"><span class="dl">' + t('moveInDateLabel2', lang) + '</span><span class="dv">' + d.move_in_date + '</span></div>' +
+    '<div class="dr"><span class="dl">' + t('moveInPropertyLabel', lang) + '</span><span class="dv">' + esc(d.property) + '</span></div>' +
+    '<div class="dr"><span class="dl">' + t('moveInDateLabel2', lang) + '</span><span class="dv">' + esc(d.move_in_date) + '</span></div>' +
     '<div class="dr"><span class="dl">' + t('moveInRentLabel', lang) + '</span><span class="dv">$' + fmtCurrency(d.rent, lang) + '</span></div>' +
     '<div class="dr"><span class="dl">' + t('moveInAppIdLabel', lang) + '</span><span class="dv">' + d.app_id + '</span></div>' +
     (d.notes ? '<div class="dr"><span class="dl">' + t('moveInNotesLabel', lang) + '</span><span class="dv">' + esc(d.notes) + '</span></div>' : '') +
@@ -652,7 +652,7 @@ function sendInquiryReply(to, cc, d, cfg) {
   var lang = d.preferred_language || 'en';
   send(to, cc, t('inquiryReplySubject', lang) + d.property,
     wrap(t('inquiryReplyTitle', lang), null, lang,
-      '<div class="email-body"><p class="greeting">' + t('dear', lang) + ' ' + esc(d.name) + ',</p><p class="intro-text">' + t('inquiryReplyIntro1', lang) + ' <strong>' + d.property + '</strong>. ' + t('inquiryReplyIntro2', lang) + '</p>' +
+      '<div class="email-body"><p class="greeting">' + t('dear', lang) + ' ' + esc(d.name) + ',</p><p class="intro-text">' + t('inquiryReplyIntro1', lang) + ' <strong>' + esc(d.property) + '</strong>. ' + t('inquiryReplyIntro2', lang) + '</p>' +
       '<div class="callout"><h4>' + t('inquiryDetailsTitle', lang) + '</h4><p>' + esc(d.message) + '</p></div>' +
       '<div class="contact-row"><strong>' + t('questions', lang) + '</strong> &nbsp; ' + t('textUs', lang) + ' ' + cfg.companyPhone + ' &nbsp;&middot;&nbsp; ' + cfg.companyEmail + '</div>' +
       '<div class="email-closing"><p class="closing-text">' + t('inquiryClosingNote', lang) + '</p><div class="sign-off">' + t('closingTeam', lang) + '</div><div class="sign-company">' + cfg.companyEmail + '</div></div></div>', cfg), cfg);
@@ -662,11 +662,11 @@ function sendInquiryReply(to, cc, d, cfg) {
 function sendNewInquiry(to, cc, d, cfg) {
   send(to, cc, 'New Inquiry for ' + d.property + ' \u2014 from ' + d.tenantName,
     wrap('New Property Inquiry', null, 'en',
-      '<div class="email-body"><p class="greeting">You have a new inquiry!</p><p class="intro-text">Someone has sent a message about <strong>' + d.property + '</strong>. Reach out directly to follow up.</p>' +
+      '<div class="email-body"><p class="greeting">You have a new inquiry!</p><p class="intro-text">Someone has sent a message about <strong>' + esc(d.property) + '</strong>. Reach out directly to follow up.</p>' +
       '<div class="section"><div class="section-label">Prospective Tenant</div><table style="width:100%;border-collapse:collapse;font-size:14px">' +
       '<tr><td style="padding:8px 0;color:#666;width:140px">Name</td><td style="padding:8px 0;font-weight:600">' + esc(d.tenantName) + '</td></tr>' +
-      '<tr><td style="padding:8px 0;color:#666">Email</td><td style="padding:8px 0"><a href="mailto:' + d.tenantEmail + '" style="color:#1a5276">' + d.tenantEmail + '</a></td></tr>' +
-      '<tr><td style="padding:8px 0;color:#666">Phone</td><td style="padding:8px 0">' + (d.tenantPhone || 'Not provided') + '</td></tr>' +
+      '<tr><td style="padding:8px 0;color:#666">Email</td><td style="padding:8px 0"><a href="mailto:' + d.tenantEmail + '" style="color:#1a5276">' + esc(d.tenantEmail) + '</a></td></tr>' +
+      '<tr><td style="padding:8px 0;color:#666">Phone</td><td style="padding:8px 0">' + esc(d.tenantPhone || 'Not provided') + '</td></tr>' +
       '</table></div><div class="callout"><h4>Their Message</h4><p style="white-space:pre-line">' + esc(d.message) + '</p></div>' +
       '<div class="contact-row"><strong>Questions?</strong> &nbsp; Text: ' + cfg.companyPhone + ' &nbsp;&middot;&nbsp; ' + cfg.companyEmail + '</div>' +
       '<div class="email-closing"><div class="sign-off">Choice Properties</div><div class="sign-company">' + cfg.companyEmail + '</div></div></div>', cfg), cfg);
@@ -690,13 +690,13 @@ function sendLeaseSentCoApplicant(to, cc, d, cfg) {
   send(to, cc, t('leaseCoSubject', lang) + d.app_id + ')',
     wrap(t('leaseCoTitle', lang), d.app_id, lang,
       '<div class="status-line status-lease">' + t('leaseCoStatus', lang) + '</div>' +
-      '<div class="email-body"><p class="greeting">' + t('dear', lang) + ' ' + (d.tenant_name || '').split(' ')[0] || 'Tenant' + ',</p><p class="intro-text">' + t('leaseCoIntro1', lang) + ' <strong>' + esc(d.primary_name) + '</strong>. ' + t('leaseCoIntro2', lang) + '</p>' +
+      '<div class="email-body"><p class="greeting">' + t('dear', lang) + ' ' + esc((d.tenant_name || '').split(' ')[0] || 'Tenant') + ',</p><p class="intro-text">' + t('leaseCoIntro1', lang) + ' <strong>' + esc(d.primary_name) + '</strong>. ' + t('leaseCoIntro2', lang) + '</p>' +
       '<p style="margin-bottom:16px">' + t('leaseCoLiability', lang) + '</p>' +
       '<div class="section"><div class="section-label">' + t('leaseSummaryLabel', lang) + '</div><table class="info-table">' +
-      '<tr><td>' + t('leasePropertyLabel', lang) + '</td><td><strong>' + d.property + '</strong></td></tr>' +
-      '<tr><td>' + t('leaseTermLabel2', lang) + '</td><td>' + d.term + '</td></tr>' +
-      '<tr><td>' + t('leaseStartLabel', lang) + '</td><td>' + d.startDate + '</td></tr>' +
-      '<tr><td>' + t('leaseEndLabel', lang) + '</td><td>' + d.endDate + '</td></tr>' +
+      '<tr><td>' + t('leasePropertyLabel', lang) + '</td><td><strong>' + esc(d.property) + '</strong></td></tr>' +
+      '<tr><td>' + t('leaseTermLabel2', lang) + '</td><td>' + esc(d.term) + '</td></tr>' +
+      '<tr><td>' + t('leaseStartLabel', lang) + '</td><td>' + esc(d.startDate) + '</td></tr>' +
+      '<tr><td>' + t('leaseEndLabel', lang) + '</td><td>' + esc(d.endDate) + '</td></tr>' +
       '</table></div><div class="section"><div class="section-label">' + t('financialSummaryLabel', lang) + '</div><div class="callout"><h4>' + t('moveInBreakdownTitle', lang) + '</h4>' +
       '<div class="financial-row"><span class="f-label">' + t('monthlyRentLabel', lang) + '</span><span class="f-value">$' + fmtCurrency(d.rent, lang) + '</span></div>' +
       '<div class="financial-row"><span class="f-label">' + t('securityDepositLabel', lang) + '</span><span class="f-value">$' + fmtCurrency(d.deposit, lang) + '</span></div>' +
@@ -732,7 +732,7 @@ function sendCoApplicantNotification(to, cc, d, cfg) {
     '<p class="intro">You have been listed as a <strong>co-applicant or guarantor</strong> on a rental application submitted to <strong>' + cfg.companyName + '</strong>.</p>' +
     '<div class="info-box">' +
     '<p><strong>Application ID:</strong> ' + (d.app_id || '—') + '</p>' +
-    '<p><strong>Primary Applicant:</strong> ' + (d.primary_applicant || '—') + '</p>' +
+    '<p><strong>Primary Applicant:</strong> ' + esc(d.primary_applicant || '—') + '</p>' +
     '<p><strong>Property:</strong> ' + esc(d.property_address || '—') + '</p>' +
     '</div>' +
     '<p>Our leasing team may contact you as part of the review process. If you have questions or did not authorise this listing, please reach out to us directly.</p>' +
@@ -751,14 +751,14 @@ function sendNewMessageLandlord(to, cc, d, cfg) {
   var dashLink = cfg.dashboardUrl + '/landlord/applications.html' + (d.app_id ? '?highlight=' + d.app_id : '');
   var propertyLabel = d.property || d.propertyAddress || 'your property';
   var senderLine = d.tenantEmail
-    ? '<tr><td style="padding:8px 0;color:#666;width:140px">Email</td><td style="padding:8px 0"><a href="mailto:' + d.tenantEmail + '" style="color:#1a5276">' + d.tenantEmail + '</a></td></tr>'
+    ? '<tr><td style="padding:8px 0;color:#666;width:140px">Email</td><td style="padding:8px 0"><a href="mailto:' + d.tenantEmail + '" style="color:#1a5276">' + esc(d.tenantEmail) + '</a></td></tr>'
     : '';
   send(to, cc,
     '[Choice Properties] New Message from ' + (d.tenantName || 'Tenant') + ' \u2014 ' + propertyLabel,
     wrap('New Message from Tenant', d.app_id || null, 'en',
       '<div class="status-line" style="color:#1e40af;background:#eff6ff">\ud83d\udcac &nbsp; You have a new message from a tenant</div>' +
       '<div class="email-body"><p class="greeting">Hi ' + esc(d.landlordName || 'there') + ',</p>' +
-      '<p class="intro-text">You have received a new message regarding <strong>' + propertyLabel + '</strong>.</p>' +
+      '<p class="intro-text">You have received a new message regarding <strong>' + esc(propertyLabel) + '</strong>.</p>' +
       '<div class="section"><div class="section-label">Sender</div><table style="width:100%;border-collapse:collapse;font-size:14px">' +
       '<tr><td style="padding:8px 0;color:#666;width:140px">Name</td><td style="padding:8px 0;font-weight:600">' + esc(d.tenantName || 'Tenant') + '</td></tr>' +
       senderLine +
@@ -795,7 +795,7 @@ function sendNewMessageTenant(to, cc, d, cfg) {
       '<div class="callout" style="font-size:15px;line-height:1.7;color:#1a1a1a;">' + esc(d.message) + '</div></div>' +
       '<div class="cta-wrap"><a href="' + dashLink + '" class="cta-btn">' + (lang === 'es' ? replyBtnEs : replyBtnEn) + '</a></div>' +
       '<div class="contact-row"><strong>' + t('questions', lang) + '</strong> &nbsp; ' + t('textUs', lang) + ' ' + cfg.companyPhone + ' &nbsp;&middot;&nbsp; ' + cfg.companyEmail + '</div>' +
-      '<div class="email-closing"><div class="sign-off">' + senderName + '</div><div class="sign-company">' + cfg.companyEmail + '</div></div></div>', cfg), cfg);
+      '<div class="email-closing"><div class="sign-off">' + esc(senderName) + '</div><div class="sign-company">' + cfg.companyEmail + '</div></div></div>', cfg), cfg);
 }
 
 // ── 18. New Application to Landlord (English only — internal) ─
@@ -811,14 +811,14 @@ function sendNewApplication(to, cc, d, cfg) {
     wrap('New Rental Application', d.app_id, 'en',
       '<div class="status-line status-pending">\ud83d\udccb &nbsp; A new application has been submitted for your property</div>' +
       '<div class="email-body"><p class="greeting">Hi ' + esc(d.landlordName || 'there') + ',</p>' +
-      '<p class="intro-text">A new rental application has been submitted for <strong>' + propertyAddr + '</strong>. Log in to your landlord dashboard to review the full application.</p>' +
+      '<p class="intro-text">A new rental application has been submitted for <strong>' + esc(propertyAddr) + '</strong>. Log in to your landlord dashboard to review the full application.</p>' +
       '<div class="section"><div class="section-label">Application Summary</div><table class="info-table">' +
-      '<tr><td>Applicant</td><td><strong>' + applicantName + '</strong></td></tr>' +
-      '<tr><td>Property</td><td>' + propertyAddr + '</td></tr>' +
+      '<tr><td>Applicant</td><td><strong>' + esc(applicantName) + '</strong></td></tr>' +
+      '<tr><td>Property</td><td>' + esc(propertyAddr) + '</td></tr>' +
       '<tr><td>Monthly Rent</td><td>' + rentLabel + '</td></tr>' +
       '<tr><td>Application ID</td><td style="font-family:monospace">' + d.app_id + '</td></tr>' +
-      '<tr><td>Move-In</td><td>' + (d.requested_move_in || d.requested_move_in_date || 'Not specified') + '</td></tr>' +
-      '<tr><td>Lease Term</td><td>' + (d.desired_lease_term || 'Not specified') + '</td></tr>' +
+      '<tr><td>Move-In</td><td>' + esc(d.requested_move_in || d.requested_move_in_date || 'Not specified') + '</td></tr>' +
+      '<tr><td>Lease Term</td><td>' + esc(d.desired_lease_term || 'Not specified') + '</td></tr>' +
       '</table></div>' +
       '<div class="section"><a href="' + dashLink + '" style="display:inline-block;background:#0a1628;color:white;text-decoration:none;padding:12px 24px;border-radius:3px;font-size:14px;font-weight:600;">Review Application \u2192</a></div>' +
       '<div class="contact-row"><strong>Questions?</strong> &nbsp; Text: ' + cfg.companyPhone + ' &nbsp;&middot;&nbsp; ' + cfg.companyEmail + '</div>' +
