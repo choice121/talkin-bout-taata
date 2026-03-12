@@ -1,0 +1,12 @@
+{
+  "name": "choice-properties",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Static frontend for Cloudflare Pages — No backend. API handled by Supabase Edge Functions.",
+  "scripts": {
+    "build": "node generate-config.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
