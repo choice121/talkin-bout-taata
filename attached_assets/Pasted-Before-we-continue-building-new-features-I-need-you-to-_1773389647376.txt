@@ -1,0 +1,59 @@
+Before we continue building new features, I need you to do a honest and thorough 
+architectural review of the entire application system as it currently stands. 
+This project is being built for real users, not just as a demo or portfolio piece, 
+so I need to know if the current foundation can support everything we are planning 
+to build.
+
+Here is the full roadmap we are planning to build on top of what exists today:
+
+PHASE 1 — Smart Form
+- Dynamic property data fetched from database throughout all 6 steps
+- Conditional sections based on property rules (pets, furnished, lease terms, etc.)
+- Real time rent-to-income warning
+- Move-in date constrained to property availability
+- Lease terms filtered to what the property actually offers
+
+PHASE 2 — Trust & Verification
+- Document upload (pay stubs, ID, proof of income)
+- Background check consent with proper legal language
+- Identity verification flow
+- Secure encrypted file storage
+- Application expiry for old unsubmitted drafts
+
+PHASE 3 — Application Intelligence
+- Returning user auto-fill from previous applications
+- Draft saved to database instead of localStorage only
+- Progress email with resume link
+- Duplicate application detection with clear user messaging
+
+PHASE 4 — Status & Tracking
+- Real time application status updates (Applied → Under Review → Approved/Declined)
+- Applicant dashboard showing all applications with timestamps
+- Email notifications on status changes
+- Success page improvements with next steps and property link
+
+Given this roadmap, please review the current codebase and answer these questions 
+honestly:
+
+1. Is the current database schema strong enough to support all four phases, or 
+   will it need structural changes? If so, what specifically needs to change?
+
+2. Is the current authentication and user system strong enough to support 
+   returning user auto-fill, cross-device draft saving, and a personal applicant 
+   dashboard? What gaps exist?
+
+3. Is the current file storage setup capable of handling secure document uploads 
+   with encryption, or does it need to be replaced or upgraded?
+
+4. Are there any parts of the current architecture that would need to be rebuilt 
+   rather than just extended to support this roadmap?
+
+5. What is the biggest risk or weakness in the current system that could cause 
+   problems if we build on top of it without addressing it first?
+
+6. Given all of this, what is your honest recommended order of operations — what 
+   should we fix or strengthen in the foundation before we start building Phase 2, 
+   3 and 4 on top of it?
+
+Please be direct and honest even if the answer is that significant changes are 
+needed. Do not implement anything. Discussion only. This is a planning session.
