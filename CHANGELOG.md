@@ -9,6 +9,17 @@ Format:
 
 ---
 
+## [2026-03-13] — Applicant Identity Layer (Passwordless OTP Authentication)
+
+- **New `APPLICANT-AUTH.sql` migration:** Adds `applicant_user_id uuid` column to `applications` table with a foreign key to `auth.users`, an index, and a new RLS policy (`applications_applicant_read`) so authenticated applicants can read only their own rows. Also adds two secure RPCs: `get_my_applications()` returns the calling user's full application list (safe field subset), and `claim_application(app_id, email)` lets a newly-signed-in user link a legacy application submitted before they had an account (email-verified to prevent hijacking). Grant statements included.
+- **New `apply/login.html` page:** Applicant-facing passwordless OTP email sign-in. Two-step flow — enter email → receive 6-digit code → auto-submits on 6th digit. Supports `?redirect=` URL param so users land back on whatever page triggered the sign-in. Checks existing session on load and skips the form if already signed in. Includes "Track by Application ID instead" and "Resend my Application ID" fallback paths.
+- **Updated `apply/dashboard.html` — auth-aware design:** On page load, checks the Supabase session. (1) If authenticated with no `?id=` param — renders a "My Applications" list showing all linked apps as clickable cards, with status/lease pills. Clicking a card opens the detail view (same `renderDetailView` function). A "Look Up a Specific Application" section is appended below the list as a fallback. (2) If not authenticated — shows the classic App ID lookup card plus a sign-in prompt banner. (3) If `?id=` param present — always shows that app directly (works for both auth and anon). Topbar now shows signed-in email + Sign Out button when authenticated. All anonymous detail views now show a "Sign in to see all your applications" prompt so users discover the feature naturally. `signOut` routes back to `/apply/login.html` for the applicant scope.
+- **Updated `js/cp-api.js` — `CP.ApplicantAuth` added:** New helper object exported on `window.CP` with `sendOTP(email)`, `verifyOTP(email, token)`, `getUser()`, `getSession()`, `signOut()`, `getMyApplications()` (calls `get_my_applications()` RPC), and `claimApplication(appId, email)` (calls `claim_application()` RPC). `Auth.signOut()` updated to route to `/apply/login.html` when on an `/apply/` path (was incorrectly routing to `/landlord/login.html`).
+- **Updated `supabase/functions/process-application/index.ts`:** Added optional applicant auth block after rate-limit check. Extracts the Bearer JWT from the Authorization header; if it differs from the anon key, verifies it against Supabase Auth and extracts the user UUID. Adds `applicant_user_id` to the application insert record (null for anonymous submissions). Entirely non-breaking — no change to existing anonymous flow.
+- **Setup instructions:** Run `APPLICANT-AUTH.sql` once in Supabase SQL Editor. Enable Email OTP in Supabase Auth settings (Dashboard → Auth → Providers → Email → Enable OTP). No other configuration needed.
+
+---
+
 ## [2026-03-13] — Verification & Polish Pass: Nav consistency, logo standardization, apply.html address fix
 
 - **Nav drawer CTA fix (property.html):** `drawerAuthLink` was missing the `btn-full` class, making the "Landlord Login" button in the mobile drawer narrower than on all other pages. Added `btn-full` to match every other page.

@@ -48,6 +48,22 @@ Deno.serve(async (req) => {
   }
   // ── End rate-limit check ──────────────────────────────────
 
+  // ── Optional applicant auth — link submission to authenticated user ──
+  // If the applicant is signed in via OTP, their JWT is forwarded by the
+  // browser via callEdgeFunction(). We verify it here and save their user_id
+  // on the application record. This is purely additive — anonymous
+  // submissions continue to work unchanged.
+  let applicantUserId: string | null = null
+  try {
+    const jwt = req.headers.get('Authorization')?.replace('Bearer ', '')
+    if (jwt && jwt !== Deno.env.get('SUPABASE_ANON_KEY')) {
+      const authClient = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!)
+      const { data: { user } } = await authClient.auth.getUser(jwt)
+      if (user?.id) applicantUserId = user.id
+    }
+  } catch (_) { /* non-fatal — continue without linking */ }
+  // ── End optional auth ─────────────────────────────────────
+
   try {
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
@@ -229,6 +245,8 @@ Deno.serve(async (req) => {
       co_applicant_employment_duration: formData['Co-Applicant Employment Duration'] || formData.co_applicant_employment_duration || null,
       co_applicant_consent:             formData['Co-Applicant Consent'] === true || formData.co_applicant_consent === true,
       document_url:                     formData.document_url || null,
+      // Link to authenticated applicant account (null for anonymous submissions)
+      applicant_user_id:                applicantUserId,
     }
 
     // Resolve landlord_id server-side from the property record (never trust client-supplied value)

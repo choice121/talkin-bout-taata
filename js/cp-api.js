@@ -21,8 +21,10 @@ const Auth = {
   async signOut() {
     await sb().auth.signOut();
     // Route to the correct login page based on current URL path
-    const isAdminPath = location.pathname.includes('/admin/');
-    location.href = isAdminPath ? '/admin/login.html' : '/landlord/login.html';
+    const path = location.pathname;
+    if (path.includes('/admin/'))  { location.href = '/admin/login.html'; }
+    else if (path.includes('/apply/')) { location.href = '/apply/login.html'; }
+    else { location.href = '/landlord/login.html'; }
   },
   async isAdmin()       {
     const user = await Auth.getUser();
@@ -41,6 +43,45 @@ const Auth = {
     const isAdmin = await Auth.isAdmin();
     if (!isAdmin) { location.href = redirectTo; return false; }
     return true;
+  },
+};
+
+// ── Applicant Auth (passwordless OTP) ─────────────────────
+// Separate from landlord/admin Auth — applicants sign in with
+// a one-time code emailed to them (no password required).
+const ApplicantAuth = {
+  async sendOTP(email) {
+    const { error } = await sb().auth.signInWithOtp({
+      email,
+      options: { shouldCreateUser: true },
+    });
+    if (error) throw error;
+  },
+  async verifyOTP(email, token) {
+    const { data, error } = await sb().auth.verifyOtp({ email, token, type: 'email' });
+    if (error) throw error;
+    return data;
+  },
+  async getUser()    { return Auth.getUser(); },
+  async getSession() { return Auth.getSession(); },
+  async signOut() {
+    await sb().auth.signOut();
+    location.href = '/apply/login.html';
+  },
+  // Returns {success, applications[]} for the currently signed-in applicant.
+  async getMyApplications() {
+    const { data, error } = await sb().rpc('get_my_applications');
+    if (error) return { success: false, error: error.message };
+    return data;
+  },
+  // Links a legacy (pre-auth) application to the current user by verifying email match.
+  async claimApplication(appId, email) {
+    const { data, error } = await sb().rpc('claim_application', {
+      p_app_id: appId,
+      p_email:  email,
+    });
+    if (error) return { success: false, error: error.message };
+    return data;
   },
 };
 
@@ -312,7 +353,7 @@ function esc(str) {
 }
 window.CP_esc = esc;
 
-window.CP = { sb, Auth, Applications, Properties, Inquiries, Landlords, EmailLogs, UI, subscribeToApplication, subscribeToApplications, subscribeToMessages, generatePropertyId };
+window.CP = { sb, Auth, ApplicantAuth, Applications, Properties, Inquiries, Landlords, EmailLogs, UI, subscribeToApplication, subscribeToApplications, subscribeToMessages, generatePropertyId };
 
 // ── ES Module exports — used by landlord pages and property.html ──────────────
 
