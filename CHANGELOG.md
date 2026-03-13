@@ -9,6 +9,17 @@ Format:
 
 ---
 
+## [2026-03-13] — Properties Display & Rendering Fixes
+
+- **Bug fix — Sort "Most Beds" now works (`index.html`):** The `beds_desc` sort branch was missing from `applyFilters()`, causing the "Most Beds" dropdown option to silently fall through to "Newest". Added `if (sortBy === 'beds_desc') return (b.bedrooms ?? 0) - (a.bedrooms ?? 0)` to the sort chain.
+- **Bug fix — Empty-state filter screen color tokens (`index.html`):** The "No listings match your filters" empty state used unmapped legacy tokens `--slate-light`, `--slate`, and `--blue` which don't exist in the design system. Replaced with `--color-text-muted`, `--color-text-secondary`, and `--color-brand` respectively. The icon and text now render with correct muted colors instead of black.
+- **Bug fix — Full property card is now clickable (`index.html`):** Cards had a hover-lift effect and `cursor:pointer` suggesting the whole card is a link, but only the photo and title were `<a>` elements. Added a click listener to each `.property-card` that navigates to the property detail page whenever the click target is not already a button or link (save button, nav arrows, apply button retain their own behavior).
+- **UX — Active Listings stat hidden on load failure (`index.html`):** When Supabase is unreachable the stat counter stayed as `—` forever, looking broken. On error, the entire stat item is now hidden so the hero stats row shows only the two static items (Avg. Apply Time and Coverage).
+- **UX — Contact card Save/Share buttons repositioned (`property.html`):** The Save and Share buttons were displayed below the "Questions? Message the Landlord" heading, creating a confusing layout where the heading didn't match the first visible content. The `share-row` is now rendered above the heading so save/share quick actions appear first, followed by the message form with its own label.
+- **UX — Description loading state uses skeleton shimmer (`property.html`):** The description area on the property detail page initialized with a bare "Loading property details…" text string while all other loading areas on the page use animated skeleton shimmer placeholders. Replaced with four skeleton lines matching the body text height and staggered widths, consistent with the rest of the page.
+
+---
+
 ## [2026-03-13] — Security Hardening: claim_application() email verification
 
 - **`APPLICANT-AUTH.sql` — `claim_application()` RPC hardened:** The email verification in the function now uses `auth.email()` (the server-side JWT-verified email for the authenticated caller) instead of the client-supplied `p_email` parameter. This closes a theoretical attack vector where a malicious authenticated user who knew another applicant's `app_id` and email address could call the RPC directly via the REST API and claim that application. In normal dashboard usage, `currentUser.email` (the OTP-verified email) was always passed, so no user-facing behavior changes. The `p_email` parameter is retained in the function signature for backward compatibility but is no longer used for verification. Full audit of the applicant identity system confirmed all other components — OTP login flow, dashboard auth routing, `get_my_applications()` field exposure, `get_lease_financials()` financial gating, `co_applicant_email` display logic, `lastSuccessAppId` sessionStorage lifecycle, and all SQL migration idempotency — are working correctly.

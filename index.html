@@ -530,6 +530,7 @@ const savedIds     = new Set(JSON.parse(localStorage.getItem('cp_saved') || '[]'
     setupFilters();
   } catch (e) {
     console.error('Failed to load listings:', e);
+    if (counter) counter.closest('.hero-stat').style.display = 'none';
     renderError();
   }
 })();
@@ -564,9 +565,9 @@ function renderProperties(props) {
   if (!props.length) {
     grid.innerHTML = `
       <div class="empty-state" style="grid-column:1/-1;text-align:center;padding:var(--s-16) var(--s-6)">
-        <div class="empty-state-icon"><i class="fas fa-search" style="font-size:40px;color:var(--slate-light)"></i></div>
+        <div class="empty-state-icon"><i class="fas fa-search" style="font-size:40px;color:var(--color-text-muted)"></i></div>
         <h3 style="margin:var(--s-4) 0 var(--s-2)">No listings match your filters</h3>
-        <p style="color:var(--slate)">Try adjusting your search or <button onclick="window.clearAllFilters()" style="background:none;border:none;color:var(--blue);cursor:pointer;font-size:inherit;padding:0;text-decoration:underline">clearing all filters</button></p>
+        <p style="color:var(--color-text-secondary)">Try adjusting your search or <button onclick="window.clearAllFilters()" style="background:none;border:none;color:var(--color-brand);cursor:pointer;font-size:inherit;padding:0;text-decoration:underline">clearing all filters</button></p>
       </div>`;
     return;
   }
@@ -579,7 +580,13 @@ function renderProperties(props) {
     btn.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); toggleSave(id, btn); });
   });
 
-  grid.querySelectorAll('.property-card').forEach(card => initCarousel(card));
+  grid.querySelectorAll('.property-card').forEach(card => {
+    initCarousel(card);
+    card.addEventListener('click', e => {
+      if (e.target.closest('a, button')) return;
+      window.location.href = `/property.html?id=${card.dataset.id}`;
+    });
+  });
 }
 
 // ── applyFilters ──────────────────────────────────────────
@@ -605,6 +612,7 @@ function applyFilters(props) {
   }).sort((a, b) => {
     if (sortBy === 'price_asc')  return a.monthly_rent - b.monthly_rent;
     if (sortBy === 'price_desc') return b.monthly_rent - a.monthly_rent;
+    if (sortBy === 'beds_desc')  return (b.bedrooms ?? 0) - (a.bedrooms ?? 0);
     return new Date(b.created_at) - new Date(a.created_at); // newest
   });
 }
