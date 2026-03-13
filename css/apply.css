@@ -54,7 +54,7 @@ body {
 
 /* ── HEADER BANNER ────────────────────────────────────────── */
 .container header {
-    background: linear-gradient(150deg, #04111F 0%, #0C1D38 55%, #0E2347 100%);
+    background: linear-gradient(150deg, #071510 0%, #0D2218 55%, #0F2A1E 100%);
     color: var(--color-text-inverse);
     padding: var(--space-5) var(--space-6);
     border-radius: var(--radius-xl) var(--radius-xl) 0 0;
@@ -72,7 +72,7 @@ body {
     content: '';
     position: absolute; top: 0; right: 0;
     width: 300px; height: 300px;
-    background: radial-gradient(circle at 100% 0%, rgba(0,106,255,0.10) 0%, transparent 70%);
+    background: radial-gradient(circle at 100% 0%, rgba(27,94,59,0.12) 0%, transparent 70%);
     pointer-events: none;
 }
 .container header::before { display: none; }
@@ -101,8 +101,8 @@ body {
 }
 
 .confidential-stamp {
-    background: rgba(0,106,255,0.18);
-    border: 1px solid rgba(0,106,255,0.40);
+    background: rgba(27,94,59,0.18);
+    border: 1px solid rgba(27,94,59,0.40);
     color: var(--color-text-inverse);
     padding: 5px 12px; border-radius: var(--radius-full);
     font-size: 11px; font-weight: 700;

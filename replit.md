@@ -105,33 +105,38 @@ A comprehensive nationwide rental marketplace connecting quality tenants with ve
 - **Deployment**: Cloudflare Pages (with `generate-config.js` for env injection)
 - **Local Preview in Replit**: `node serve.js` on port 5000 (static file server only)
 
-## Design System (Zillow-Inspired — v17)
+## Design System (Premium Emerald — v17)
 
-The entire site uses a **Zillow-inspired design system** with a centralized token architecture in `css/main.css`.
+The entire site uses a **Premium Emerald design system** with a centralized token architecture in `css/main.css`.
 
 ### Color Palette
 
 | Token | Value | Usage |
 |-------|-------|-------|
-| `--color-brand` | `#006AFF` | Zillow Blue — all primary actions |
-| `--color-brand-hover` | `#0050CC` | Button hover states |
-| `--color-brand-light` | `#4D9FFF` | Accents on dark backgrounds |
-| `--color-brand-pale` | `#EBF4FF` | Blue tint backgrounds |
-| `--color-ink` | `#1A1A1A` | Near-black text & dark sections |
-| `--color-surface-page` | `#f5f5f5` | Page background (light gray) |
+| `--color-brand` | `#1B5E3B` | Deep emerald — all primary actions |
+| `--color-brand-hover` | `#154D30` | Button hover states |
+| `--color-brand-light` | `#2D8A5E` | Accents on dark backgrounds |
+| `--color-brand-pale` | `#F0FDF6` | Emerald tint backgrounds |
+| `--color-accent` | `#E8A23C` | Amber — hero italic word accent |
+| `--color-dark-surface` | `#0B1F14` | Forest night — footer, dark sections |
+| `--color-ink` | `#1C1917` | Warm near-black text |
+| `--color-surface-page` | `#FAFAF8` | Warm off-white page background |
 | `--color-surface-raised` | `#ffffff` | Cards, modals |
-| `--color-border` | `#E0E0E0` | Default borders |
+| `--color-border` | `#E5E0D8` | Warm-tinted borders |
 
 ### Key Design Decisions
 
-- **Hero**: Zillow blue gradient (`135deg, #0059D6 → #006AFF → #1A80FF → #0050CC`)
-- **Nav**: White with Zillow blue house logo emblem, pill-shaped blue CTA
-- **Search button**: Zillow blue (not dark ink)
-- **Filter pills active state**: Zillow blue
-- **Property card apply button**: Zillow blue pill shape
-- **Apply form header**: Zillow blue gradient
-- **Footer/Why section**: Dark ink for contrast (Zillow pattern)
-- **Admin portal**: Dark theme retained with Zillow blue accents
+- **Hero**: Forest night emerald gradient (`150deg, #071510 → #0D2218 → #0F2A1E → #081812`)
+- **Hero headline em**: Amber italic in Fraunces serif (`var(--color-accent)` = #E8A23C)
+- **Font**: Plus Jakarta Sans (UI) + Fraunces (hero/display headings)
+- **Nav**: White with emerald house logo, pill-shaped emerald CTA
+- **Search button**: Emerald (matches brand)
+- **Filter pills active state**: Emerald brand
+- **Apply form header**: Forest night emerald gradient
+- **Footer/Why section**: Forest night (`#0B1F14`) for contrast
+- **Admin sidebar**: Forest night (`#0B1F14`) with emerald hover/active states
+- **Landlord auth side**: Forest night emerald gradient
+- **Shadows**: Warm-tinted (`rgba(20, 12, 5, ...)`) for organic depth
 
 ## Project Structure
 
