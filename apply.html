@@ -14,7 +14,7 @@
     <!-- Supabase UMD — must load before cp-api.js -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <!-- cp-api.js — sets window.CP (Supabase helpers) used by apply.js -->
-    <script src="/js/cp-api.js"></script>
+    <script type="module" src="/js/cp-api.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
@@ -1115,7 +1115,7 @@
             if (footerEmail && window.CONFIG) footerEmail.href = `mailto:${CONFIG.COMPANY_EMAIL}`;
         });
     </script>
-    <script src="/js/apply.js"></script>
+    <script defer src="/js/apply.js"></script>
 
     <!-- Test Fill Button (localhost only — shown via JS) -->
     <div class="test-button-container" id="testButtonContainer" style="display:none;">
