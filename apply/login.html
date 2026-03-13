@@ -114,9 +114,9 @@ input[type=email]:focus,input[type=text]:focus{border-color:var(--brand)}
 
     <!-- Step 2: OTP code entry -->
     <div class="step" id="step-otp">
-      <div class="otp-hint">A 6-digit code was sent to<br><strong id="otp-email-display"></strong></div>
+      <div class="otp-hint">An 8-digit code was sent to<br><strong id="otp-email-display"></strong></div>
       <label for="otp-input">Verification code</label>
-      <input type="text" id="otp-input" placeholder="123456" maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" style="letter-spacing:.25em;font-size:1.4rem;text-align:center;font-family:monospace">
+      <input type="text" id="otp-input" placeholder="12345678" maxlength="8" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" style="letter-spacing:.25em;font-size:1.4rem;text-align:center;font-family:monospace">
       <div class="err" id="otp-err"></div>
       <button class="btn" id="verify-btn" onclick="verifyOTP()">
         Verify &amp; Sign In
@@ -183,9 +183,9 @@ window.sendOTP = async function() {
   }
 };
 
-// Auto-submit when 6 digits entered
+// Auto-submit when 8 digits entered
 document.getElementById('otp-input').addEventListener('input', function() {
-  if (this.value.replace(/\D/g, '').length === 6) verifyOTP();
+  if (this.value.replace(/\D/g, '').length === 8) verifyOTP();
 });
 
 // ── Step 2: Verify OTP ────────────────────────────────────
@@ -197,8 +197,8 @@ window.verifyOTP = async function() {
 
   errEl.style.display = 'none';
 
-  if (code.length !== 6) {
-    errEl.textContent = 'Please enter the 6-digit code from your email.';
+  if (code.length !== 8) {
+    errEl.textContent = 'Please enter the 8-digit code from your email.';
     errEl.style.display = 'block';
     return;
   }
