@@ -515,6 +515,9 @@ create policy "admin_roles_self_read" on admin_roles
 create policy "landlords_admin_all" on landlords
   for all using (is_admin());
 
+create policy "landlords_public_read" on landlords
+  for select using (true);
+
 create policy "landlords_own_read" on landlords
   for select using (user_id = auth.uid());
 

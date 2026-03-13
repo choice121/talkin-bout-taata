@@ -312,7 +312,7 @@
       const photo     = l.photo_urls?.[0] || '';
       const statusBadge = statusBadgeHtml(l.status);
       return `
-        <tr>
+        <tr style="cursor:pointer" onclick="if(!event.target.closest('a,button'))window.open('/property.html?id=${l.id}','_blank')" title="Click to view property">
           <td>
             <div style="display:flex;align-items:center;gap:var(--s-3)">
               ${photo ? `<img class="listing-thumb" src="${photo}" alt="">` :
