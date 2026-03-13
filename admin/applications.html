@@ -253,9 +253,9 @@ function renderApps(apps) {
         <button class="btn btn-ghost btn-sm" onclick="toggleDetail('${a.app_id}')">🔍 View Details</button>
         <button class="btn btn-ghost btn-sm" onclick="openStatusModal('${a.app_id}','${a.status}')">✏️ Status</button>
         ${a.payment_status === 'unpaid' ? `<button class="btn btn-success btn-sm" onclick="markPaid('${a.app_id}')">💵 Mark Paid</button>` : ''}
-        ${a.status === 'approved' && a.lease_status === 'none' ? `<button class="btn btn-primary btn-sm" onclick="openLeaseModal('${a.app_id}','${a.first_name} ${a.last_name}',false,${a.monthly_rent||0},${a.security_deposit||0})">📄 Send Lease</button>` : ''}
-        ${a.lease_status === 'sent' ? `<button class="btn btn-ghost btn-sm" onclick="openLeaseModal('${a.app_id}','${a.first_name} ${a.last_name}',true,${a.monthly_rent||0},${a.security_deposit||0})">🔄 Resend Lease</button>` : ''}
-        ${(a.lease_status === 'voided' || a.lease_status === 'expired') ? `<button class="btn btn-primary btn-sm" onclick="openLeaseModal('${a.app_id}','${a.first_name} ${a.last_name}',false,${a.monthly_rent||0},${a.security_deposit||0})">📄 Send New Lease</button>` : ''}
+        ${a.status === 'approved' && a.lease_status === 'none' ? `<button class="btn btn-primary btn-sm" onclick="openLeaseModal('${a.app_id}','${a.first_name} ${a.last_name}',false,${a.monthly_rent||0},${a.security_deposit||0},'${a.requested_move_in_date||''}')">📄 Send Lease</button>` : ''}
+        ${a.lease_status === 'sent' ? `<button class="btn btn-ghost btn-sm" onclick="openLeaseModal('${a.app_id}','${a.first_name} ${a.last_name}',true,${a.monthly_rent||0},${a.security_deposit||0},'${a.requested_move_in_date||''}')">🔄 Resend Lease</button>` : ''}
+        ${(a.lease_status === 'voided' || a.lease_status === 'expired') ? `<button class="btn btn-primary btn-sm" onclick="openLeaseModal('${a.app_id}','${a.first_name} ${a.last_name}',false,${a.monthly_rent||0},${a.security_deposit||0},'${a.requested_move_in_date||''}')">📄 Send New Lease</button>` : ''}
         ${(a.lease_status && a.lease_status !== 'none' && a.lease_status !== 'voided' && a.lease_status !== 'expired' && a.lease_status !== 'co_signed') ? `<button class="btn btn-sm" style="background:#991b1b" onclick="voidLease('${a.app_id}')">✕ Void Lease</button>` : ''}
         ${(a.lease_status === 'signed' || a.lease_status === 'co_signed') && !a.move_in_status ? `<a href="move-ins.html" class="btn btn-sm" style="background:#065f46;color:#fff">🏠 Move-In</a>` : ''}
         <button class="btn btn-ghost btn-sm" onclick="openMsgModal('${a.app_id}')">💬 Message</button>
@@ -319,13 +319,15 @@ async function markPaid(appId) {
 }
 
 let isResend = false;
-function openLeaseModal(appId, name, resend, prefillRent, prefillDeposit) {
+function openLeaseModal(appId, name, resend, prefillRent, prefillDeposit, prefillMoveIn) {
   currentAppId = appId; isResend = resend;
   document.getElementById('lease-modal-title').textContent = resend ? `Resend Lease — ${name}` : `Send Lease — ${name}`;
-  document.getElementById('m-start').value = new Date().toISOString().split('T')[0];
-  // Auto-fill from property data if available and not a resend
+  // Default start date to today; override with applicant's requested move-in if available
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('m-start').value = (prefillMoveIn && prefillMoveIn !== 'null' && prefillMoveIn !== 'undefined' && prefillMoveIn.trim()) ? prefillMoveIn : today;
+  // Auto-fill financial fields from application data when not a resend
   if (!resend) {
-    if (prefillRent   && prefillRent   > 0) document.getElementById('m-rent').value    = prefillRent;
+    if (prefillRent    && prefillRent    > 0) document.getElementById('m-rent').value    = prefillRent;
     if (prefillDeposit && prefillDeposit > 0) document.getElementById('m-deposit').value = prefillDeposit;
   }
   document.getElementById('lease-modal').classList.add('open');

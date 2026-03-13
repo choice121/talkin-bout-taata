@@ -95,7 +95,22 @@ body{font-family: var(--font-base);background:#f5f6fa;color:#1a1a1a;min-height:1
 </div>
 
 <div class="container">
-  <!-- Lookup form (shown if no app_id in URL) -->\n  <div class=\"lookup-card\" id=\"lookup-section\">\n    <h1>Track Your Application</h1>\n    <p>Enter your Application ID to view your real-time status, messages, and lease documents.</p>\n\n    <!-- Shown only when no ?id= is in the URL — helps users who arrive cold -->\n    <div id=\"no-id-hint\" style=\"display:none;background:#f0f7ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px 16px;margin-bottom:18px;text-align:left;font-size:.82rem;color:#1e40af;line-height:1.6\">\n      <strong>📧 Check your email</strong> — your Application ID was sent to you immediately after you submitted your application. It looks like <span style=\"font-family:monospace;font-weight:700\">CP-20240115-ABC123</span>.<br>\n      Can't find the email? Use the <em>Resend my Application ID</em> option below.\n    </div>\n\n    <div class=\"input-row\">\n      <input type=\"text\" id=\"app-id-input\" placeholder=\"CP-20240115-ABC123\" style=\"text-transform:uppercase\" onkeydown=\"if(event.key==='Enter')lookup()\">\n      <button class=\"btn\" onclick=\"lookup()\">Track</button>\n    </div>\n    <div id=\"lookup-err\" style=\"margin-top:12px;color:#991b1b;font-size:.82rem\"></div>
+  <!-- Lookup form (shown if no app_id in URL) -->
+  <div class="lookup-card" id="lookup-section">
+    <h1>Track Your Application</h1>
+    <p>Enter your Application ID to view your real-time status, messages, and lease documents.</p>
+
+    <!-- Shown only when no ?id= is in the URL — helps users who arrive cold -->
+    <div id="no-id-hint" style="display:none;background:#f0f7ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px 16px;margin-bottom:18px;text-align:left;font-size:.82rem;color:#1e40af;line-height:1.6">
+      <strong>📧 Check your email</strong> — your Application ID was sent to you immediately after you submitted your application. It looks like <span style="font-family:monospace;font-weight:700">CP-20240115-ABC123</span>.<br>
+      Can't find the email? Use the <em>Resend my Application ID</em> option below.
+    </div>
+
+    <div class="input-row">
+      <input type="text" id="app-id-input" placeholder="CP-20240115-ABC123" style="text-transform:uppercase" onkeydown="if(event.key==='Enter')lookup()">
+      <button class="btn" onclick="lookup()">Track</button>
+    </div>
+    <div id="lookup-err" style="margin-top:12px;color:#991b1b;font-size:.82rem"></div>
 
     <!-- ID Recovery -->
     <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
@@ -175,12 +190,28 @@ async function lookup() {
 
 function pillClass(val) { return 'pill-' + (val || 'none').replace(/\s/g,'_'); }
 
+function leaseDeadlineText(expiryDate) {
+  if (!expiryDate) return 'as soon as possible to secure your unit';
+  const now = new Date();
+  const exp = new Date(expiryDate);
+  const diffMs = exp - now;
+  if (diffMs <= 0) return 'very soon — please contact us immediately';
+  const diffHrs = Math.floor(diffMs / 3600000);
+  if (diffHrs < 24) {
+    const t = exp.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+    return `within ${diffHrs} hour${diffHrs !== 1 ? 's' : ''} — by ${t} today`;
+  }
+  const diffDays = Math.ceil(diffMs / 86400000);
+  const d = exp.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+  return `within ${diffDays} day${diffDays !== 1 ? 's' : ''} — by ${d}`;
+}
+
 function renderDashboard(app, msgs) {
   const step = app.move_in_status === 'completed' ? 5
              : (app.lease_status === 'co_signed') ? 4
              : (app.lease_status === 'signed' || app.lease_status === 'awaiting_co_sign') ? 3
              : app.status === 'approved' ? 3
-             : (app.payment_status === 'paid' || app.status === 'under_review') ? 2
+             : app.payment_status === 'paid' ? 2
              : 1;
 
   document.getElementById('dashboard').innerHTML = `
@@ -222,18 +253,25 @@ function renderDashboard(app, msgs) {
         ${app.status === 'approved' && app.lease_status === 'none' ? `
           <div class="callout green"><h4>✓ Congratulations — Application Approved!</h4><p>Your application has been approved. Our leasing team is preparing your lease agreement and will send it to your email address shortly. Please ensure your inbox is accessible.</p></div>` : ''}
         ${app.lease_status === 'sent' ? `
-          <div class="callout"><h4>📋 Lease Agreement Ready for Signature</h4><p>Your lease agreement has been sent to your email. Please review and sign it within 48 hours to secure your unit.</p>
+          <div class="callout"><h4>📋 Lease Agreement Ready for Signature</h4>
+          <p>Your lease agreement has been sent to your email. Please review and sign it <strong>${leaseDeadlineText(app.lease_expiry_date)}</strong>.</p>
           <a href="lease.html?id=${app.app_id}" class="cta-btn">Review &amp; Sign Lease</a></div>` : ''}
         ${app.lease_status === 'awaiting_co_sign' ? `
           <div class="callout gold"><h4>⏳ Awaiting Co-Applicant Signature</h4>
           <p>Your signature has been recorded. Your co-applicant (<strong>${app.co_applicant_email || 'co-applicant'}</strong>) has been sent a signing link to their email address. The lease will be fully executed once they sign.</p>
           <p style="margin-top:8px;font-size:.78rem;color:var(--muted)">If you are the co-applicant, please check your email for a message with the subject <em>"Co-Applicant Lease Signature"</em> — it contains your personal signing link.</p></div>` : ''}
         ${app.lease_status === 'co_signed' ? `
-          <div class="callout green"><h4>✓ Lease Fully Executed — Tenancy Confirmed</h4><p>All parties have signed. Your tenancy is confirmed. Our team will coordinate move-in payment and key handoff. Rent: ${CP.UI.fmt.currency(app.monthly_rent)}/mo · Start: ${CP.UI.fmt.date(app.lease_start_date)}</p></div>` : ''}
+          <div class="callout green"><h4>✓ Lease Fully Executed — Tenancy Confirmed</h4>
+          <p>All parties have signed. Your tenancy is confirmed. Our team will coordinate move-in payment and key handoff. Rent: ${CP.UI.fmt.currency(app.monthly_rent)}/mo · Start: ${CP.UI.fmt.date(app.lease_start_date)}</p>
+          ${app.lease_pdf_url ? `<a href="${app.lease_pdf_url}" target="_blank" class="cta-btn" style="background:#f0fdf4;color:#065f46;border:1px solid #6ee7b7;margin-top:8px">📄 Download Signed Lease</a>` : ''}</div>` : ''}
         ${app.lease_status === 'signed' && !app.has_co_applicant ? `
-          <div class="callout green"><h4>✓ Lease Executed — Tenancy Confirmed</h4><p>Your lease has been signed and your tenancy is confirmed. Our team will coordinate move-in payment and key handoff. Rent: ${CP.UI.fmt.currency(app.monthly_rent)}/mo · Start: ${CP.UI.fmt.date(app.lease_start_date)}</p></div>` : ''}
+          <div class="callout green"><h4>✓ Lease Executed — Tenancy Confirmed</h4>
+          <p>Your lease has been signed and your tenancy is confirmed. Our team will coordinate move-in payment and key handoff. Rent: ${CP.UI.fmt.currency(app.monthly_rent)}/mo · Start: ${CP.UI.fmt.date(app.lease_start_date)}</p>
+          ${app.lease_pdf_url ? `<a href="${app.lease_pdf_url}" target="_blank" class="cta-btn" style="background:#f0fdf4;color:#065f46;border:1px solid #6ee7b7;margin-top:8px">📄 Download Signed Lease</a>` : ''}</div>` : ''}
         ${app.status === 'denied' ? `
-          <div class="callout" style="border-left-color:#991b1b"><h4>Application Not Approved</h4><p>Thank you for applying. Unfortunately we are unable to offer tenancy at this time. You may apply for any other Choice Properties listing within 30 days at no additional fee.</p></div>` : ''}
+          <div class="callout" style="border-left-color:#991b1b"><h4>Application Not Approved</h4>
+          <p>Thank you for applying. Unfortunately we are unable to offer tenancy at this time. You may apply for any other Choice Properties listing within 30 days at no additional fee.</p>
+          ${app.admin_notes ? `<p style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(153,27,27,.15);font-size:.78rem;color:#7f1d1d"><strong>Reason provided:</strong> ${escapeHTML(app.admin_notes)}</p>` : ''}</div>` : ''}
         ${app.status === 'waitlisted' ? `
           <div class="callout gold"><h4>⏸ You're on the Waitlist</h4><p>Your application is currently on our waitlist. This means we have a qualified applicant ahead of you for this unit. If that applicant does not proceed, you will be contacted promptly. No action is required from you at this time.</p></div>` : ''}
         ${app.status === 'withdrawn' ? `

@@ -30,7 +30,7 @@ body{font-family: var(--font-base);background:#f5f6fa;color:#1a1a1a;min-height:1
 .financial-row:last-child{border-bottom:none}
 .financial-row.total{font-weight:700;font-size:.95rem;padding-top:12px}
 .f-label{color:#555}.f-value{font-weight:600}
-.lease-text{font-size:.75rem;line-height:1.8;color:#333;max-height:400px;overflow-y:auto;border:1px solid #e0e0e0;border-radius:6px;padding:16px;background:#fafafa;font-family:Georgia,serif}
+.lease-text{font-size:.75rem;line-height:1.8;color:#333;max-height:600px;overflow-y:auto;border:1px solid #e0e0e0;border-radius:6px;padding:16px;background:#fafafa;font-family:Georgia,serif}
 .lease-text h4{font-size:.82rem;font-weight:700;color:#0a1628;margin:16px 0 8px;text-transform:uppercase;letter-spacing:.04em}
 .lease-text h4:first-child{margin-top:0}
 .cb-row{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;padding:12px 14px;border:1px solid #e0e0e0;border-radius:6px;transition:background .15s}
@@ -248,9 +248,17 @@ function renderLease(app) {
     <div class="card">
       <div class="card-header"><span class="card-title">Residential Lease Agreement</span><span style="font-size:.72rem;color:#666;font-family:monospace">${appId}</span></div>
       <div class="card-body">
-        <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:6px;padding:12px 16px;font-size:.8rem;color:#856404;margin-bottom:16px">
-          ⏰ Please review and sign this lease. Your signature is legally binding under applicable state and federal electronic signature law.
-        </div>
+        ${(() => {
+          if (!app.lease_expiry_date) return `<div style="background:#fff3cd;border:1px solid #ffc107;border-radius:6px;padding:12px 16px;font-size:.8rem;color:#856404;margin-bottom:16px">⏰ Please review and sign this lease. Your signature is legally binding under applicable state and federal electronic signature law.</div>`;
+          const exp = new Date(app.lease_expiry_date);
+          const diffMs = exp - new Date();
+          const diffHrs = Math.floor(diffMs / 3600000);
+          const diffDays = Math.ceil(diffMs / 86400000);
+          const urgency = diffHrs < 24 ? 'background:#fee2e2;border-color:#fca5a5;color:#991b1b' : diffDays <= 2 ? 'background:#fff3cd;border-color:#ffc107;color:#856404' : 'background:#fff3cd;border-color:#ffc107;color:#856404';
+          const timeText = diffHrs < 1 ? 'less than 1 hour' : diffHrs < 24 ? `${diffHrs} hour${diffHrs !== 1 ? 's' : ''}` : `${diffDays} day${diffDays !== 1 ? 's' : ''}`;
+          const expDate = exp.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+          return `<div style="${urgency};border:1px solid;border-radius:6px;padding:12px 16px;font-size:.8rem;margin-bottom:16px">⏰ <strong>Signing deadline: ${timeText} remaining</strong> — This link expires on <strong>${expDate}</strong>. Your signature is legally binding under applicable e-signature law.</div>`;
+        })()}
         <table class="info-table">
           <tr><td>Tenant Name</td><td><strong>${tenantName}</strong></td></tr>
           <tr><td>Property Address</td><td><strong>${app.property_address || '—'}</strong></td></tr>

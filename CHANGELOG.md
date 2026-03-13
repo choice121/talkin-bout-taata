@@ -9,6 +9,16 @@ Format:
 
 ---
 
+## [2026-03-13] — Bug fixes #1–6: Tenant dashboard, lease signing, and admin modal
+
+- **Fix 1 — Lease deadline countdown (dashboard.html):** Replaced hardcoded "48 hours" with a `leaseDeadlineText()` helper that reads `lease_expiry_date` and renders the real remaining time (e.g. "within 3 days — by Fri, Mar 20"). Falls back to generic text if the field is absent.
+- **Fix 2 — Lease text readability (lease.html):** Expanded `.lease-text` max-height from 400px to 600px so tenants can read significantly more of the lease agreement without scrolling inside a tiny box. Added a dynamic expiry-countdown banner at the top of the signing page (red for <24 h, amber otherwise).
+- **Fix 3 — Download signed lease (dashboard.html):** Added "📄 Download Signed Lease" button to the `lease_status === 'signed'` and `co_signed` callouts. Uses `app.lease_pdf_url`, which the `get-application-status` edge function already generates as a fresh Supabase Storage signed URL on every dashboard load — so the link is never stale.
+- **Fix 4 — Denial reason shown to tenants (dashboard.html):** The denial callout now conditionally renders `app.admin_notes` (written by the admin at denial time) as a "Reason provided:" sub-section. Sanitised via `escapeHTML()`.
+- **Fix 5 — "Fee Paid" step accuracy (dashboard.html):** Step 2 of the progress bar was advancing to complete when `status === 'under_review'` regardless of `payment_status`. Removed the erroneous `|| app.status === 'under_review'` branch — step 2 now only shows complete when `payment_status === 'paid'`.
+- **Fix 6 — Lease modal start-date pre-fill (admin/applications.html):** `openLeaseModal()` now accepts a `prefillMoveIn` parameter (the applicant's `requested_move_in_date`). The "Send Lease", "Resend Lease", and "Send New Lease" buttons pass this value; the modal sets `m-start` from it rather than defaulting to today.
+- **Bonus fix — Dashboard lookup card HTML corruption (dashboard.html):** The lookup card block had literal `\n` and `\"` escape sequences in raw HTML (pre-existing). Unescaped all sequences so the card renders cleanly in all browsers.
+
 ## [2026-03-13] — Improvement #2: Persistent property context banner across all steps
 
 - Added `div#propertyContextBanner` in `apply.html` between the step progress bar and the submission-progress div — outside all form sections so it persists across every step
