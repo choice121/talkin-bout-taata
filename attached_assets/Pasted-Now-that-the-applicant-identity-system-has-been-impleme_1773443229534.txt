@@ -1,0 +1,56 @@
+Now that the applicant identity system has been implemented using Supabase Auth, I want you to perform a full verification and compatibility audit to ensure the new authentication layer integrates correctly with the existing platform.
+
+The goal is to confirm that the new update works properly with the current system and that no existing functionality has been broken.
+
+Please verify the following areas carefully:
+
+1. Authentication Functionality
+- Confirm that the Supabase Auth flow (magic link or OTP) works correctly.
+- Verify that users can authenticate successfully and receive a valid user_id.
+- Ensure sessions persist correctly and users remain logged in when navigating the platform.
+
+2. Application Ownership
+- Verify that newly submitted applications are correctly linked to the authenticated user’s ID.
+- Confirm that authenticated users can only access their own applications through RLS policies.
+- Ensure there is no way for a user to access another user’s application data.
+
+3. Backward Compatibility
+- Confirm that applications submitted before the authentication update still work correctly.
+- Verify that the App ID / email lookup system still functions for older submissions.
+- Ensure the dashboard can handle both authenticated users and legacy App-ID-based access.
+
+4. Full User Flow Testing
+Please test the complete journey to ensure nothing is broken:
+
+Homepage → Browse Listings → Property Page → Application Form → Submit → Success Page → Dashboard → Status Tracking.
+
+Verify that:
+- property data still passes correctly into the application form
+- submission still writes correctly to the database
+- confirmation emails still trigger properly
+- the dashboard still loads the correct application data.
+
+5. Database & Schema Verification
+- Confirm that the new identity fields or relationships do not break the existing schema.
+- Verify that any new columns, tables, or policies are functioning correctly.
+- Ensure database queries are still efficient and properly indexed.
+
+6. UI & UX Integration
+- Ensure authentication flows integrate smoothly with the current UI.
+- Confirm that login prompts appear only when necessary.
+- Verify that the experience feels seamless and does not interrupt the normal application process.
+
+7. Security Review
+- Verify that row-level security policies properly restrict access.
+- Confirm there are no routes or API endpoints that expose application data without authentication.
+
+8. Regression Check
+- Ensure all previously working features still function correctly after the update.
+- Identify any visual, functional, or architectural regressions.
+
+If any issues, inconsistencies, or risks are found, please fix them and explain the changes made.
+
+Finally, provide a summary report including:
+• what was verified  
+• what was adjusted or fixed  
+• whether the system is stable and ready for the next development phase.
