@@ -9,6 +9,17 @@ Format:
 
 ---
 
+## [2026-03-13] — Verification & Polish Pass: Nav consistency, logo standardization, apply.html address fix
+
+- **Nav drawer CTA fix (property.html):** `drawerAuthLink` was missing the `btn-full` class, making the "Landlord Login" button in the mobile drawer narrower than on all other pages. Added `btn-full` to match every other page.
+- **Nav logo standardization — dark inline override removed (property.html, about.html, faq.html, how-to-apply.html, how-it-works.html, 404.html):** All six pages overrode the `nav-logo-mark` CSS class with an inline `background:#0f1117` or `background:var(--ink)` style, rendering a near-black logo while `index.html` showed the correct brand-blue `nav-logo-emblem`. Changed all instances to `nav-logo-emblem` (no inline styles), which carries the correct blue background, `flex-shrink:0`, and a subtle brand-shadow via CSS — consistent with the homepage.
+- **Nav logo standardization — letter fallback replaced (terms.html, privacy.html):** Both pages used `<div class="nav-logo-mark">C</div>` (a plain blue square with the letter "C") rather than the SVG house icon used everywhere else. Replaced with the correct `nav-logo-emblem` + SVG markup.
+- **SVG brand circle color unified:** The house SVG's inner circle was `rgba(37,99,235,0.9)` on several pages (the old Tailwind blue-600) vs the design-system brand blue `rgba(0,106,255,0.8)`. Standardized to `rgba(0,106,255,0.8)` across all affected pages.
+- **apply.html footer address placeholder removed:** The hardcoded `<p>Your Business Address</p>` is now a hidden `<p id="footerAddressLine">` that reads `CONFIG.COMPANY_ADDRESS` on `DOMContentLoaded` and reveals itself only when that value is non-empty — consistent with how `footerContactLine` and `footerEmailLink` are already handled.
+- **HTTP verification:** All 12 public pages confirmed returning HTTP 200 post-changes.
+
+---
+
 ## [2026-03-13] — Bug fixes #1–6: Tenant dashboard, lease signing, and admin modal
 
 - **Fix 1 — Lease deadline countdown (dashboard.html):** Replaced hardcoded "48 hours" with a `leaseDeadlineText()` helper that reads `lease_expiry_date` and renders the real remaining time (e.g. "within 3 days — by Fri, Mar 20"). Falls back to generic text if the field is absent.

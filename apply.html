@@ -1068,7 +1068,7 @@
             </div>
             <div class="contact-info">
                 <p id="footerContactLine"><i class="fas fa-phone"></i> — | <i class="fas fa-envelope"></i> —</p>
-                <p>Your Business Address</p>
+                <p id="footerAddressLine" style="display:none"></p>
             </div>
         </div>
     </footer>
@@ -1090,6 +1090,11 @@
             }
             const footerEmail = document.getElementById('footerEmailLink');
             if (footerEmail && window.CONFIG) footerEmail.href = `mailto:${CONFIG.COMPANY_EMAIL}`;
+            const footerAddr = document.getElementById('footerAddressLine');
+            if (footerAddr && window.CONFIG && CONFIG.COMPANY_ADDRESS) {
+                footerAddr.textContent = CONFIG.COMPANY_ADDRESS;
+                footerAddr.style.display = '';
+            }
         });
     </script>
     <script defer src="/js/apply.js"></script>

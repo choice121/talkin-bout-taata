@@ -1,0 +1,47 @@
+Before we move forward with any new features, I want you to perform a full verification and polish pass on the improvements that were just implemented.
+
+Please audit the changes carefully and confirm that everything is functioning correctly, visually consistent, and structurally clean.
+
+Focus on the following checks:
+
+1. Functional Verification
+- Confirm that all updated pages load correctly and return proper HTTP responses.
+- Test the full user flow: Homepage → Listings → Property Detail Page → Apply Form → Submission → Dashboard.
+- Verify that all buttons, links, and CTAs work correctly and route to the intended pages.
+
+2. Navigation Consistency
+- Ensure the new navigation structure appears consistently across all pages (desktop and mobile).
+- Confirm the tenant and landlord actions are clearly separated.
+- Verify the mobile drawer menu works correctly and contains all necessary links.
+
+3. Homepage Improvements
+- Confirm the trust indicators and “How It Works” section render properly and are responsive.
+- Check spacing, alignment, typography, and hover effects to ensure the sections feel polished and professional.
+- Ensure the sections integrate naturally with the existing hero and listings grid.
+
+4. Application Page Improvements
+- Confirm the double-header issue is completely resolved.
+- Verify the progress bar is correctly sticky and behaves well on mobile and desktop.
+- Ensure the form sections and progress steps stay synchronized as users move through the form.
+
+5. Property Detail Page
+- Verify that listing cards correctly link to property.html?id=... and that the property data loads properly.
+- Confirm the gallery, lightbox, map, and apply sidebar function correctly.
+- Check that the Apply button routes users to the application form with the correct property reference.
+
+6. Code Quality & Architecture
+- Check for duplicate code or inline styles that should be moved to shared CSS.
+- Ensure the navigation bar implementation is consistent across all pages.
+- Identify any structural issues, inefficiencies, or potential maintenance problems.
+
+7. UX Polish Pass
+- Look for spacing inconsistencies, visual misalignment, or responsiveness issues.
+- Ensure the site feels cohesive and professional across desktop, tablet, and mobile views.
+- Recommend any small refinements that would improve usability or visual quality.
+
+If any issues, inconsistencies, or improvements are identified, please fix them and explain what was changed.
+
+After the verification and polish pass is complete, provide a short report summarizing:
+• what was verified
+• what was adjusted or improved
+• whether the platform is ready for the next development phase.
