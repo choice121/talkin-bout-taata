@@ -1,0 +1,65 @@
+TASK: ANALYZE A LISTING DISPLAY ISSUE (DO NOT MODIFY CODE)
+
+I am experiencing a specific issue in my real estate marketplace project.
+
+Current behavior:
+- Account creation works.
+- User can log into the dashboard.
+- When I create a new property listing, it appears inside my dashboard as "my listing".
+- However, two problems occur:
+
+1. I cannot click the listing in the dashboard to open its full listing details page.
+2. The listing does NOT appear on the public website/front-end listings page.
+
+Expected behavior:
+- A listing created by a user should appear:
+  a) Inside the dashboard (already works)
+  b) On the public listings page
+  c) On its own listing detail page when clicked
+
+Your task is ONLY to ANALYZE and REPORT the cause.
+
+STRICT RULES:
+- DO NOT modify any files.
+- DO NOT refactor the project.
+- DO NOT change database structure.
+- DO NOT implement fixes yet.
+- ONLY inspect the code and report findings.
+
+Focus your analysis ONLY on areas related to listings:
+1. Listing creation logic
+2. Database storage of listings
+3. API routes fetching listings
+4. Frontend listing fetch/display logic
+5. Listing detail page routing
+6. Dashboard listing click behavior
+7. Listing visibility filters (published, approved, status, etc.)
+
+Possible areas to check:
+- Listings API endpoint not returning new listings
+- Frontend not fetching listings correctly
+- Listing status preventing it from appearing publicly
+- Missing route for listing details page
+- Dashboard listing items not linked to the listing details page
+- Database field mismatch
+- Filtering logic hiding listings
+
+OUTPUT FORMAT:
+
+1. ROOT CAUSE ANALYSIS
+Explain what is preventing:
+- the listing from appearing on the public site
+- the listing from opening when clicked in the dashboard
+
+2. FILES INVOLVED
+List the exact files responsible for the issue.
+
+3. CODE LOCATIONS
+Show the exact code blocks causing the problem.
+
+4. FIX STRATEGY
+Explain the safest way to fix it WITHOUT breaking other features.
+
+REMEMBER:
+Do NOT implement the fix yet.
+Only analyze and report.
