@@ -321,6 +321,8 @@ class RentalApplication {
         } else if (banner) {
             banner.style.display = 'none';
         }
+
+        this._showContextBanner(prop);
     }
 
     // ---------- Lock property selection when arriving from a listing ----------
@@ -358,6 +360,27 @@ class RentalApplication {
                 this.onPropertySelected('');
             };
         }
+
+        this._showContextBanner(prop);
+    }
+
+    // ---------- Persistent property context banner (above all steps) ----------
+    _showContextBanner(prop) {
+        const banner = document.getElementById('propertyContextBanner');
+        if (!banner) return;
+        if (!prop) { this._hideContextBanner(); return; }
+        document.getElementById('pcbContextTitle').textContent = prop.title;
+        const metaParts = [];
+        metaParts.push(`<i class="fas fa-map-marker-alt" style="margin-right:4px;color:#c9a84c"></i>${prop.address}, ${prop.city}, ${prop.state}`);
+        if (prop.monthly_rent) metaParts.push(`<strong>$${parseInt(prop.monthly_rent).toLocaleString()}/mo</strong>`);
+        if (prop.bedrooms || prop.bathrooms) metaParts.push(`${prop.bedrooms||'?'}bd / ${prop.bathrooms||'?'}ba`);
+        document.getElementById('pcbContextMeta').innerHTML = metaParts.join(' &nbsp;·&nbsp; ');
+        banner.style.display = 'flex';
+    }
+
+    _hideContextBanner() {
+        const banner = document.getElementById('propertyContextBanner');
+        if (banner) banner.style.display = 'none';
     }
 
     // ---------- Test fill visibility — localhost only ----------

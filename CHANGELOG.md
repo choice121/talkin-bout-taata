@@ -9,6 +9,18 @@ Format:
 
 ---
 
+## [2026-03-13] — Improvement #2: Persistent property context banner across all steps
+
+- Added `div#propertyContextBanner` in `apply.html` between the step progress bar and the submission-progress div — outside all form sections so it persists across every step
+- Reuses existing `.property-confirm-banner` CSS class (no new CSS written)
+- Shows "Applying for" label, property title, address, rent/mo, and bed/bath count
+- Added `_showContextBanner(prop)` and `_hideContextBanner()` methods in `apply.js`
+- `onPropertySelected()` calls `_showContextBanner` on every selection (shows on pick, hides on clear/escape)
+- `_activatePropertyLock()` calls `_showContextBanner` so banner appears immediately on page load when arriving from a listing
+- Mobile layout handled by existing `.property-confirm-banner` media query (480px breakpoint wraps badge to full-width row)
+
+---
+
 ## [2026-03-13] — Hardened Replit AI control — 4-layer static site enforcement
 
 - Added `.agents/instructions.md` — dedicated agent instruction file that Replit reads on import, classifying the project as a static site and listing absolute prohibitions
