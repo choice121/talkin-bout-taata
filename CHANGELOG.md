@@ -9,6 +9,12 @@ Format:
 
 ---
 
+## [2026-03-13] — Security Hardening: claim_application() email verification
+
+- **`APPLICANT-AUTH.sql` — `claim_application()` RPC hardened:** The email verification in the function now uses `auth.email()` (the server-side JWT-verified email for the authenticated caller) instead of the client-supplied `p_email` parameter. This closes a theoretical attack vector where a malicious authenticated user who knew another applicant's `app_id` and email address could call the RPC directly via the REST API and claim that application. In normal dashboard usage, `currentUser.email` (the OTP-verified email) was always passed, so no user-facing behavior changes. The `p_email` parameter is retained in the function signature for backward compatibility but is no longer used for verification. Full audit of the applicant identity system confirmed all other components — OTP login flow, dashboard auth routing, `get_my_applications()` field exposure, `get_lease_financials()` financial gating, `co_applicant_email` display logic, `lastSuccessAppId` sessionStorage lifecycle, and all SQL migration idempotency — are working correctly.
+
+---
+
 ## [2026-03-13] — Applicant Identity Layer (Passwordless OTP Authentication)
 
 - **New `APPLICANT-AUTH.sql` migration:** Adds `applicant_user_id uuid` column to `applications` table with a foreign key to `auth.users`, an index, and a new RLS policy (`applications_applicant_read`) so authenticated applicants can read only their own rows. Also adds two secure RPCs: `get_my_applications()` returns the calling user's full application list (safe field subset), and `claim_application(app_id, email)` lets a newly-signed-in user link a legacy application submitted before they had an account (email-verified to prevent hijacking). Grant statements included.

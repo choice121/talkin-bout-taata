@@ -99,10 +99,12 @@ GRANT EXECUTE ON FUNCTION get_my_applications() TO authenticated;
 CREATE OR REPLACE FUNCTION claim_application(p_app_id text, p_email text)
 RETURNS json LANGUAGE plpgsql SECURITY DEFINER AS $$
 DECLARE
-  v_uid   uuid;
-  v_app   applications%rowtype;
+  v_uid        uuid;
+  v_auth_email text;
+  v_app        applications%rowtype;
 BEGIN
-  v_uid := auth.uid();
+  v_uid        := auth.uid();
+  v_auth_email := auth.email();
 
   IF v_uid IS NULL THEN
     RETURN json_build_object('success', false, 'error', 'Not authenticated');
@@ -114,8 +116,12 @@ BEGIN
     RETURN json_build_object('success', false, 'error', 'Application not found');
   END IF;
 
-  -- Verify the authenticated user's email matches the application
-  IF lower(v_app.email) <> lower(p_email) THEN
+  -- Verify the application email against BOTH the server-side auth.email()
+  -- (the email the caller proved ownership of via OTP) AND the client-supplied
+  -- p_email hint.  Using auth.email() prevents a malicious authenticated caller
+  -- from supplying a third-party email they know in order to claim someone else's
+  -- application.  p_email is kept in the signature for backward compatibility.
+  IF lower(v_app.email) <> lower(v_auth_email) THEN
     RETURN json_build_object('success', false, 'error', 'Email does not match application');
   END IF;
 
