@@ -39,7 +39,7 @@ class RentalApplication {
         const moveIn = p.get('moveIn');
         const moveInEl = document.getElementById('requestedMoveIn');
         if (moveIn && moveInEl && !moveInEl.value) moveInEl.value = moveIn;
-        // Property selection is handled by loadPropertyDropdown() using the propertyId param
+        // Property selection is handled by loadLockedProperty() using the propertyId param
     }
 
     // ---------- SSN toggle ----------
@@ -272,6 +272,77 @@ class RentalApplication {
         }
     }
 
+    // ---------- Locked-property load — form always arrives via a listing URL ----------
+    // Reads propertyId from the URL, fetches only that single property, and activates
+    // the locked card. If propertyId is absent or the property cannot be found, the
+    // form is hidden and a clear error message is shown instead.
+    async loadLockedProperty() {
+        const propertyId = new URLSearchParams(window.location.search).get('propertyId');
+
+        if (!propertyId) {
+            this._showInvalidPropertyMessage();
+            return;
+        }
+
+        try {
+            const { data: prop, error } = await window.CP.sb()
+                .from('properties')
+                .select(`
+                    id, title, address, city, state, zip,
+                    monthly_rent, application_fee,
+                    bedrooms, bathrooms, available_date,
+                    pets_allowed, smoking_allowed,
+                    pet_types_allowed, pet_weight_limit,
+                    lease_terms, minimum_lease_months
+                `)
+                .eq('id', propertyId)
+                .eq('status', 'active')
+                .single();
+
+            if (error || !prop) {
+                this._showInvalidPropertyMessage();
+                return;
+            }
+
+            // Store in the same map that onPropertySelected and _activatePropertyLock rely on
+            this._properties = { [prop.id]: prop };
+
+            this.onPropertySelected(prop.id);
+            this._activatePropertyLock(prop.id);
+
+            // Hide the escape hatch — there is no dropdown to fall back to
+            const escapeBtn = document.getElementById('propertyLockEscape');
+            if (escapeBtn) escapeBtn.style.display = 'none';
+
+        } catch (err) {
+            this._showInvalidPropertyMessage();
+        }
+    }
+
+    // ---------- Invalid property message — shown when the URL carries no valid propertyId ----------
+    _showInvalidPropertyMessage() {
+        const form = document.getElementById('rentalApplication');
+        if (form) form.style.display = 'none';
+
+        const container = document.querySelector('.container');
+        if (!container) return;
+
+        const msg = document.createElement('div');
+        msg.style.cssText = 'text-align:center;padding:60px 24px;';
+        msg.innerHTML = `
+            <div style="font-size:48px;margin-bottom:16px;line-height:1;">&#128279;</div>
+            <h2 style="font-size:1.4rem;color:#1a2233;margin-bottom:10px;">This link is no longer valid</h2>
+            <p style="color:#6b7280;font-size:.95rem;max-width:420px;margin:0 auto 28px;line-height:1.6;">
+                The property listing you followed may have been removed, is no longer active, or this link has expired.
+                Please return to the listings page to find an available property.
+            </p>
+            <a href="/index.html" style="display:inline-block;background:#0f1117;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:.9rem;font-weight:600;letter-spacing:.02em;">
+                &#8592; View All Listings
+            </a>
+        `;
+        container.appendChild(msg);
+    }
+
     // ---------- Handle property selection — fill hidden fields + show fee ----------
     onPropertySelected(propertyId) {
         const prop = this._properties && this._properties[propertyId];
@@ -455,7 +526,7 @@ class RentalApplication {
         this.setupPhoneFormatting();
         this.setupIncomeFormatting();
         this.prefillFromURL();
-        this.loadPropertyDropdown();
+        this.loadLockedProperty();
         this.setupTestFillVisibility();
         
         // If returning after a submit (e.g. back button), session has appId — just redirect properly
