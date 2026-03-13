@@ -65,8 +65,8 @@ body{font-family: var(--font-base);background:#f5f6fa;color:#1a1a1a;min-height:1
   <div class="loading-state">Loading your lease agreement…</div>
 </div>
 
-<script src="/js/cp-api.js"></script>
-<script>
+<script type="module" src="/js/cp-api.js"></script>
+<script type="module">
 const params      = new URLSearchParams(location.search);
 const appId       = params.get('id');
 const signToken   = params.get('token');     // primary tenant signing token (Fix Group 5)
@@ -471,6 +471,9 @@ function initScrollGates() {
   if (leaseTexts[0]) attachScrollGate(leaseTexts[0], 'sign-btn', 'scroll-hint', 'sign-note');
   if (leaseTexts[1]) attachScrollGate(leaseTexts[1], 'co-sign-btn', 'co-scroll-hint', 'co-sign-note');
 }
+
+window.doSign   = doSign;
+window.doCoSign = doCoSign;
 </script>
 </body>
 </html>

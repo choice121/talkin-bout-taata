@@ -25,7 +25,7 @@
   <!-- Styles: /css/main.css + /css/listings.css (inline block extracted Phase 3) -->
 <script src="/config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="/js/cp-api.js"></script>
+<script type="module" src="/js/cp-api.js"></script>
 </head>
 <body>
 
@@ -443,7 +443,7 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="" defer></script>
 
-<script>
+<script type="module">
 // index.html inline script — uses CONFIG from config.js (already loaded above)
 const supabase = CP.sb();
 

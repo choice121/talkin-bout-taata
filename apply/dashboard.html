@@ -119,8 +119,8 @@ body{font-family: var(--font-base);background:#f5f6fa;color:#1a1a1a;min-height:1
   <div id="dashboard" style="display:none"></div>
 </div>
 
-<script src="/js/cp-api.js"></script>
-<script>
+<script type="module" src="/js/cp-api.js"></script>
+<script type="module">
 function escapeHTML(str) {
   return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
@@ -336,6 +336,10 @@ document.addEventListener('click', async (e) => {
   if (res?.success) { ta.value = ''; CP.UI.toast('Message sent.', 'success'); lookup(); }
   else CP.UI.toast('Error sending message. Please try again.', 'error');
 });
+
+window.lookup       = lookup;
+window.recoverById  = recoverById;
+window.sendRecovery = sendRecovery;
 </script>
 </body>
 </html>
