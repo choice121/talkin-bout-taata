@@ -436,6 +436,10 @@ class RentalApplication {
         group.style.display = 'none';
         card.style.display  = 'flex';
 
+        // Keep the hidden select in sync so validateStep(1) doesn't block progression
+        const select = document.getElementById('propertySelect');
+        if (select) select.value = propertyId;
+
         // Escape hatch — clicking "Not this property?" restores the open dropdown
         const escapeBtn = document.getElementById('propertyLockEscape');
         if (escapeBtn) {
