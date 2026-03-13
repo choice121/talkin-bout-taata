@@ -126,11 +126,14 @@ The entire site uses a **Zillow-inspired design system** with a centralized toke
 ### Key Design Decisions
 
 - **Hero**: Zillow blue gradient (`135deg, #0059D6 → #006AFF → #1A80FF → #0050CC`)
-- **Nav**: White with Zillow blue house logo emblem, pill-shaped blue CTA
+- **Nav**: White with Zillow blue house logo emblem; `nav-link--cta` (blue pill) for primary actions, `nav-link--landlord` (outlined) for landlord-facing actions
+- **Nav structure** (all public pages): Browse Listings | How to Apply | FAQ | Track Application | [For Landlords] (outlined)
 - **Search button**: Zillow blue (not dark ink)
 - **Filter pills active state**: Zillow blue
 - **Property card apply button**: Zillow blue pill shape
-- **Apply form header**: Zillow blue gradient
+- **Trust strip**: 5 items across the top below hero — Verified Listings, 15-Min Application, Bank-Level Security, Real-Time Updates, All 50 States
+- **How It Works**: 3-step section (Find → Apply → Move In) on homepage before listings
+- **Apply form nav**: Single minimal nav (logo + Listings + Track Application + Español toggle); no internal `<header>` block; 6-step `.progress-container` is sticky at `top: 56px`
 - **Footer/Why section**: Dark ink for contrast (Zillow pattern)
 - **Admin portal**: Dark theme retained with Zillow blue accents
 

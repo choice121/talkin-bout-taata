@@ -162,11 +162,13 @@ body {
 .progress-container {
     background: var(--color-surface-raised);
     padding: var(--space-5);
-    border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+    border-radius: var(--radius-xl);
     box-shadow: var(--shadow-sm);
     margin-bottom: var(--space-6);
     border: 1px solid var(--color-border);
-    border-top: none;
+    position: sticky;
+    top: 56px;
+    z-index: 50;
 }
 
 .progress-bar {
