@@ -25,10 +25,11 @@ Deployment target = **Cloudflare Pages**. Backend = **Supabase cloud**. Replit h
 - Do **NOT** install Express, Fastify, or any Node.js server framework
 - Do **NOT** add any backend dependency to `package.json`
 - Do **NOT** run `db:push`, `db:migrate`, or any database migration command
-- Do **NOT** set `SUPABASE_URL` or `SUPABASE_ANON_KEY` as Replit secrets — not needed here
+- `SUPABASE_URL` and `SUPABASE_ANON_KEY` ARE set as Replit secrets — needed for local preview via serve.js
 - Do **NOT** provision any Replit-managed infrastructure
 - Do **NOT** modify Supabase Edge Functions unless the user explicitly asks
-- Do **NOT** modify `serve.js`, `generate-config.js`, `SCHEMA.sql`, or `SECURITY-PATCHES.sql`
+- Do **NOT** modify `generate-config.js`, `SCHEMA.sql`, or `SECURITY-PATCHES.sql`
+- `serve.js` may be modified for Replit preview server improvements only (performance, headers)
 - Do **NOT** run `npm install` unless the user explicitly requests a specific package
 - Do **NOT** attempt to "complete setup" or "migrate" this project — it is already complete
 

@@ -4,6 +4,7 @@
 const http = require('http');
 const fs   = require('fs');
 const path = require('path');
+const zlib = require('zlib');
 
 // ── Regenerate config.js from Replit secrets ──────────────
 const SUPABASE_URL      = (process.env.SUPABASE_URL      || '').replace(/\/$/, '');
@@ -91,6 +92,22 @@ const MIME = {
   '.ttf':  'font/ttf',
 };
 
+// Extensions whose responses benefit from gzip compression
+const COMPRESSIBLE = new Set(['.html', '.css', '.js', '.json', '.svg', '.xml', '.txt']);
+
+// Cache-Control policy:
+//   config.js and HTML files — always revalidate (content changes without a version bump)
+//   CSS / JS               — 1 hour  (versioned via ?v= param in HTML <link>/<script> tags)
+//   Images / fonts         — 7 days / 30 days respectively (rarely change)
+function getCacheControl(ext, urlPath) {
+  if (urlPath === '/config.js') return 'no-cache, must-revalidate';
+  if (ext === '.html')          return 'no-cache, must-revalidate';
+  if (ext === '.css' || ext === '.js')  return 'public, max-age=3600';
+  if (['.png', '.jpg', '.jpeg', '.webp', '.ico'].includes(ext)) return 'public, max-age=604800';
+  if (['.woff', '.woff2', '.ttf'].includes(ext)) return 'public, max-age=2592000';
+  return 'public, max-age=3600';
+}
+
 const PORT    = process.env.PORT || 5000;
 const ROOT    = __dirname;
 
@@ -115,8 +132,25 @@ const server = http.createServer((req, res) => {
       const ext  = path.extname(candidate).toLowerCase();
       const mime = MIME[ext] || 'application/octet-stream';
       const code = candidate.endsWith('404.html') && candidate !== filePath ? 404 : 200;
-      res.writeHead(code, { 'Content-Type': mime });
-      fs.createReadStream(candidate).pipe(res);
+
+      const cacheControl   = getCacheControl(ext, urlPath);
+      const acceptEncoding = req.headers['accept-encoding'] || '';
+      const useGzip        = COMPRESSIBLE.has(ext) && acceptEncoding.includes('gzip');
+
+      const headers = {
+        'Content-Type':  mime,
+        'Cache-Control': cacheControl,
+        'Vary':          'Accept-Encoding',
+      };
+
+      if (useGzip) {
+        headers['Content-Encoding'] = 'gzip';
+        res.writeHead(code, headers);
+        fs.createReadStream(candidate).pipe(zlib.createGzip()).pipe(res);
+      } else {
+        res.writeHead(code, headers);
+        fs.createReadStream(candidate).pipe(res);
+      }
       return;
     }
   }

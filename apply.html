@@ -11,8 +11,8 @@
     <link rel="stylesheet" href="/css/apply.css?v=2">
     <!-- config.js must load first — sets window.CONFIG used by apply.js -->
     <script src="/config.js"></script>
-    <!-- Supabase UMD — must load before cp-api.js -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <!-- Supabase UMD — defer so it doesn't block first paint; loads before cp-api.js (module) -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <!-- cp-api.js — sets window.CP (Supabase helpers) used by apply.js -->
     <script type="module" src="/js/cp-api.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
