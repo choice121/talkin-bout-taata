@@ -1,15 +1,15 @@
-# ============================================================
-# Choice Properties — Cloudflare Pages Configuration
-# ============================================================
-# This file identifies the project as a Cloudflare Pages
-# static site deployment. It contains no runtime configuration
-# and does not affect the static files served to the browser.
-#
-# The actual build settings (root directory, output directory)
-# are configured in the Cloudflare Pages dashboard UI.
-# See SETUP.md → Step 6 for the full deployment guide.
-# ============================================================
-
 name = "choice-properties"
 pages_build_output_dir = "."
 compatibility_date = "2024-01-01"
+
+[vars]
+SUPABASE_URL = ""
+SUPABASE_ANON_KEY = ""
+IMAGEKIT_URL = ""
+IMAGEKIT_PUBLIC_KEY = ""
+GEOAPIFY_API_KEY = ""
+COMPANY_NAME = ""
+COMPANY_EMAIL = ""
+COMPANY_PHONE = ""
+COMPANY_ADDRESS = ""
+ADMIN_EMAILS = ""
