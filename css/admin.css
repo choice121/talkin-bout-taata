@@ -30,9 +30,9 @@
 
 /* ── ADMIN ZILLOW TOKENS ──────────────────────────────────── */
 :root {
-  --adm-bg:       #F5F4F0;
+  --adm-bg:       #f5f5f5;
   --adm-surface:  #ffffff;
-  --adm-surface2: #F5F4F0;
+  --adm-surface2: #f5f5f5;
   --adm-border:   #E0E0E0;
   --adm-text:     #1A1A1A;
   --adm-muted:    #767676;
@@ -54,14 +54,14 @@ body {
 
 /* ── SIDEBAR ──────────────────────────────────────────────── */
 .sidebar {
-  width: 240px; background: #0B1F14;
-  border-right: 1px solid #12241A;
+  width: 240px; background: #07121F;
+  border-right: 1px solid #132030;
   display: flex; flex-direction: column; flex-shrink: 0;
   position: fixed; top: 0; left: 0; height: 100vh; z-index: 100;
 }
 .sidebar-logo {
   padding: 24px 20px 20px;
-  border-bottom: 1px solid #12241A;
+  border-bottom: 1px solid #132030;
 }
 .sidebar-logo .name {
   font-size: 0.88rem; color: var(--color-brand-light);
@@ -88,19 +88,19 @@ body {
 }
 .nav-item:hover {
   color: rgba(255,255,255,0.90);
-  background: rgba(27,94,59,0.10);
-  border-left-color: rgba(27,94,59,0.40);
+  background: rgba(0,106,255,0.10);
+  border-left-color: rgba(0,106,255,0.40);
 }
 .nav-item.active {
   color: var(--color-brand-light);
-  background: rgba(27,94,59,0.18);
+  background: rgba(0,106,255,0.15);
   border-left-color: var(--color-brand);
   font-weight: 600;
 }
 .nav-item .icon { width: 16px; text-align: center; font-size: 0.90rem; }
 
 .sidebar-footer {
-  padding: 16px 20px; border-top: 1px solid #12241A;
+  padding: 16px 20px; border-top: 1px solid #132030;
 }
 .admin-name { font-size: 0.75rem; color: rgba(255,255,255,0.45); margin-bottom: 8px; }
 .sign-out {
@@ -187,7 +187,7 @@ td {
   vertical-align: middle;
 }
 tr:last-child td { border-bottom: none; }
-tr:hover td { background: rgba(27,94,59,0.03); }
+tr:hover td { background: rgba(0,106,255,0.03); }
 
 /* ── BADGES ───────────────────────────────────────────────── */
 .badge {
@@ -201,9 +201,9 @@ tr:hover td { background: rgba(27,94,59,0.03); }
 .badge-success   { background: rgba(16,185,129,0.12); color: #34d399; }
 .badge-danger    { background: rgba(239,68,68,0.12);  color: #f87171; }
 .badge-warning   { background: rgba(245,158,11,0.12); color: #fbbf24; }
-.badge-info      { background: rgba(27,94,59,0.10);  color: var(--color-brand); }
+.badge-info      { background: rgba(0,106,255,0.10);  color: var(--color-brand); }
 .badge-secondary { background: rgba(118,118,118,0.10); color: var(--adm-muted2); }
-.badge-gold      { background: rgba(196,129,42,0.12); color: var(--color-gold); }
+.badge-gold      { background: rgba(0,106,255,0.15);  color: var(--color-brand-light); }
 
 /* ── BUTTONS ──────────────────────────────────────────────── */
 .btn {
@@ -262,7 +262,7 @@ label.field-label {
   font-family: var(--font-base);
 }
 .filter-btn:hover, .filter-btn.active {
-  background: rgba(27,94,59,0.10);
+  background: rgba(0,106,255,0.10);
   border-color: var(--color-brand); color: var(--color-brand-light);
 }
 
@@ -302,7 +302,7 @@ label.field-label {
 .cp-toast.show         { transform: translateX(0); }
 .cp-toast-success      { border-color: rgba(16,185,129,0.40); background: rgba(16,185,129,0.08); }
 .cp-toast-error        { border-color: rgba(239,68,68,0.40);  background: rgba(239,68,68,0.08); }
-.cp-toast-info         { border-color: rgba(27,94,59,0.40); background: rgba(27,94,59,0.08); }
+.cp-toast-info         { border-color: rgba(59,130,246,0.40); background: rgba(59,130,246,0.08); }
 
 /* ── MISC UTILITIES ───────────────────────────────────────── */
 .empty-state  { text-align: center; padding: 48px 20px; color: var(--adm-muted); font-size: 0.85rem; }

@@ -5,8 +5,8 @@
    Architecture: Semantic tokens → components → legacy aliases
    ============================================================ */
 
-/* ── Premium Emerald fonts: Plus Jakarta Sans + Fraunces ───── */
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;1,9..144,400;1,9..144,600;1,9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+/* ── Unified font: Inter replaces Sora + Manrope ───────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html {
@@ -23,24 +23,23 @@ html {
      Primary blue is the single action color across all pages.
      ════════════════════════════════════════════════════════ */
 
-  --color-brand:          #1B5E3B;
-  --color-brand-hover:    #154D30;
-  --color-brand-light:    #2D8A5E;
-  --color-brand-pale:     #F0FDF6;
-  --color-brand-glow:     rgba(27, 94, 59, 0.15);
-  --color-brand-mid:      rgba(27, 94, 59, 0.08);
-  --color-accent:         #E8A23C;
+  --color-brand:          #006AFF;
+  --color-brand-hover:    #0050CC;
+  --color-brand-light:    #4D9FFF;
+  --color-brand-pale:     #EBF4FF;
+  --color-brand-glow:     rgba(0, 106, 255, 0.15);
+  --color-brand-mid:      rgba(0, 106, 255, 0.08);
 
 
   /* ════════════════════════════════════════════════════════
      SECTION B — TEXT COLORS
      ════════════════════════════════════════════════════════ */
 
-  --color-ink:              #1C1917;   /* Deepest dark — text, borders */
-  --color-dark-surface:     #0B1F14;   /* Unified dark background — footer, dark sections */
-  --color-text-primary:     #1C1917;   /* Primary body and heading text */
-  --color-text-secondary:   #57534E;   /* Secondary text, descriptions, metadata */
-  --color-text-muted:       #78716C;   /* Placeholder, disabled, fine print */
+  --color-ink:              #1A1A1A;   /* Deepest dark — text, borders */
+  --color-dark-surface:     #07121F;   /* Unified dark background — footer, dark sections */
+  --color-text-primary:     #1A1A1A;   /* Primary body and heading text */
+  --color-text-secondary:   #565656;   /* Secondary text, descriptions, metadata */
+  --color-text-muted:       #767676;   /* Placeholder, disabled, fine print */
   --color-text-inverse:     #ffffff;   /* Text on dark surfaces */
 
   /* Ink alpha variants (used by dark sections, overlays) */
@@ -55,9 +54,9 @@ html {
      SECTION C — SURFACE COLORS
      ════════════════════════════════════════════════════════ */
 
-  --color-surface-page:     #FAFAF8;   /* Default page background */
+  --color-surface-page:     #f5f5f5;   /* Default page background */
   --color-surface-raised:   #ffffff;   /* Cards, modals, dropdowns */
-  --color-surface-subtle:   #F2EEE7;   /* Hover states, table alternating rows */
+  --color-surface-subtle:   #F0F0F0;   /* Hover states, table alternating rows */
   --color-surface-overlay:  rgba(26, 26, 26, 0.50);   /* Modal / drawer backdrops */
 
 
@@ -65,9 +64,9 @@ html {
      SECTION D — BORDER COLORS
      ════════════════════════════════════════════════════════ */
 
-  --color-border:           #E5E0D8;   /* Default borders */
-  --color-border-strong:    #C4BCAF;   /* Emphasized borders, focus-adjacent */
-  --color-border-muted:     #EDE8E0;   /* Very subtle dividers */
+  --color-border:           #E0E0E0;   /* Default borders */
+  --color-border-strong:    #B8B8B8;   /* Emphasized borders, focus-adjacent */
+  --color-border-muted:     #EBEBEB;   /* Very subtle dividers */
 
 
   /* ════════════════════════════════════════════════════════
@@ -102,9 +101,9 @@ html {
   --color-error-border:     #fecaca;
 
   /* Info (same hue as brand) */
-  --color-info:             #1B5E3B;
-  --color-info-bg:          #F0FDF6;
-  --color-info-border:      rgba(27, 94, 59, 0.25);
+  --color-info:             #006AFF;
+  --color-info-bg:          #EBF4FF;
+  --color-info-border:      rgba(0, 106, 255, 0.25);
 
 
   /* ════════════════════════════════════════════════════════
@@ -114,12 +113,12 @@ html {
      than define a wholly separate one.
      ════════════════════════════════════════════════════════ */
 
-  --color-admin-bg:         #F5F4F0;   /* Admin page background (warm off-white) */
+  --color-admin-bg:         #f4f5f9;   /* Admin page background (light blue-gray) */
   --color-admin-surface:    #ffffff;   /* Admin card backgrounds */
-  --color-admin-nav-bg:     #0B1F14;   /* Admin sidebar background — forest night */
+  --color-admin-nav-bg:     #07121F;   /* Admin sidebar background — unified dark navy */
   --color-admin-nav-text:   rgba(255, 255, 255, 0.65);
   --color-admin-nav-active: #ffffff;
-  --color-admin-nav-accent: #1B5E3B;   /* Active state — matches brand emerald */
+  --color-admin-nav-accent: #006AFF;   /* Active state — matches brand blue */
 
 
   /* ════════════════════════════════════════════════════════
@@ -128,9 +127,9 @@ html {
      It is no longer a structural brand color.
      ════════════════════════════════════════════════════════ */
 
-  --color-gold:             #C4812A;
-  --color-gold-pale:        #FEF8EE;
-  --color-gold-border:      rgba(196, 129, 42, 0.25);
+  --color-gold:             #c9a84c;
+  --color-gold-pale:        #fef9ec;
+  --color-gold-border:      rgba(201, 168, 76, 0.25);
 
 
   /* ════════════════════════════════════════════════════════
@@ -138,8 +137,12 @@ html {
      Single font family: Inter across all contexts.
      ════════════════════════════════════════════════════════ */
 
-  --font-base:    'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --font-display: 'Fraunces', Georgia, serif;
+  --font-base:    'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Phase 1: --font-display and --font-body now both point to Inter.
+     Existing CSS that references these variables continues to compile.
+     Later phases will update call-sites to use --font-base directly. */
+  --font-display: var(--font-base);
   --font-body:    var(--font-base);
 
   /* Heading scale */
@@ -223,14 +226,14 @@ html {
      SECTION L — SHADOW TOKENS
      ════════════════════════════════════════════════════════ */
 
-  --shadow-xs:      0 1px 2px rgba(20, 12, 5, 0.05);
-  --shadow-sm:      0 1px 3px rgba(20, 12, 5, 0.08), 0 1px 2px rgba(20, 12, 5, 0.05);
-  --shadow-md:      0 4px 12px rgba(20, 12, 5, 0.09), 0 2px 4px rgba(20, 12, 5, 0.05);
-  --shadow-lg:      0 8px 28px rgba(20, 12, 5, 0.11), 0 3px 8px rgba(20, 12, 5, 0.06);
-  --shadow-xl:      0 16px 48px rgba(20, 12, 5, 0.13), 0 4px 16px rgba(20, 12, 5, 0.07);
-  --shadow-2xl:     0 32px 80px rgba(20, 12, 5, 0.15), 0 8px 24px rgba(20, 12, 5, 0.08);
-  --shadow-brand:   0 4px 20px rgba(27, 94, 59, 0.28);
-  --shadow-brand-lg:0 8px 32px rgba(27, 94, 59, 0.32);
+  --shadow-xs:      0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm:      0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md:      0 4px 12px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.04);
+  --shadow-lg:      0 8px 24px rgba(0, 0, 0, 0.09), 0 3px 8px rgba(0, 0, 0, 0.05);
+  --shadow-xl:      0 16px 48px rgba(0, 0, 0, 0.11), 0 4px 16px rgba(0, 0, 0, 0.06);
+  --shadow-2xl:     0 32px 80px rgba(0, 0, 0, 0.13), 0 8px 24px rgba(0, 0, 0, 0.07);
+  --shadow-brand:   0 4px 20px rgba(0, 106, 255, 0.25);
+  --shadow-brand-lg:0 8px 32px rgba(0, 106, 255, 0.30);
 
 
   /* ════════════════════════════════════════════════════════
@@ -363,14 +366,14 @@ html {
   --emerald:       var(--color-success);
   --emerald-bg:    var(--color-success-bg);
   --navy:          var(--color-ink);
-  --navy-mid:      #154D30;            /* Emerald dark for gradient contexts */
+  --navy-mid:      #0050CC;            /* Zillow dark blue for gradient contexts */
   --surface-dark:  var(--color-border);
   --surface-mid:   var(--color-surface-subtle);
-  --bg:            #FAFAF8;            /* Warm off-white page bg */
-  --muted:         #78716C;            /* Muted text */
-  --muted2:        #57534E;            /* Secondary text */
-  --text:          #1C1917;            /* Primary text */
-  --surface2:      #F2EEE7;            /* Secondary surface */
+  --bg:            #f5f5f5;            /* Zillow page bg */
+  --muted:         #767676;            /* Zillow muted text */
+  --muted2:        #565656;            /* Zillow secondary text */
+  --text:          #1A1A1A;            /* Zillow primary text */
+  --surface2:      #F0F0F0;            /* Zillow secondary surface */
   --info:          var(--color-brand-light);
 
 }
@@ -414,7 +417,7 @@ button { font-family: var(--font-body); }
 .nav-logo-emblem {
   width: 34px; height: 34px; background: var(--blue); border-radius: var(--r-lg);
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(27,94,59,0.25);
+  box-shadow: 0 2px 8px rgba(0,106,255,0.25);
 }
 .nav-logo-emblem svg { width: 20px; height: 20px; }
 .nav-logo-text-wrap { display: flex; flex-direction: column; }
@@ -1010,7 +1013,7 @@ footer { background: var(--color-dark-surface); padding: var(--s-16) 0 var(--s-8
 /* SUCCESS */
 .success-card { background: var(--white); border-radius: var(--r-3xl); box-shadow: var(--sh-xl); overflow: hidden; border: 1px solid var(--border); }
 .success-icon { width: 68px; height: 68px; border-radius: 50%; background: var(--green-bg); border: 2px solid var(--green-border); display: flex; align-items: center; justify-content: center; font-size: 26px; color: var(--green); margin: 0 auto var(--s-6); }
-.app-id-card { background: var(--blue-pale); border: 1.5px solid rgba(27,94,59,0.2); border-radius: var(--r-xl); padding: var(--s-6); text-align: center; margin-bottom: var(--s-8); }
+.app-id-card { background: var(--blue-pale); border: 1.5px solid rgba(0,106,255,0.2); border-radius: var(--r-xl); padding: var(--s-6); text-align: center; margin-bottom: var(--s-8); }
 
 /* ── COMPONENT: TABLES ───────────────────────────────────────
    Unified table styles used across landlord and admin pages.
