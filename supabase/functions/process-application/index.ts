@@ -113,6 +113,29 @@ Deno.serve(async (req) => {
       }
     }
 
+    // ── Validate property is still active at time of submission ──
+    // Prevents applications being submitted for properties that were taken
+    // off the market between when the applicant started the form and when they submitted.
+    if (submittedProperty) {
+      const { data: activeProp, error: propCheckError } = await supabase
+        .from('properties')
+        .select('id, status, title')
+        .eq('id', submittedProperty)
+        .single()
+      if (propCheckError || !activeProp || activeProp.status !== 'active') {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            property_inactive: true,
+            error: 'This property is no longer available for applications.',
+          }),
+          { status: 410, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+      // Store title for email payload below
+      formData._property_title = activeProp.title || ''
+    }
+
     // Generate app_id
     const { data: appIdRow } = await supabase.rpc('generate_app_id')
     const appId = appIdRow || `CP-${Date.now()}`
@@ -248,7 +271,9 @@ Deno.serve(async (req) => {
       last_name:           record.last_name,
       email:               record.email,
       phone:               record.phone,
+      property_title:      formData._property_title     || '',
       property_address:    record.property_address,
+      application_fee:     record.application_fee,
       requested_move_in:   record.requested_move_in_date || 'Not specified',
       desired_lease_term:  record.desired_lease_term     || 'Not specified',
     }

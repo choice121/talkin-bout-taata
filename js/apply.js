@@ -307,6 +307,22 @@ class RentalApplication {
             // Store in the same map that onPropertySelected and _activatePropertyLock rely on
             this._properties = { [prop.id]: prop };
 
+            // Persist full property context to sessionStorage — used by the success page
+            // and any other page in the journey that needs property details without a DB call.
+            sessionStorage.setItem('cp_property_context', JSON.stringify({
+                id:               prop.id,
+                title:            prop.title,
+                address:          prop.address,
+                city:             prop.city,
+                state:            prop.state,
+                zip:              prop.zip              || '',
+                monthly_rent:     prop.monthly_rent     || null,
+                application_fee:  prop.application_fee  || 0,
+                available_date:   prop.available_date   || null,
+                bedrooms:         prop.bedrooms         || null,
+                bathrooms:        prop.bathrooms        || null,
+            }));
+
             this.onPropertySelected(prop.id);
             this._activatePropertyLock(prop.id);
 
@@ -2207,6 +2223,14 @@ class RentalApplication {
             // Edge function returns snake_case app_id — normalise to appId
             if (result.app_id) result.appId = result.app_id;
 
+            // ── Property no longer active (HTTP 410) ────────────────
+            if (response.status === 410 && result.property_inactive) {
+                throw new Error(
+                    'This property is no longer accepting applications — it may have been filled or removed. ' +
+                    'Please return to our listings to find an available property.'
+                );
+            }
+
             // ── Server-side duplicate detected (HTTP 409) ────────────
             if (response.status === 409 && result.duplicate && result.existing_app_id) {
                 this.hideSubmissionProgress();
@@ -2306,12 +2330,10 @@ class RentalApplication {
         this.clearSavedProgress();
         sessionStorage.setItem('lastSuccessAppId', appId);
 
-        // Redirect to branded success page, carrying property context from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const successParams = new URLSearchParams({ appId });
-        if (urlParams.get('title'))           successParams.set('title', urlParams.get('title'));
-        if (urlParams.get('propertyAddress')) successParams.set('addr',  urlParams.get('propertyAddress'));
-        window.location.href = `/apply/success.html?${successParams.toString()}`;
+        // Property context lives in sessionStorage (set by loadLockedProperty).
+        // Pass only the appId in the URL — the success page reads everything else
+        // from sessionStorage so the URL stays clean and readable.
+        window.location.href = `/apply/success.html?appId=${encodeURIComponent(appId)}`;
     }
 
     delay(ms) {

@@ -182,8 +182,8 @@
 
                 <h3 data-i18n="propertyInfo">Property Information</h3>
 
-                <!-- Property selector — loads active listings from DB -->
-                <div class="form-group" id="propertySelectGroup">
+                <!-- Property selector — hidden by default; applicants always arrive via a listing URL -->
+                <div class="form-group" id="propertySelectGroup" style="display:none">
                   <label class="required" for="propertySelect" data-i18n="propertySelectLabel">Select Property You Are Applying For</label>
                   <select id="propertySelect" name="Property Select" required aria-required="true" aria-describedby="propertySelectError" style="width:100%;padding:12px 16px;border:1.5px solid #dde1e8;border-radius:8px;font-size:15px;background:#fff;color:#1a2233;appearance:auto">
                     <option value="">Loading available properties…</option>

@@ -101,7 +101,19 @@ h1{font-size:1.6rem;color:#0a1628;margin-bottom:8px}
   <p class="contact-line" id="contact-line" style="display:none">Questions? Text: <strong id="phone"></strong> · <span id="email"></span></p>
 </div>
 <script>
-// Company info — only show contact line when real values are configured
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function addBusinessDays(date, days) {
+  const d = new Date(date);
+  let added = 0;
+  while (added < days) {
+    d.setDate(d.getDate() + 1);
+    const dow = d.getDay();
+    if (dow !== 0 && dow !== 6) added++;
+  }
+  return d;
+}
+
+// ── Company contact line ──────────────────────────────────────────────────────
 const phone = CONFIG.COMPANY_PHONE;
 const email = CONFIG.COMPANY_EMAIL;
 const isConfigured = phone && !phone.includes('YOUR') && email && !email.includes('your@');
@@ -111,38 +123,94 @@ if (isConfigured) {
   document.getElementById('contact-line').style.display = '';
 }
 
-// App ID
+// ── Application ID ────────────────────────────────────────────────────────────
 const p = new URLSearchParams(location.search);
 const appId = sessionStorage.getItem('lastSuccessAppId') || p.get('appId') || p.get('id') || '—';
 document.getElementById('app-id-display').textContent = appId;
-if (appId !== '—') document.getElementById('dashboard-link').href = 'dashboard.html?id=' + appId;
+if (appId !== '—') document.getElementById('dashboard-link').href = 'dashboard.html?id=' + encodeURIComponent(appId);
 
-// Property context
-const title = p.get('title');
-const addr  = p.get('addr');
-if (title) {
-  document.getElementById('pctx-title').textContent = title;
-  document.getElementById('pctx-addr').textContent  = addr || '';
+// ── Property context ──────────────────────────────────────────────────────────
+// Primary source: sessionStorage (set by loadLockedProperty on the form page).
+// Fallback: URL params (legacy, for bookmarked links).
+let ctx = {};
+try { ctx = JSON.parse(sessionStorage.getItem('cp_property_context') || '{}'); } catch(e) {}
+
+const propTitle = ctx.title || p.get('title') || '';
+const propFee   = ctx.application_fee !== undefined ? parseInt(ctx.application_fee) : parseInt(p.get('fee') || '-1');
+const propRent  = ctx.monthly_rent ? parseInt(ctx.monthly_rent) : null;
+const propBeds  = ctx.bedrooms  || null;
+const propBaths = ctx.bathrooms || null;
+
+// Build address string
+let propAddr = '';
+if (ctx.address) {
+  propAddr = [ctx.address, ctx.city, ctx.state].filter(Boolean).join(', ');
+  if (ctx.zip) propAddr += ' ' + ctx.zip;
+} else {
+  propAddr = p.get('addr') || '';
+}
+
+if (propTitle) {
+  document.getElementById('pctx-title').textContent = propTitle;
+
+  // Build the detail line: address + rent + beds/baths
+  const meta = [];
+  if (propRent) meta.push('$' + propRent.toLocaleString() + '/mo');
+  const roomStr = [propBeds ? propBeds + ' bed' : '', propBaths ? propBaths + ' bath' : ''].filter(Boolean).join(' · ');
+  if (roomStr) meta.push(roomStr);
+  const addrLine = propAddr ? propAddr + (meta.length ? '  ·  ' + meta.join('  ·  ') : '') : meta.join('  ·  ');
+  document.getElementById('pctx-addr').textContent = addrLine;
   document.getElementById('property-ctx').style.display = 'block';
 }
 
-// Estimated decision date
-function addBusinessDays(date, days) {
-  const d = new Date(date);
-  let added = 0;
-  while (added < days) {
-    d.setDate(d.getDate() + 1);
-    const dow = d.getDay();
-    if (dow !== 0 && dow !== 6) added++; // skip weekends
-  }
-  return d;
-}
-const decisionDate = addBusinessDays(new Date(), 3);
-const opts = { weekday: 'long', month: 'long', day: 'numeric' };
-document.getElementById('decision-date-line').textContent =
-  'You can expect a decision by ' + decisionDate.toLocaleDateString('en-US', opts);
+// ── Fee-conditional messaging ─────────────────────────────────────────────────
+// propFee -1 means unknown (no sessionStorage and no URL param) — show generic copy.
+const hasFee    = propFee > 0;
+const feeKnown  = propFee >= 0;
+const feeLabel  = hasFee ? '$' + propFee.toLocaleString() : '';
 
-// Copy button
+const estimateEl   = document.getElementById('decision-estimate');
+const stepsEl      = document.querySelector('.steps');
+const dateLineEl   = document.getElementById('decision-date-line');
+
+if (hasFee) {
+  // Fee required — team will contact within 24 h; decision follows after payment
+  const decisionDate = addBusinessDays(new Date(), 5);
+  const opts = { weekday: 'long', month: 'long', day: 'numeric' };
+  if (dateLineEl) dateLineEl.textContent =
+    'You can expect a decision by ' + decisionDate.toLocaleDateString('en-US', opts) + ' (after fee payment)';
+  estimateEl.querySelector('.de-text').innerHTML =
+    '<strong>' + (dateLineEl ? dateLineEl.textContent : 'Decision timeline') + '</strong><br>' +
+    'Our team will contact you within 24 hours to arrange your <strong>' + feeLabel + ' application fee</strong>. ' +
+    'Formal review begins after payment is received.';
+  if (stepsEl) stepsEl.innerHTML =
+    '<div class="steps-title">What happens next</div>' +
+    '<div class="step"><div class="step-num">1</div><div><strong>Payment Contact</strong> — Our team will reach out within 24 hours via your preferred contact method to arrange the ' + feeLabel + ' application fee.</div></div>' +
+    '<div class="step"><div class="step-num">2</div><div><strong>Active Review</strong> — Once payment is confirmed, your application moves to formal review.</div></div>' +
+    '<div class="step"><div class="step-num">3</div><div><strong>Decision</strong> — You will be notified by email. If approved, a lease will be prepared for your signature.</div></div>';
+} else if (feeKnown) {
+  // No fee — review starts immediately; faster decision estimate
+  const decisionDate = addBusinessDays(new Date(), 3);
+  const opts = { weekday: 'long', month: 'long', day: 'numeric' };
+  if (dateLineEl) dateLineEl.textContent =
+    'You can expect a decision by ' + decisionDate.toLocaleDateString('en-US', opts);
+  estimateEl.querySelector('.de-text').innerHTML =
+    '<strong>' + (dateLineEl ? dateLineEl.textContent : 'Decision timeline') + '</strong><br>' +
+    'No application fee required — your application moves directly to formal review.';
+  if (stepsEl) stepsEl.innerHTML =
+    '<div class="steps-title">What happens next</div>' +
+    '<div class="step"><div class="step-num">1</div><div><strong>Active Review</strong> — Your application is now in our queue for formal review. No payment required.</div></div>' +
+    '<div class="step"><div class="step-num">2</div><div><strong>Decision</strong> — You will be notified by email, usually within 2–3 business days.</div></div>' +
+    '<div class="step"><div class="step-num">3</div><div><strong>Lease Prepared</strong> — If approved, a lease will be sent to you for signature.</div></div>';
+} else {
+  // Fee unknown — use original generic copy with 3-day estimate
+  const decisionDate = addBusinessDays(new Date(), 3);
+  const opts = { weekday: 'long', month: 'long', day: 'numeric' };
+  if (dateLineEl) dateLineEl.textContent =
+    'You can expect a decision by ' + decisionDate.toLocaleDateString('en-US', opts);
+}
+
+// ── Copy button ───────────────────────────────────────────────────────────────
 document.getElementById('copy-btn').addEventListener('click', () => {
   const btn = document.getElementById('copy-btn');
   const _toast = () => {
@@ -151,7 +219,7 @@ document.getElementById('copy-btn').addEventListener('click', () => {
     setTimeout(() => { btn.innerHTML = '<i class="fas fa-copy"></i> Copy'; btn.classList.remove('copied'); }, 2000);
   };
   if (navigator.clipboard?.writeText) {
-    navigator.clipboard.writeText(appId).then(_toast).catch(() => _fallback());
+    navigator.clipboard.writeText(appId).then(_toast).catch(_fallback);
   } else { _fallback(); }
   function _fallback() {
     const ta = document.createElement('textarea');
