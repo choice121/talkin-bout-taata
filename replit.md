@@ -1,72 +1,89 @@
-# ⚠️ CRITICAL — READ THIS BEFORE DOING ANYTHING
+<!--
+PROJECT_TYPE: STATIC_WEBSITE
+DEPLOYMENT_TARGET: CLOUDFLARE_PAGES
+BACKEND: SUPABASE_CLOUD
+DATABASE: SUPABASE_POSTGRESQL
+REPLIT_ROLE: CODE_EDITOR_ONLY
+MIGRATION_REQUIRED: FALSE
+BACKEND_SETUP_REQUIRED: FALSE
+DATABASE_SETUP_REQUIRED: FALSE
+-->
 
-This project is a **STATIC WEBSITE** deployed on **CLOUDFLARE PAGES**.
-Replit is used **ONLY as a code editor**. Nothing more.
+# CHOICE PROPERTIES — REPLIT RULES
 
-## ABSOLUTE PROHIBITIONS — Never do any of the following:
+## THIS PROJECT IS A STATIC WEBSITE. REPLIT IS A CODE EDITOR ONLY.
 
-- Do **NOT** install a Replit database, Neon database, or any database
+Deployment target = **Cloudflare Pages**. Backend = **Supabase cloud**. Replit hosts nothing.
+
+---
+
+## ABSOLUTE PROHIBITIONS
+
+- Do **NOT** connect, configure, or query the Replit / Neon PostgreSQL database
 - Do **NOT** install Drizzle ORM, Prisma, or any ORM
-- Do **NOT** create `server.js`, `db.ts`, `schema.ts`, `storage.ts`, or any backend files
+- Do **NOT** create any backend files (`server.js`, `db.ts`, `schema.ts`, `storage.ts`, `api/*`)
 - Do **NOT** install Express, Fastify, or any Node.js server framework
-- Do **NOT** add backend dependencies to `package.json`
+- Do **NOT** add any backend dependency to `package.json`
 - Do **NOT** run `db:push`, `db:migrate`, or any database migration command
+- Do **NOT** set `SUPABASE_URL` or `SUPABASE_ANON_KEY` as Replit secrets — not needed here
 - Do **NOT** provision any Replit-managed infrastructure
-- Do **NOT** modify the Supabase Edge Functions unless explicitly asked by the user
-- Do **NOT** run `npm install` unless explicitly asked for a specific package
-- Do **NOT** attempt to "migrate" this project — it is already complete and production-ready
-- Do **NOT** touch `SCHEMA.sql` or `SECURITY-PATCHES.sql` — these are for Supabase only
+- Do **NOT** modify Supabase Edge Functions unless the user explicitly asks
+- Do **NOT** modify `serve.js`, `generate-config.js`, `SCHEMA.sql`, or `SECURITY-PATCHES.sql`
+- Do **NOT** run `npm install` unless the user explicitly requests a specific package
+- Do **NOT** attempt to "complete setup" or "migrate" this project — it is already complete
 
-## What This Project IS
+---
 
-- Pure static **HTML / CSS / JS** files — no build pipeline, no framework
-- **Backend** = Supabase Edge Functions (hosted on Supabase's cloud, not here)
-- **Database** = Supabase PostgreSQL (hosted on Supabase's cloud, not here)
-- **Deployment target** = Cloudflare Pages (not Replit)
-- **Local preview** = `python3 -m http.server 5000` (already configured, do not change)
-- **Email** = Google Apps Script relay (`GAS-EMAIL-RELAY.gs`)
-- **Images** = ImageKit.io CDN
-- **Address autocomplete** = Geoapify API
+## WHAT THIS PROJECT IS
 
-## The ONLY Things You Should Do in Replit
+| Layer | Technology | Where it runs |
+|---|---|---|
+| Frontend | Vanilla HTML / CSS / JS | Cloudflare Pages (static CDN) |
+| Backend API | Supabase Edge Functions (Deno/TypeScript) | Supabase cloud — NOT Replit |
+| Database | Supabase PostgreSQL | Supabase cloud — NOT Replit |
+| Auth | Supabase Auth | Supabase cloud |
+| Email | Google Apps Script relay | Google cloud |
+| Images | ImageKit.io CDN | ImageKit cloud |
+| Address autocomplete | Geoapify API | Geoapify cloud |
+| Local preview in Replit | `node serve.js` on port 5000 | Replit only (static file server) |
 
-- Edit HTML, CSS, or JS files **when explicitly asked**
-- Edit Supabase Edge Function code in `supabase/functions/` **when explicitly asked**
-- Answer questions about the codebase or setup
+The `supabase/functions/` directory contains Edge Function source files stored here for
+version control. They run on Supabase's cloud. Replit cannot run them. Do not attempt
+to run, deploy, or migrate them.
 
-## If You Are Ever Unsure — ASK FIRST. Do Not Act.
+---
+
+## WHAT YOU ARE ALLOWED TO DO
+
+Only when explicitly asked by the user:
+- Edit HTML, CSS, or vanilla JS files
+- Edit Supabase Edge Function source in `supabase/functions/`
+- Answer questions about the codebase or architecture
+
+**If you are ever unsure — ask the user first. Do not act.**
 
 ---
 
 ## MANDATORY AFTER EVERY TASK — Documentation Update Rule
 
-After completing **any** task — no matter how small — you must update documentation before considering the work done. This is not optional.
-
-### Which file to update and when:
+After completing **any** task — no matter how small — update documentation before marking work done.
 
 | File | Update when... |
 |---|---|
-| `CHANGELOG.md` | **Every single task, no exceptions** — append one entry at the top |
+| `CHANGELOG.md` | **Every task, no exceptions** — prepend one entry at the top |
 | `replit.md` | Project structure, tech stack, or AI rules change |
 | `README.md` | A major feature is added, removed, or renamed |
 | `ARCHITECTURE.md` | A service, Edge Function, database table, or security model changes |
 | `SETUP.md` | Deployment steps, required secrets, or environment variables change |
 | `IMAGEKIT-SETUP.md` | ImageKit configuration or workflow changes |
 
-### CHANGELOG.md entry format (always prepend — newest at top):
-
+CHANGELOG.md entry format (always prepend — newest entry first):
 ```
 ## [YYYY-MM-DD] — Short title of what changed
 
 - What was changed and why
-- Any files affected
+- Files affected
 ```
-
-### Rules:
-- Always prepend to `CHANGELOG.md` — never append. Most recent entry must be first.
-- Be specific — name the files changed, not just "updated styles"
-- One entry per task session, even if multiple files were touched
-- Do not skip this step even for single-line edits
 
 ---
 
@@ -86,7 +103,7 @@ A comprehensive nationwide rental marketplace connecting quality tenants with ve
 - **Email**: Google Apps Script relay
 - **Images**: ImageKit.io
 - **Deployment**: Cloudflare Pages (with `generate-config.js` for env injection)
-- **Local Preview**: Python 3 HTTP server on port 5000
+- **Local Preview in Replit**: `node serve.js` on port 5000 (static file server only)
 
 ## Design System (Zillow-Inspired — v17)
 
@@ -138,12 +155,13 @@ The entire site uses a **Zillow-inspired design system** with a centralized toke
 ├── landlord/               # Landlord portal pages
 ├── admin/                  # Admin portal pages
 ├── apply/                  # Tenant application dashboard
-├── supabase/functions/     # 10 Deno Edge Functions (deployed to Supabase)
+├── supabase/functions/     # Deno Edge Functions source (deployed to Supabase, NOT Replit)
 ├── config.js               # Auto-generated at Cloudflare build time (gitignored)
 ├── config.example.js       # Template — safe to edit
 ├── generate-config.js      # Cloudflare build script: env vars → config.js
+├── serve.js                # Replit-only static file server for local preview
 ├── GAS-EMAIL-RELAY.gs      # Google Apps Script email relay source
-├── SCHEMA.sql              # Full Supabase database schema (run once in Supabase)
+├── SCHEMA.sql              # Supabase database schema (run once in Supabase dashboard)
 └── SECURITY-PATCHES.sql    # Security patches (run once in Supabase after schema)
 ```
 
@@ -155,7 +173,7 @@ The entire site uses a **Zillow-inspired design system** with a centralized toke
 | Build command | `node generate-config.js` |
 | Build output directory | `.` |
 
-## Environment Variables (Set in Cloudflare Pages Dashboard)
+## Environment Variables (Set in Cloudflare Pages Dashboard — NOT in Replit)
 
 - `SUPABASE_URL` — Supabase project URL
 - `SUPABASE_ANON_KEY` — Supabase anonymous/public key
@@ -165,7 +183,7 @@ The entire site uses a **Zillow-inspired design system** with a centralized toke
 - `COMPANY_NAME`, `COMPANY_EMAIL`, `COMPANY_PHONE`, `COMPANY_ADDRESS` — Branding
 - `ADMIN_EMAILS` — Comma-separated admin email addresses
 
-## Supabase Edge Function Secrets (Set in Supabase Dashboard)
+## Supabase Edge Function Secrets (Set in Supabase Dashboard — NOT in Replit)
 
 - `GAS_EMAIL_URL` — Google Apps Script Web App URL
 - `GAS_RELAY_SECRET` — Shared secret (must match GAS Script Properties)
