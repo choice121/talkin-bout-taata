@@ -251,11 +251,17 @@ class RentalApplication {
                 select.appendChild(opt);
             });
 
-            // If arriving from a listing page with propertyId in URL, pre-select it
+            // If arriving from a listing page with propertyId in URL, pre-select it.
+            // All three conditions must be true to activate the lock:
+            //   1. propertyId param is present in the URL
+            //   2. The DB call succeeded and returned results (we are inside the try block)
+            //   3. That propertyId exists in the loaded active-properties list
+            // If any condition fails the dropdown stays visible and works as normal.
             const urlPropertyId = new URLSearchParams(window.location.search).get('propertyId');
             if (urlPropertyId && this._properties[urlPropertyId]) {
                 select.value = urlPropertyId;
                 this.onPropertySelected(urlPropertyId);
+                this._activatePropertyLock(urlPropertyId);
             }
 
             // Listen for selection changes (onchange prevents duplicate listeners on re-call)
@@ -314,6 +320,43 @@ class RentalApplication {
             banner.style.display = 'flex';
         } else if (banner) {
             banner.style.display = 'none';
+        }
+    }
+
+    // ---------- Lock property selection when arriving from a listing ----------
+    // Called only when all three conditions are met (see loadPropertyDropdown).
+    // Hides the dropdown and shows a locked property card in its place.
+    // The escape hatch restores the dropdown if the user needs to change property.
+    _activatePropertyLock(propertyId) {
+        const prop  = this._properties && this._properties[propertyId];
+        const group = document.getElementById('propertySelectGroup');
+        const card  = document.getElementById('propertyLockedCard');
+        if (!prop || !group || !card) return;
+
+        // Build the detail line shown beneath the property title
+        const rent  = prop.monthly_rent ? `$${parseInt(prop.monthly_rent).toLocaleString()}/mo` : '';
+        const beds  = prop.bedrooms     ? `${prop.bedrooms} bed`  : '';
+        const baths = prop.bathrooms    ? `${prop.bathrooms} bath` : '';
+        const addr  = [prop.address, prop.city, prop.state].filter(Boolean).join(', ');
+        const meta  = [addr, rent, [beds, baths].filter(Boolean).join(' · ')].filter(Boolean).join(' · ');
+
+        document.getElementById('lockedCardTitle').textContent = prop.title;
+        document.getElementById('lockedCardMeta').textContent  = meta;
+
+        // Swap: hide dropdown group, show locked card
+        group.style.display = 'none';
+        card.style.display  = 'flex';
+
+        // Escape hatch — clicking "Not this property?" restores the open dropdown
+        const escapeBtn = document.getElementById('propertyLockEscape');
+        if (escapeBtn) {
+            escapeBtn.onclick = () => {
+                card.style.display  = 'none';
+                group.style.display = '';
+                const select = document.getElementById('propertySelect');
+                if (select) select.value = '';
+                this.onPropertySelected('');
+            };
         }
     }
 
