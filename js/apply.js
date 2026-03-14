@@ -272,15 +272,17 @@ class RentalApplication {
         }
     }
 
-    // ---------- Locked-property load — form always arrives via a listing URL ----------
-    // Reads propertyId from the URL, fetches only that single property, and activates
-    // the locked card. If propertyId is absent or the property cannot be found, the
-    // form is hidden and a clear error message is shown instead.
+    // ---------- Property load — handles both linked and direct visits ----------
+    // If a propertyId URL param is present, fetches that property and locks the card.
+    // If absent (or property inactive/not found), falls back to the full property dropdown.
     async loadLockedProperty() {
         const propertyId = new URLSearchParams(window.location.search).get('propertyId');
 
         if (!propertyId) {
-            this._showInvalidPropertyMessage();
+            // No specific property in URL — show the full dropdown so user can pick one
+            const group = document.getElementById('propertySelectGroup');
+            if (group) group.style.display = '';
+            await this.loadPropertyDropdown();
             return;
         }
 
@@ -300,7 +302,10 @@ class RentalApplication {
                 .single();
 
             if (error || !prop) {
-                this._showInvalidPropertyMessage();
+                // Property not found or inactive — show dropdown as fallback
+                const group = document.getElementById('propertySelectGroup');
+                if (group) group.style.display = '';
+                await this.loadPropertyDropdown();
                 return;
             }
 
@@ -326,12 +331,11 @@ class RentalApplication {
             this.onPropertySelected(prop.id);
             this._activatePropertyLock(prop.id);
 
-            // Hide the escape hatch — there is no dropdown to fall back to
-            const escapeBtn = document.getElementById('propertyLockEscape');
-            if (escapeBtn) escapeBtn.style.display = 'none';
-
         } catch (err) {
-            this._showInvalidPropertyMessage();
+            // On error, fall back to the dropdown rather than hiding the form
+            const group = document.getElementById('propertySelectGroup');
+            if (group) group.style.display = '';
+            await this.loadPropertyDropdown();
         }
     }
 
@@ -443,12 +447,14 @@ class RentalApplication {
         // Escape hatch — clicking "Not this property?" restores the open dropdown
         const escapeBtn = document.getElementById('propertyLockEscape');
         if (escapeBtn) {
-            escapeBtn.onclick = () => {
+            escapeBtn.style.display = '';
+            escapeBtn.onclick = async () => {
                 card.style.display  = 'none';
                 group.style.display = '';
                 const select = document.getElementById('propertySelect');
                 if (select) select.value = '';
                 this.onPropertySelected('');
+                await this.loadPropertyDropdown();
             };
         }
 
