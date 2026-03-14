@@ -140,6 +140,43 @@ Only when explicitly asked by the user:
 
 ---
 
+## DESIGN SYSTEM RULES
+
+- **Always use CSS tokens** from `css/main.css` for colors, spacing, shadows, and typography. Tokens are defined in `:root` and follow the `--color-*`, `--space-*`, `--radius-*`, `--shadow-*` naming convention.
+- **Never hardcode raw hex values** (e.g. `#006AFF`, `#1A1A1A`) in component or page CSS. If a token exists for it, use it. If a token doesn't exist, add one to `css/main.css` first, then use it.
+- **Never hardcode raw pixel values** for spacing. Use the spacing scale tokens (`--space-1` through `--space-24`).
+- The design system is **Zillow-inspired**: the primary action color is `--color-brand` (`#006AFF`). Do not introduce a second brand color or change the palette without explicit instruction.
+- Dark sections (hero, footer, "How It Works") use `--color-dark-surface` (`#07121F`) as background. Light page content uses `--color-surface-page` (`#f5f5f5`). Cards use `--color-surface-raised` (`#ffffff`). Do not invent new background colors.
+
+---
+
+## JAVASCRIPT RULES
+
+- This project uses **vanilla JavaScript only** — no TypeScript, no JSX, no React, no Vue, no framework of any kind.
+- **No ES module `import`/`export` syntax** in any file served to the browser. There is no bundler. Scripts are loaded with `<script src="...">` tags and run as classic scripts in the global scope.
+- **Never use `process.env`** in frontend code. Environment variables only exist at Cloudflare build time. All runtime configuration must be read from the `CONFIG` object (populated by `generate-config.js` at build time via `config.js`).
+- **Never add a new CDN `<script>` or `<link>` tag** without explicit user approval. Every external dependency is a performance, privacy, and security decision.
+- **All Supabase data operations go through `js/cp-api.js`**. Never write direct `fetch()` calls to the Supabase REST or Edge Function API from page-level code. Extend `cp-api.js` if new API methods are needed.
+
+---
+
+## IMAGE RULES
+
+- **All property images are served via ImageKit CDN.** Never reference a raw Supabase storage URL in UI code.
+- Always use the `CONFIG.img(url, preset)` helper for property photos. It applies the correct ImageKit transformations (resizing, format conversion, quality) for the given context (card thumbnail, gallery, etc.).
+- Do not add local image files to the repository for UI purposes. Icons use FontAwesome. Illustrations and photos must use ImageKit or an approved CDN.
+
+---
+
+## PAGE STRUCTURE RULES
+
+- **Every new public-facing HTML page must follow the existing page structure**: same `<nav>` block (copied from `index.html`), same `<footer>` block, same CSS `<link>` tags with correct version strings.
+- **Do not create a new layout from scratch** for a new page. Start from the closest existing page as a template.
+- The `admin/`, `landlord/`, and `apply/` folders are **separate portals** with their own CSS files (`admin.css`, `landlord.css`, `apply.css`). Changes to global CSS in `main.css` must not break these portals. Test visually across portals before marking a CSS change complete.
+- New page filenames must use **kebab-case** (e.g. `move-in-guide.html`) and be placed at the repository root unless they belong to an existing sub-portal.
+
+---
+
 ## MANDATORY AFTER EVERY TASK — Documentation Update Rule
 
 After completing **any** task — no matter how small — update documentation before marking work done.

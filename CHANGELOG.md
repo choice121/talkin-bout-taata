@@ -3,6 +3,17 @@
 All notable changes to this project are documented here.
 Every task, fix, or update must add an entry. Most recent changes appear first.
 
+## [2026-03-14] — Strengthened AI Rules in replit.md
+
+- **Deployment chain rules:** Added a mandatory top-level warning explaining that Replit is a code editor only, the live site runs on Cloudflare Pages via GitHub, and changes must be pushed to GitHub to go live. Includes the exact push steps.
+- **CSS cache-busting rule:** Added a mandatory rule requiring any AI that changes a CSS file to bump the `?v=` version string in every HTML file across the project. Current versions documented (`v=3`).
+- **Cloudflare Pages compatibility:** Added a ✅/❌ list of what is and isn't allowed on a static CDN — no Node.js runtime, no `process.env`, no server-side code.
+- **Preview vs. live table:** Added side-by-side table distinguishing the Replit preview (`serve.js` on port 5000) from the live Cloudflare site.
+- **Design system rules:** Always use CSS tokens; never hardcode hex or pixel values; do not invent new background colors.
+- **JavaScript rules:** Vanilla JS only; no ES modules, no frameworks, no bundler; no `process.env`; no new CDN scripts without approval; all Supabase calls through `cp-api.js`.
+- **Image rules:** All property images via ImageKit CDN using `CONFIG.img()`; no raw Supabase storage URLs.
+- **Page structure rules:** New pages must copy nav/footer from `index.html`; admin/landlord/apply portals are isolated; kebab-case filenames.
+
 Format:
 **[YYYY-MM-DD] — Short title**
 - What changed and why
