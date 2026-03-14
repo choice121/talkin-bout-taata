@@ -11,9 +11,65 @@ DATABASE_SETUP_REQUIRED: FALSE
 
 # CHOICE PROPERTIES — REPLIT RULES
 
-## THIS PROJECT IS A STATIC WEBSITE. REPLIT IS A CODE EDITOR ONLY.
+---
 
-Deployment target = **Cloudflare Pages**. Backend = **Supabase cloud**. Replit hosts nothing.
+## ⚠️ CRITICAL — READ THIS BEFORE DOING ANYTHING ELSE
+
+**Replit is a code editor only. It is NOT the live website. It does NOT host this project.**
+
+The live site runs on **Cloudflare Pages**, deployed from the GitHub repository.
+
+```
+Developer edits code in Replit
+        ↓
+Push to GitHub (manual — does NOT happen automatically)
+        ↓
+Cloudflare Pages detects the commit and auto-deploys
+        ↓
+Live site at choiceproperties.com is updated
+```
+
+If you make changes in Replit and they do not appear on the live site, the reason is **always** one of two things:
+1. The changes have not been pushed to GitHub yet
+2. Cloudflare's CDN is serving a cached version of an old CSS/JS file
+
+**Any AI working on this project must internalize this chain.** Every change made here must be production-safe for Cloudflare Pages — a static CDN. There is no server. There is no Node.js runtime in production. There is no database accessible from Cloudflare. Every file served by the live site is a plain static file.
+
+---
+
+## CLOUDFLARE PAGES — WHAT THIS MEANS FOR EVERY CHANGE YOU MAKE
+
+Cloudflare Pages serves **static files only**. This means:
+
+- ✅ HTML, CSS, vanilla JavaScript, images, fonts — all fine
+- ✅ Client-side JavaScript that calls Supabase APIs — fine (Supabase is a separate cloud service)
+- ✅ `generate-config.js` runs at Cloudflare build time to inject environment variables into `config.js`
+- ❌ No Node.js server running in production
+- ❌ No `require()` or `import` of Node modules in production code
+- ❌ No server-side rendering, no API routes, no middleware
+- ❌ No reading from environment variables at runtime (only at build time via `generate-config.js`)
+- ❌ No filesystem access, no dynamic code execution
+- ❌ No Replit-specific APIs, secrets, or services — they do not exist in production
+
+If you write something that only works because `serve.js` is running in Replit, **it will break on the live site.**
+
+---
+
+## MANDATORY CSS CACHE-BUSTING RULE
+
+Cloudflare Pages caches CSS and JS files aggressively. If you change any CSS or JS file, you **must** bump the version query string on every HTML page that references that file.
+
+**Current versions:**
+- `main.css?v=3` — bump to `?v=4` if `css/main.css` is changed
+- `listings.css?v=3` — bump to `?v=4` if `css/listings.css` is changed
+- `property.css?v=3` — bump to `?v=4` if `css/property.css` is changed
+
+**How to bump:** Run this command after changing a CSS file (replace `v=3` and `v=4` with the correct old and new versions):
+```bash
+sed -i 's/main\.css?v=3/main.css?v=4/g' *.html landlord/*.html admin/*.html apply/*.html 2>/dev/null
+```
+
+Do this for every CSS file you change. Do it for every HTML file across the entire project — not just `index.html`. If you skip this step, visitors will see the old styles on the live site even after a successful deployment.
 
 ---
 
@@ -25,13 +81,32 @@ Deployment target = **Cloudflare Pages**. Backend = **Supabase cloud**. Replit h
 - Do **NOT** install Express, Fastify, or any Node.js server framework
 - Do **NOT** add any backend dependency to `package.json`
 - Do **NOT** run `db:push`, `db:migrate`, or any database migration command
-- `SUPABASE_URL` and `SUPABASE_ANON_KEY` ARE set as Replit secrets — needed for local preview via serve.js
-- Do **NOT** provision any Replit-managed infrastructure
+- Do **NOT** provision any Replit-managed infrastructure (databases, deployments, auth)
 - Do **NOT** modify Supabase Edge Functions unless the user explicitly asks
 - Do **NOT** modify `generate-config.js`, `SCHEMA.sql`, or `SECURITY-PATCHES.sql`
-- `serve.js` may be modified for Replit preview server improvements only (performance, headers)
 - Do **NOT** run `npm install` unless the user explicitly requests a specific package
-- Do **NOT** attempt to "complete setup" or "migrate" this project — it is already complete
+- Do **NOT** attempt to "complete setup" or "migrate" this project — it is already complete and live
+- Do **NOT** add any Replit-specific deployment configuration (`.replit` deploy settings, etc.)
+- Do **NOT** tell the user to "deploy via Replit" — Replit does not deploy this project
+- `serve.js` is for local Replit preview only — do not modify it to affect production behavior
+- `SUPABASE_URL` and `SUPABASE_ANON_KEY` are set as Replit secrets for local preview only; production keys are set in the Cloudflare Pages dashboard
+
+---
+
+## PREVIEW vs. LIVE — UNDERSTANDING THE DIFFERENCE
+
+| Environment | URL | How it works | Who manages it |
+|---|---|---|---|
+| Replit preview | `*.replit.dev` (port 5000) | `node serve.js` — a simple static file server | Replit only |
+| Live site | `choiceproperties.com` | Cloudflare Pages CDN serving static files | Cloudflare, deployed from GitHub |
+
+The Replit preview is **only for development**. When a change looks correct in Replit, it still needs to be pushed to GitHub before it appears on the live site.
+
+**How to deploy changes to the live site:**
+1. Make and verify changes in Replit
+2. Open the Git panel in Replit (branch icon in the left sidebar)
+3. Push the commits to GitHub (`origin` → `https://github.com/choice121/talkin-bout-taata`)
+4. Cloudflare Pages will automatically detect the push and deploy within 1–2 minutes
 
 ---
 
