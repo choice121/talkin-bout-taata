@@ -101,21 +101,28 @@
   </div>
 </nav>
 
-<!-- ── Gallery ── -->
+<!-- ── Gallery Mosaic ── -->
 
-<div class="gallery" id="gallery">
-  <img class="gallery-main" id="galleryMain" src="" alt="Property photo">
-  <div class="gallery-overlay"></div>
-  <button class="gallery-nav-btn prev" id="galleryPrev"><i class="fas fa-chevron-left"></i></button>
-  <button class="gallery-nav-btn next" id="galleryNext"><i class="fas fa-chevron-right"></i></button>
-  <div class="gallery-count" id="galleryCount">
-    <i class="fas fa-images"></i> <span id="galleryCurrent">1</span> / <span id="galleryTotal">1</span>
+<div class="gallery-mosaic" id="gallery">
+  <!-- Main large panel -->
+  <div class="mosaic-main" id="mosaicMain">
+    <img class="mosaic-main-img" id="mosaicMainImg" src="" alt="Property photo">
   </div>
-  <div class="gallery-thumbs" id="galleryThumbs"></div>
-  <!-- Expand / lightbox trigger -->
-  <button id="galleryExpand" class="gallery-expand-btn">
-    <i class="fas fa-expand-alt"></i> View All Photos
+  <!-- Right 2×2 side grid -->
+  <div class="mosaic-side" id="mosaicSide"></div>
+
+  <!-- See all photos button (desktop) -->
+  <button class="mosaic-expand-btn" id="mosaicExpandBtn">
+    <i class="fas fa-th"></i> See all photos
   </button>
+
+  <!-- Mobile swipe nav arrows -->
+  <button class="mosaic-nav-btn prev" id="mosaicPrev"><i class="fas fa-chevron-left"></i></button>
+  <button class="mosaic-nav-btn next" id="mosaicNext"><i class="fas fa-chevron-right"></i></button>
+  <div class="mosaic-mobile-count" id="mosaicMobileCount">1 / 1</div>
+
+  <!-- Legacy galleryExpand kept for JS compatibility -->
+  <button id="galleryExpand" style="display:none"></button>
 </div>
 
 <!-- ── Lightbox ── -->
@@ -654,29 +661,58 @@ function renderMap(p) {
   container.innerHTML = `<iframe src="https://maps.google.com/maps?q=${mapAddr}&output=embed&z=15" title="Property location" loading="lazy" style="width:100%;height:100%;border:none"></iframe>`;
 }
 
-/* ── Gallery ── */
+/* ── Gallery Mosaic ── */
 function renderGallery(photos) {
-  const main = document.getElementById('galleryMain');
-  const thumbsEl = document.getElementById('galleryThumbs');
-  document.getElementById('galleryTotal').textContent = photos.length;
-  main.src = CONFIG.img(photos[0], 'gallery');
-  main.alt = 'Property photo 1';
+  photoIndex = 0;
+  const mainImg    = document.getElementById('mosaicMainImg');
+  const mosaicMain = document.getElementById('mosaicMain');
+  const mosaicSide = document.getElementById('mosaicSide');
+  const expandBtn  = document.getElementById('mosaicExpandBtn');
+  const mobileCount = document.getElementById('mosaicMobileCount');
+  const prevBtn    = document.getElementById('mosaicPrev');
+  const nextBtn    = document.getElementById('mosaicNext');
 
-  if (photos.length > 1) {
-    thumbsEl.innerHTML = photos.map((url, i) => `
-      <div class="gallery-thumb ${i===0?'active':''}" data-idx="${i}">
-        <img src="${CONFIG.img(url,'thumb')}" alt="Photo ${i+1}" loading="lazy" decoding="async">
-      </div>`).join('');
-    thumbsEl.querySelectorAll('.gallery-thumb').forEach(t =>
-      t.addEventListener('click', () => showPhoto(parseInt(t.dataset.idx))));
+  mainImg.src = CONFIG.img(photos[0], 'gallery');
+  mainImg.alt = 'Property photo 1';
+  mosaicMain.addEventListener('click', () => openLightbox(0));
+
+  const sidePanels = photos.slice(1, 5);
+  if (sidePanels.length > 0) {
+    mosaicSide.innerHTML = sidePanels.map((url, i) => {
+      const idx = i + 1;
+      const isLast = (i === sidePanels.length - 1) && (photos.length > 5);
+      const remaining = photos.length - 5;
+      return `
+        <div class="mosaic-cell" data-idx="${idx}">
+          <img src="${CONFIG.img(url,'thumb')}" alt="Property photo ${idx+1}" loading="lazy" decoding="async">
+          ${isLast ? `
+            <div class="mosaic-cell-overlay">
+              <span class="mosaic-overlay-icon"><i class="fas fa-images"></i></span>
+              <span class="mosaic-overlay-label">+${remaining} more</span>
+            </div>` : ''}
+        </div>`;
+    }).join('');
+    mosaicSide.querySelectorAll('.mosaic-cell').forEach(cell => {
+      cell.addEventListener('click', () => openLightbox(parseInt(cell.dataset.idx)));
+    });
+  } else {
+    mosaicSide.style.display = 'none';
+    document.getElementById('gallery').style.gridTemplateColumns = '1fr';
   }
 
-  document.getElementById('galleryPrev').addEventListener('click', () =>
-    showPhoto((photoIndex - 1 + photos.length) % photos.length));
-  document.getElementById('galleryNext').addEventListener('click', () =>
-    showPhoto((photoIndex + 1) % photos.length));
+  expandBtn.addEventListener('click', () => openLightbox(0));
 
-  // Keyboard nav
+  if (mobileCount) mobileCount.textContent = `1 / ${photos.length}`;
+  prevBtn.addEventListener('click', () => showPhoto((photoIndex - 1 + photos.length) % photos.length));
+  nextBtn.addEventListener('click', () => showPhoto((photoIndex + 1) % photos.length));
+
+  let touchX = 0;
+  mosaicMain.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; }, { passive: true });
+  mosaicMain.addEventListener('touchend', e => {
+    const diff = touchX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 40) showPhoto((photoIndex + (diff > 0 ? 1 : -1) + photos.length) % photos.length);
+  }, { passive: true });
+
   document.addEventListener('keydown', e => {
     if (document.getElementById('lightbox').classList.contains('open')) {
       if (e.key === 'ArrowLeft')  lightboxNav(-1);
@@ -685,28 +721,21 @@ function renderGallery(photos) {
     }
   });
 
-  // Expand button / click on main image → lightbox
   document.getElementById('galleryExpand').addEventListener('click', () => openLightbox(photoIndex));
-  main.style.cursor = 'zoom-in';
-  main.addEventListener('click', () => openLightbox(photoIndex));
-
-  // Touch swipe on gallery
-  let touchX = 0;
-  main.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; }, { passive: true });
-  main.addEventListener('touchend', e => {
-    const diff = touchX - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 40) showPhoto((photoIndex + (diff > 0 ? 1 : -1) + photos.length) % photos.length);
-  }, { passive: true });
 }
 
 function showPhoto(idx) {
   photoIndex = idx;
-  const main = document.getElementById('galleryMain');
-  main.style.opacity = '0';
-  setTimeout(() => { main.src = CONFIG.img(allPhotos[idx], 'gallery'); main.style.opacity = '1'; }, 150);
-  main.style.transition = 'opacity 150ms';
-  document.getElementById('galleryCurrent').textContent = idx + 1;
-  document.querySelectorAll('.gallery-thumb').forEach((t, i) => t.classList.toggle('active', i === idx));
+  const mainImg = document.getElementById('mosaicMainImg');
+  mainImg.style.opacity = '0';
+  mainImg.style.transition = 'opacity 150ms';
+  setTimeout(() => {
+    mainImg.src = CONFIG.img(allPhotos[idx], 'gallery');
+    mainImg.alt = `Property photo ${idx + 1}`;
+    mainImg.style.opacity = '1';
+  }, 150);
+  const mobileCount = document.getElementById('mosaicMobileCount');
+  if (mobileCount) mobileCount.textContent = `${idx + 1} / ${allPhotos.length}`;
 }
 
 /* ── Lightbox ── */

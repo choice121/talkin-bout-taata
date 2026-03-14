@@ -9,6 +9,15 @@ Format:
 
 ---
 
+## [2026-03-13] — Design Enhancement Phase: Cards, Gallery Mosaic & Animations
+
+- **T001 — Card image & hover overhaul (`css/listings.css`):** Image area raised from 52% → 63% padding-top for a more cinematic, taller card image. Hover effect changed from jarring blue-border flash to a smooth shadow bloom (translateY -4px + deeper shadow, border stays neutral). Photo count badge moved to bottom-left with solid dark background and higher contrast. Save button enlarged from 32px → 36px.
+- **T002 — Card body hierarchy (`css/listings.css` + `index.html`):** Price raised from 24px → 28px, weight 700 → 800 so it dominates the card. Meta row (bed/bath/sqft) now uses a single top border and dot separators instead of double borders with wide gaps. Apply button label changed to "Apply Now", slightly more padding. Card images now fade in via `onload="this.classList.add('cp-img-loaded')"` instead of popping in blank.
+- **T003 — Staggered card entrance animation (`css/listings.css` + `index.html`):** Replaced the static CSS nth-child animation approach with an `IntersectionObserver`-driven stagger: cards start at opacity 0 / translateY 20px and animate in with a 55ms per-card delay (capped at 320ms) as they enter the viewport. `animateCards()` is called at the end of `renderProperties()`. Skeleton cards are excluded via `!important` overrides. Respects `prefers-reduced-motion`.
+- **T004 — Gallery mosaic layout (`property.html` + `css/property.css`):** Replaced the flat single-image + thumbnail strip gallery with an Airbnb-style 3:2 mosaic grid — large main panel on the left, 2×2 sub-panel grid on the right. Clicking any panel opens the existing lightbox at that photo index. "See all photos" button is positioned absolute bottom-right in a clean white pill. If a property has 1 photo, side grid is hidden and main takes full width. If there are 5+ photos, the last panel shows a "+N more" overlay. Mobile collapses to single-image with nav arrows and a swipe counter. All existing lightbox JS (keyboard nav, counter, close, touch swipe) is 100% intact. `id="gallery"` preserved for the `renderUnavailable` path.
+- **T005 — Filter active count badge (`index.html` + `css/listings.css`):** Added `updateFilterBadge()` function called by `refreshResults()`. A small blue pill badge appears inside the "More Filters" button showing the number of active non-default filters (type, beds, max/min rent, min baths, search). Hides when all filters are cleared.
+- **T006 — Nav scroll polish (`css/main.css`):** `.nav.scrolled` now transitions background to `rgba(255,255,255,0.99)` (from 0.97) with a stronger layered shadow. Nav transition extended to cover both `box-shadow` and `background` for a crisp, intentional feel on scroll.
+
 ## [2026-03-13] — Properties Display & Rendering Fixes
 
 - **Bug fix — Sort "Most Beds" now works (`index.html`):** The `beds_desc` sort branch was missing from `applyFilters()`, causing the "Most Beds" dropdown option to silently fall through to "Newest". Added `if (sortBy === 'beds_desc') return (b.bedrooms ?? 0) - (a.bedrooms ?? 0)` to the sort chain.

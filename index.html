@@ -246,6 +246,7 @@
     <div class="filter-dropdown-wrap" id="moreFiltersWrap">
       <button class="filter-pill" id="moreFiltersBtn">
         <i class="fas fa-sliders-h"></i> More Filters
+        <span class="filter-active-badge" id="filterActiveBadge" style="display:none"></span>
       </button>
       <div class="filter-dropdown" id="moreFiltersDropdown">
         <div class="filter-dropdown-title">Advanced Filters</div>
@@ -587,6 +588,8 @@ function renderProperties(props) {
       window.location.href = `/property.html?id=${card.dataset.id}`;
     });
   });
+
+  animateCards();
 }
 
 // ── applyFilters ──────────────────────────────────────────
@@ -627,7 +630,7 @@ function buildCard(p) {
   const typeLabel = capitalize(p.property_type || 'Property');
 
   const slidesHtml = photos.map((url, i) =>
-    `<div class="property-card-slide"><img src="${CONFIG.img(url,'card')}" alt="${p.title} photo ${i+1}" loading="${i===0?'eager':'lazy'}" ${i===0?'fetchpriority="high"':''} decoding="async" onerror="this.src='/assets/placeholder-property.jpg'"></div>`
+    `<div class="property-card-slide"><img src="${CONFIG.img(url,'card')}" alt="${p.title} photo ${i+1}" loading="${i===0?'eager':'lazy'}" ${i===0?'fetchpriority="high"':''} decoding="async" onload="this.classList.add('cp-img-loaded')" onerror="this.classList.add('cp-img-loaded');this.src='/assets/placeholder-property.jpg'"></div>`
   ).join('');
 
   const tags = [];
@@ -672,11 +675,35 @@ function buildCard(p) {
             ${avail}
           </div>
           <a href="${applyURL}" class="property-card-apply" onclick="window.trackApply('${p.id}')">
-            Apply <i class="fas fa-arrow-right"></i>
+            Apply Now <i class="fas fa-arrow-right"></i>
           </a>
         </div>
       </div>
     </article>`;
+}
+
+/* ─── Animate Cards (IntersectionObserver stagger) ─── */
+function animateCards() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    document.querySelectorAll('.property-card:not(.property-card-skeleton)').forEach(c => c.classList.add('cp-card-visible'));
+    return;
+  }
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('cp-card-visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.06 });
+
+  let i = 0;
+  document.querySelectorAll('.property-card:not(.property-card-skeleton)').forEach(card => {
+    const delay = Math.min(i * 55, 320);
+    card.style.setProperty('--cp-delay', delay + 'ms');
+    observer.observe(card);
+    i++;
+  });
 }
 
 /* ─── Carousel ─── */
@@ -839,6 +866,26 @@ function refreshResults() {
   const filtered = applyFilters(allProperties);
   renderProperties(filtered);
   if (currentView === 'map') initMap(filtered);
+  updateFilterBadge();
+}
+
+function updateFilterBadge() {
+  const badge = document.getElementById('filterActiveBadge');
+  if (!badge) return;
+  const count = [
+    activeType && activeType !== 'all',
+    !!activeBeds,
+    !!activeMaxRent,
+    !!activeMinRent,
+    !!activeMinBaths,
+    !!activeSearch
+  ].filter(Boolean).length;
+  if (count > 0) {
+    badge.textContent = count;
+    badge.style.display = 'inline-flex';
+  } else {
+    badge.style.display = 'none';
+  }
 }
 
 /* ─── Mobile Drawer ─── */

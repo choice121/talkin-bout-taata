@@ -401,9 +401,12 @@ button { font-family: var(--font-body); }
   background: rgba(255,255,255,0.97);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
-  transition: box-shadow var(--dur) var(--ease);
+  transition: box-shadow var(--dur) var(--ease), background var(--dur) var(--ease);
 }
-.nav.scrolled { box-shadow: var(--sh); }
+.nav.scrolled {
+  background: rgba(255,255,255,0.99);
+  box-shadow: 0 1px 0 var(--color-border), 0 4px 24px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
+}
 .nav-inner {
   max-width: var(--max-w); margin: 0 auto; padding: 0 var(--s-6);
   height: 100%; display: flex; align-items: center; gap: var(--s-8);
