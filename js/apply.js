@@ -702,7 +702,9 @@ class RentalApplication {
                 errorMessage = this.t('errSSNNumbers');
             }
         } else if (field.id === 'dob' || field.id === 'coDob') {
-            const birthDate = new Date(field.value);
+            // Parse as local midnight to avoid UTC offset errors in US timezones
+            const [by, bm, bd] = (field.value || '').split('-').map(Number);
+            const birthDate = field.value ? new Date(by, bm - 1, bd) : null;
             const today = new Date();
             if (!field.value) {
                 isValid = false;
@@ -720,7 +722,9 @@ class RentalApplication {
                 }
             }
         } else if (field.id === 'requestedMoveIn') {
-            const moveInDate = new Date(field.value);
+            // Parse as local midnight to avoid UTC offset errors in US timezones
+            const [miy, mim, mid] = (field.value || '').split('-').map(Number);
+            const moveInDate = field.value ? new Date(miy, mim - 1, mid) : null;
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             const minDate = new Date(today);
