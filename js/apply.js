@@ -251,19 +251,6 @@ class RentalApplication {
                 select.appendChild(opt);
             });
 
-            // If arriving from a listing page with propertyId in URL, pre-select it.
-            // All three conditions must be true to activate the lock:
-            //   1. propertyId param is present in the URL
-            //   2. The DB call succeeded and returned results (we are inside the try block)
-            //   3. That propertyId exists in the loaded active-properties list
-            // If any condition fails the dropdown stays visible and works as normal.
-            const urlPropertyId = new URLSearchParams(window.location.search).get('propertyId');
-            if (urlPropertyId && this._properties[urlPropertyId]) {
-                select.value = urlPropertyId;
-                this.onPropertySelected(urlPropertyId);
-                this._activatePropertyLock(urlPropertyId);
-            }
-
             // Listen for selection changes (onchange prevents duplicate listeners on re-call)
             select.onchange = (e) => this.onPropertySelected(e.target.value);
 
