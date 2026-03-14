@@ -3,6 +3,14 @@
 All notable changes to this project are documented here.
 Every task, fix, or update must add an entry. Most recent changes appear first.
 
+## [2026-03-15] — Gallery, Lightbox & Card UX Upgrade (Zillow-parity)
+
+- **Gallery mosaic:** Height raised 480px → 560px (1024px+), side panel changed from 1-column × 2-row to a proper 2×2 grid showing all 4 thumbnails (indices 1–4). Added gradient overlays on main image and hover image-zoom on all panels. "See all photos" button now shows a live photo count badge and uses a cleaner pill design with backdrop blur. All class/ID names preserved for JS compatibility.
+- **Lightbox redesign:** Completely restructured from a flat single-image overlay to a three-zone layout: (1) header bar with pill counter + close button, (2) main image stage with larger nav arrows and a smooth fade transition (`transitioning` class toggles opacity + scale), (3) scrollable thumbnail filmstrip at bottom — thumbnails highlight the active index, auto-scroll to keep it visible, and are clickable. Added swipe support for mobile lightbox. Thumbnail strip is built lazily on first `openLightbox()` call for performance.
+- **Property cards:** Image aspect ratio changed from 63% → 60% padding-top for a wider, more cinematic crop. Hover shadow upgraded with a third layer and a subtle border-color shift for added polish.
+- **Meta row (property.html):** Updated to use icon+text two-line structure — each meta item now shows a brand-blue icon badge on the left and label/value stacked on the right, matching the Zillow detail style.
+- **Version bump:** `property.css?v=3` → `v=4` in `property.html`; `listings.css?v=3` → `v=4` in `index.html` and `landlord/profile.html` (was v=2 there).
+
 ## [2026-03-14] — Strengthened AI Rules in replit.md
 
 - **Deployment chain rules:** Added a mandatory top-level warning explaining that Replit is a code editor only, the live site runs on Cloudflare Pages via GitHub, and changes must be pushed to GitHub to go live. Includes the exact push steps.

@@ -63,8 +63,8 @@ Cloudflare Pages caches CSS and JS files aggressively. If you change any CSS or 
 
 **Current versions:**
 - `main.css?v=3` — bump to `?v=4` if `css/main.css` is changed
-- `listings.css?v=3` — bump to `?v=4` if `css/listings.css` is changed
-- `property.css?v=3` — bump to `?v=4` if `css/property.css` is changed
+- `listings.css?v=4` — bump to `?v=5` if `css/listings.css` is changed
+- `property.css?v=4` — bump to `?v=5` if `css/property.css` is changed
 
 **How to bump:** Run this command after changing a CSS file (replace `v=3` and `v=4` with the correct old and new versions):
 ```bash

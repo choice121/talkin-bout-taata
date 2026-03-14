@@ -25,7 +25,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="/css/main.css?v=3">
-  <link rel="stylesheet" href="/css/property.css?v=3">
+  <link rel="stylesheet" href="/css/property.css?v=4">
   <!-- Styles in property.css -->
 <style>
 /* Mobile sticky Apply CTA — hidden on desktop */
@@ -128,11 +128,21 @@
 <!-- ── Lightbox ── -->
 
 <div class="lightbox" id="lightbox">
-  <button class="lightbox-close" id="lightboxClose"><i class="fas fa-times"></i></button>
-  <button class="lightbox-nav prev" id="lightboxPrev"><i class="fas fa-chevron-left"></i></button>
-  <img class="lightbox-img" id="lightboxImg" src="" alt="Property photo">
-  <button class="lightbox-nav next" id="lightboxNext"><i class="fas fa-chevron-right"></i></button>
-  <div class="lightbox-counter" id="lightboxCounter">1 / 1</div>
+  <!-- Header: counter + close -->
+  <div class="lightbox-header">
+    <div class="lightbox-counter" id="lightboxCounter">1 / 1</div>
+    <button class="lightbox-close" id="lightboxClose" aria-label="Close gallery"><i class="fas fa-times"></i></button>
+  </div>
+  <!-- Main image stage -->
+  <div class="lightbox-stage">
+    <button class="lightbox-nav prev" id="lightboxPrev" aria-label="Previous photo"><i class="fas fa-chevron-left"></i></button>
+    <div class="lightbox-img-wrap" id="lightboxImgWrap">
+      <img class="lightbox-img" id="lightboxImg" src="" alt="Property photo">
+    </div>
+    <button class="lightbox-nav next" id="lightboxNext" aria-label="Next photo"><i class="fas fa-chevron-right"></i></button>
+  </div>
+  <!-- Thumbnail filmstrip -->
+  <div class="lightbox-thumbs" id="lightboxThumbs"></div>
 </div>
 
 <!-- ── Detail Content ── -->
@@ -542,8 +552,11 @@ function renderProperty(p) {
   if (p.pets_allowed != null) metas.push({ label:'Pets', value: p.pets_allowed ? 'Allowed' : 'No Pets', icon:'fa-paw' });
   document.getElementById('detailMeta').innerHTML = metas.map(m => `
     <div class="detail-meta-item">
-      <div class="detail-meta-label">${m.label}</div>
-      <div class="detail-meta-value"><i class="fas ${m.icon}"></i>${m.value}</div>
+      <div class="detail-meta-icon"><i class="fas ${m.icon}"></i></div>
+      <div class="detail-meta-text">
+        <div class="detail-meta-label">${m.label}</div>
+        <div class="detail-meta-value">${m.value}</div>
+      </div>
     </div>`).join('');
 
   document.getElementById('detailDesc').textContent = p.description || 'No additional description provided.';
@@ -700,6 +713,7 @@ function renderGallery(photos) {
     document.getElementById('gallery').style.gridTemplateColumns = '1fr';
   }
 
+  expandBtn.innerHTML = `<i class="fas fa-th-large"></i> See All Photos <span class="mosaic-photo-count">${photos.length}</span>`;
   expandBtn.addEventListener('click', () => openLightbox(0));
 
   if (mobileCount) mobileCount.textContent = `1 / ${photos.length}`;
@@ -739,10 +753,16 @@ function showPhoto(idx) {
 }
 
 /* ── Lightbox ── */
+let lightboxThumbsBuilt = false;
+
 function openLightbox(idx) {
   const lb = document.getElementById('lightbox');
   lb.classList.add('open');
   document.body.style.overflow = 'hidden';
+  if (!lightboxThumbsBuilt) {
+    buildLightboxThumbs();
+    lightboxThumbsBuilt = true;
+  }
   lightboxShow(idx);
 }
 
@@ -751,21 +771,63 @@ function closeLightbox() {
   document.body.style.overflow = '';
 }
 
+function buildLightboxThumbs() {
+  const thumbsEl = document.getElementById('lightboxThumbs');
+  if (!thumbsEl || !allPhotos.length) return;
+  thumbsEl.innerHTML = allPhotos.map((url, i) =>
+    `<button class="lb-thumb" data-idx="${i}" aria-label="View photo ${i + 1}">
+      <img src="${CONFIG.img(url, 'thumb')}" alt="" loading="lazy" decoding="async">
+    </button>`
+  ).join('');
+  thumbsEl.querySelectorAll('.lb-thumb').forEach(btn => {
+    btn.addEventListener('click', () => lightboxShow(parseInt(btn.dataset.idx)));
+  });
+}
+
 function lightboxShow(idx) {
   photoIndex = idx;
-  document.getElementById('lightboxImg').src = CONFIG.img(allPhotos[idx], 'lightbox');
-  document.getElementById('lightboxCounter').textContent = `${idx+1} / ${allPhotos.length}`;
+  const wrap = document.getElementById('lightboxImgWrap');
+  const img  = document.getElementById('lightboxImg');
+
+  wrap.classList.add('transitioning');
+  setTimeout(() => {
+    img.src = CONFIG.img(allPhotos[idx], 'lightbox');
+    img.alt = `Property photo ${idx + 1}`;
+    wrap.classList.remove('transitioning');
+  }, 160);
+
+  document.getElementById('lightboxCounter').textContent = `${idx + 1} / ${allPhotos.length}`;
+
+  document.querySelectorAll('.lb-thumb').forEach((t, i) => {
+    t.classList.toggle('active', i === idx);
+  });
+  const activeThumb = document.querySelector('.lb-thumb.active');
+  if (activeThumb) {
+    activeThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }
 }
 
 function lightboxNav(dir) {
   lightboxShow((photoIndex + dir + allPhotos.length) % allPhotos.length);
 }
 
+/* Lightbox swipe support */
+(function() {
+  let lbTouchX = 0;
+  const lb = document.getElementById('lightbox');
+  lb.addEventListener('touchstart', e => { lbTouchX = e.touches[0].clientX; }, { passive: true });
+  lb.addEventListener('touchend', e => {
+    const diff = lbTouchX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 40) lightboxNav(diff > 0 ? 1 : -1);
+  }, { passive: true });
+})();
+
 document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
 document.getElementById('lightboxPrev').addEventListener('click', () => lightboxNav(-1));
 document.getElementById('lightboxNext').addEventListener('click', () => lightboxNav(1));
 document.getElementById('lightbox').addEventListener('click', e => {
-  if (e.target === document.getElementById('lightbox')) closeLightbox();
+  if (e.target === document.getElementById('lightbox') ||
+      e.target === document.getElementById('lightboxImgWrap')) closeLightbox();
 });
 
 /* ── Inquiry ── */
