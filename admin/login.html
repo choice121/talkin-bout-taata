@@ -42,8 +42,8 @@ input:focus{border-color:#c9a84c}
   <button class="btn" id="btn" onclick="login()">Sign In</button>
   <div class="footer-note">Admin access only. Unauthorized access is prohibited.</div>
 </div>
-<script src="/js/cp-api.js"></script>
-<script>
+<script type="module" src="/js/cp-api.js"></script>
+<script type="module">
 // If already logged in as admin, redirect
 CP.Auth.isAdmin().then(is => { if (is) location.href = 'dashboard.html'; });
 

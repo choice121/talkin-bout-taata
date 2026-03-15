@@ -101,8 +101,8 @@
   </div>
 </div>
 
-<script src="/js/cp-api.js"></script>
-<script>
+<script type="module" src="/js/cp-api.js"></script>
+<script type="module">
 (async () => {
   const ok = await CP.Auth.requireAdmin();
   if (!ok) return;

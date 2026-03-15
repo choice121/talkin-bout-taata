@@ -23,8 +23,8 @@
 <div class="card"><div class="table-wrap"><table>
 <thead><tr><th>Name / Business</th><th>Account Type</th><th>Email</th><th>Phone</th><th>State</th><th>Verified</th><th>Actions</th></tr></thead>
 <tbody id="tbody"></tbody></table></div></div></div></div>
-<script src="/js/cp-api.js"></script>
-<script>
+<script type="module" src="/js/cp-api.js"></script>
+<script type="module">
 (async()=>{
   const ok = await CP.Auth.requireAdmin();
   if (!ok) return;

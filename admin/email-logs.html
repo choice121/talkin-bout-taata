@@ -34,8 +34,8 @@
 <div class="card"><div class="table-wrap"><table>
 <thead><tr><th>Date/Time</th><th>Type</th><th>Recipient</th><th>App ID</th><th>Status</th><th>Error</th></tr></thead>
 <tbody id="tbody"></tbody></table></div></div></div></div>
-<script src="/js/cp-api.js"></script>
-<script>
+<script type="module" src="/js/cp-api.js"></script>
+<script type="module">
 let all=[];
 (async()=>{
   const ok = await CP.Auth.requireAdmin();
