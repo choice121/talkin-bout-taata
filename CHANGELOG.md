@@ -3,6 +3,15 @@
 All notable changes to this project are documented here.
 Every task, fix, or update must add an entry. Most recent changes appear first.
 
+## [2026-03-15] — Admin Dashboard Polish (6 Small Fixes)
+
+- **Favicon** added to all 9 admin pages — `assets/favicon.svg` is now linked in every `<head>`, eliminating the 404 console error and showing the correct browser tab icon.
+- **Login form wrapper** — email/password inputs and sign-in button are now inside a proper `<form onsubmit>` element, fixing the browser warning and enabling browser password-manager autofill/save.
+- **Forgot password link** added to admin login — typing your email then clicking "Forgot password?" sends a Supabase password-reset email and shows a green success message inline. Error cases surface normally in the red error box.
+- **Admin name "Loading…" default** added to 7 pages (Applications, Email Logs, Landlords, Leases, Listings, Messages, Move-Ins) — previously blank on initial render, now consistent with the dashboard's "Loading…" placeholder.
+- **Table loading rows** added to Leases, Listings, Move-Ins, and Email Logs `<tbody>` elements, and a loading indicator to the Messages threads container — pages no longer show an empty table body while data is being fetched.
+- **Hardcoded colour removed** from admin Listings page — listing title links now use `var(--gold)` instead of a literal `#2563eb` hex value, keeping the design token system intact.
+
 ## [2026-03-15] — Fix Admin & Landlord Dashboard Login (ES Module Scoping)
 
 - **Root cause fixed:** `cp-api.js` uses ES module `export` statements. When loaded as a classic `<script>`, browsers throw a SyntaxError and `window.CP` is never defined, silently breaking all admin/landlord pages.

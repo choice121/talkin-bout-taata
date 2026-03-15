@@ -25,6 +25,7 @@ input:focus{border-color:#c9a84c}
 .err{background:#1a0808;border:1px solid #5c1a1a;border-radius:6px;padding:12px 16px;color:#f87171;font-size:.82rem;margin-bottom:20px;display:none}
 .footer-note{text-align:center;font-size:.72rem;color:#2a4a6a;margin-top:24px}
 </style>
+<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
 </head>
 <body>
 <div class="card">
@@ -35,17 +36,28 @@ input:focus{border-color:#c9a84c}
   </div>
   <h2>Sign in to continue</h2>
   <div class="err" id="err"></div>
+  <form onsubmit="event.preventDefault();login()">
   <label>Email Address</label>
   <input type="email" id="email" placeholder="admin@example.com" autocomplete="email">
   <label>Password</label>
   <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
-  <button class="btn" id="btn" onclick="login()">Sign In</button>
+  <button class="btn" id="btn" type="submit">Sign In</button>
+  </form>
+  <div style="text-align:center;margin-top:16px"><a href="#" id="forgotLink" style="font-size:.75rem;color:#4a6a8a;text-decoration:none">Forgot password?</a></div>
   <div class="footer-note">Admin access only. Unauthorized access is prohibited.</div>
 </div>
 <script type="module" src="/js/cp-api.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   CP.Auth.isAdmin().then(is => { if (is) location.href = 'dashboard.html'; });
+  document.getElementById('forgotLink').addEventListener('click', async e => {
+    e.preventDefault();
+    const email = document.getElementById('email').value.trim();
+    if (!email) { showErr('Enter your email address above, then click "Forgot password?".'); return; }
+    const { error } = await CP.sb().auth.resetPasswordForEmail(email, { redirectTo: location.origin + '/admin/login.html' });
+    if (error) { showErr(error.message); }
+    else { document.getElementById('err').style.display='block'; document.getElementById('err').style.background='#0a1f0a'; document.getElementById('err').style.borderColor='#14532d'; document.getElementById('err').style.color='#86efac'; document.getElementById('err').textContent='Password reset email sent! Check your inbox.'; }
+  });
 });
 
 async function login() {
@@ -63,7 +75,6 @@ async function login() {
   location.href = 'dashboard.html';
 }
 function showErr(msg) { const e = document.getElementById('err'); e.textContent = msg; e.style.display = 'block'; }
-document.addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
 </script>
 </body>
 </html>

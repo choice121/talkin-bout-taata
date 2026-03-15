@@ -5,6 +5,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="/css/admin.css?v=2">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
 </head><body>
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 <aside class="sidebar" id="adminSidebar"><div class="sidebar-logo"><div class="name">Choice Properties</div><div class="sub">Admin Portal</div></div>
@@ -15,7 +16,7 @@
 <div class="nav-section">Platform</div><a class="nav-item" href="landlords.html"><span class="icon">👤</span> Landlords</a>
 <a class="nav-item active" href="listings.html"><span class="icon">🏢</span> Listings</a><a class="nav-item" href="email-logs.html"><span class="icon">📧</span> Email Logs</a></nav>
 <div class="sidebar-footer"><a href="/index.html" target="_blank" style="display:block;font-size:12px;color:#8892a2;text-decoration:none;margin-bottom:8px;text-align:center"><i class="fas fa-external-link-alt" style="margin-right:4px"></i> View Live Site</a>
-    <div class="admin-name" id="admin-name"></div>
+    <div class="admin-name" id="admin-name">Loading…</div>
     <button class="sign-out" onclick="CP.sb().auth.signOut().then(()=>location.href='login.html')">Sign Out</button></div></aside>
 <div class="main"><div class="topbar">
     <button class="mobile-menu-btn" id="menuBtn" aria-label="Open menu"><i class="fas fa-bars"></i></button><div><div class="page-title">All Listings</div><div class="page-sub" id="count-label">Loading…</div></div></div>
@@ -26,7 +27,7 @@
 </div>
 <div class="card"><div class="table-wrap"><table>
 <thead><tr><th>Title</th><th>Address</th><th>Status</th><th>Rent/mo</th><th>Beds/Bath</th><th>Views</th><th>Applications</th><th>Landlord</th><th>Listed</th><th>Actions</th></tr></thead>
-<tbody id="tbody"></tbody></table></div></div></div></div>
+<tbody id="tbody"><tr><td colspan="10" class="empty-state">Loading…</td></tr></tbody></table></div></div></div></div>
 <script type="module" src="/js/cp-api.js"></script>
 <script>
 let all=[];
@@ -57,7 +58,7 @@ function applyFilter(){
   if(!f.length){tb.innerHTML='<tr><td colspan="10" class="empty-state">No listings found</td></tr>';return;}
   const statusBadge=s=>{const m={active:'badge-success',draft:'badge-secondary',paused:'badge-warning',rented:'badge-info',archived:'badge-secondary'};return`<span class="badge ${m[s]||'badge-secondary'}">${s}</span>`;};
   tb.innerHTML=f.map(p=>`<tr>
-    <td><a href="/landlord/edit-listing.html?id=${p.id}&admin=1" target="_blank" style="font-weight:600;color:#2563eb;text-decoration:none">${p.title}</a></td>
+    <td><a href="/landlord/edit-listing.html?id=${p.id}&admin=1" target="_blank" style="font-weight:600;color:var(--gold);text-decoration:none">${p.title}</a></td>
     <td class="truncate">${p.address}, ${p.city}, ${p.state}</td>
     <td>${statusBadge(p.status)}</td>
     <td class="text-success">${CP.UI.fmt.currency(p.monthly_rent)}</td>
