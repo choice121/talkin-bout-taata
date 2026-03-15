@@ -7,12 +7,12 @@ Choice Properties is a nationwide rental marketplace static site. It's served by
 - **Frontend**: Pure HTML/CSS/JS static files, no build step required
 - **Server**: `serve.js` — Node.js HTTP server that:
   1. Reads environment secrets and generates `config.js` at startup
-  2. Serves all static files with correct MIME types, gzip compression, and cache headers
+  2. Serves all static files with correct MIME types, gzip compression, cache headers, and security headers
 - **Backend**: Supabase (hosted externally)
   - Database: Supabase Postgres
-  - Auth: Supabase Auth (OTP/magic link)
+  - Auth: Supabase Auth (OTP/magic link for applicants; email/password for landlords and admins)
   - API: Supabase Edge Functions (in `supabase/functions/`)
-  - Storage: Supabase Storage (lease PDFs)
+  - Storage: Supabase Storage (lease PDFs in `lease-pdfs` bucket)
 
 ## Running the Project
 The workflow "Start application" runs `node serve.js` on port 5000.
@@ -40,11 +40,31 @@ Set these in Replit Secrets:
 - `js/apply.js` — Application form logic
 - `supabase/functions/` — Edge Functions deployed to Supabase cloud
 
+## Supabase Edge Functions
+All backend logic runs as Supabase Edge Functions (Deno). They are deployed to your Supabase project, not to Replit:
+- `process-application` — Handles rental application form submissions
+- `update-status` — Updates application status (admin/landlord only)
+- `mark-paid` — Marks application fee as paid
+- `generate-lease` — Generates lease records and sends signing links
+- `sign-lease` — Handles tenant/co-applicant lease signing and PDF generation
+- `mark-movein` — Records move-in completion
+- `send-message` — Sends messages between admin/landlord and applicants
+- `send-inquiry` — Handles property inquiry emails
+- `get-application-status` — Rate-limited status check for tenants
+- `imagekit-upload` — Secure server-side image upload to ImageKit CDN
+
 ## Pages
 - `/` — Public listings homepage
 - `/property.html` — Individual property listing
 - `/apply.html` — Rental application form
 - `/apply/dashboard.html` — Tenant application status dashboard
 - `/apply/lease.html` — Lease signing page
+- `/apply/login.html` — Applicant OTP login
 - `/admin/` — Admin dashboard (requires admin login)
 - `/landlord/` — Landlord portal (requires landlord login)
+
+## Security
+- Supabase anon key and URL are exposed to the browser (this is correct and expected for Supabase)
+- All sensitive secrets (service role key, GAS relay secret, ImageKit private key) live only in Supabase Edge Function secrets — never in the browser
+- SSNs are masked to last-4 digits server-side before storage
+- Admin/landlord actions are gated by server-side auth checks in Edge Functions

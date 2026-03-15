@@ -141,6 +141,8 @@ const server = http.createServer((req, res) => {
         'Content-Type':  mime,
         'Cache-Control': cacheControl,
         'Vary':          'Accept-Encoding',
+        'X-Content-Type-Options': 'nosniff',
+        'Referrer-Policy': 'strict-origin-when-cross-origin',
       };
 
       if (useGzip) {
