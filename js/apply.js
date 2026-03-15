@@ -400,6 +400,27 @@ class RentalApplication {
             banner.style.display = 'none';
         }
 
+        // Keep sessionStorage in sync so the success page always shows the correct
+        // property context — covers the dropdown path, the escape-hatch + re-select
+        // path, and the locked-arrival path (harmless double-write).
+        if (prop) {
+            sessionStorage.setItem('cp_property_context', JSON.stringify({
+                id:              prop.id,
+                title:           prop.title,
+                address:         prop.address,
+                city:            prop.city,
+                state:           prop.state,
+                zip:             prop.zip             || '',
+                monthly_rent:    prop.monthly_rent    || null,
+                application_fee: prop.application_fee || 0,
+                available_date:  prop.available_date  || null,
+                bedrooms:        prop.bedrooms        || null,
+                bathrooms:       prop.bathrooms       || null,
+            }));
+        } else {
+            sessionStorage.removeItem('cp_property_context');
+        }
+
         this._showContextBanner(prop);
     }
 
