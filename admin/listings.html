@@ -31,7 +31,8 @@
 <script>
 let all=[];
 (async()=>{
-  await CP.Auth.requireAdmin();
+  const ok = await CP.Auth.requireAdmin();
+  if (!ok) return;
   const user=await CP.Auth.getUser(); document.getElementById('admin-name').textContent=user?.email||'Admin';
   await load();
 })();

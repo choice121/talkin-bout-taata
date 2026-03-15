@@ -26,7 +26,8 @@
 <script src="/js/cp-api.js"></script>
 <script>
 (async()=>{
-  await CP.Auth.requireAdmin();
+  const ok = await CP.Auth.requireAdmin();
+  if (!ok) return;
   const user=await CP.Auth.getUser(); document.getElementById('admin-name').textContent=user?.email||'Admin';
   const {data}=await CP.sb().from('landlords').select('*').order('created_at',{ascending:false});
   document.getElementById('count-label').textContent=`${(data||[]).length} landlord accounts`;
@@ -42,13 +43,14 @@
       <span class="text-muted" style="font-size:.72rem;margin-left:8px">${CP.UI.fmt.date(l.created_at)}</span>
     </td>
   </tr>`).join('');
+})();
+
 async function toggleVerify(id, currentlyVerified) {
   const { error } = await CP.sb().from('landlords').update({ verified: !currentlyVerified }).eq('id', id);
   if (error) { CP.UI.toast('Error: ' + error.message, 'error'); return; }
   CP.UI.toast(currentlyVerified ? 'Landlord unverified.' : 'Landlord verified!', 'success');
   location.reload();
 }
-})();
 </script>
 <script>
 // Mobile sidebar toggle

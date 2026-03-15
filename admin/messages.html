@@ -35,7 +35,8 @@
 <script src="/js/cp-api.js"></script>
 <script>
 (async()=>{
-  await CP.Auth.requireAdmin();
+  const ok = await CP.Auth.requireAdmin();
+  if (!ok) return;
   const user=await CP.Auth.getUser(); document.getElementById('admin-name').textContent=user?.email||'Admin';
   const {data:msgs}=await CP.sb().from('messages').select('*,applications(first_name,last_name,email,app_id)').order('created_at',{ascending:false});
   if(!msgs?.length){document.getElementById('threads').innerHTML='<div class="empty-state"><div class="empty-icon">💬</div>No messages yet.</div>';return;}
@@ -51,7 +52,7 @@
       <div class="thread-body">
         ${[...t.msgs].reverse().map(m=>`<div class="msg msg-${m.sender}">
           <div class="msg-meta">${m.sender_name||m.sender} · ${CP.UI.fmt.dateTime(m.created_at)}</div>
-          ${m.message}
+          ${CP_esc(m.message)}
         </div>`).join('')}
         <div class="reply-row">
           <textarea id="reply-${appId}" placeholder="Type reply…"></textarea>

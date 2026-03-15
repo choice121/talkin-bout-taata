@@ -37,12 +37,13 @@
 <script>
 let cur=null;
 (async()=>{
-  await CP.Auth.requireAdmin();
+  const ok = await CP.Auth.requireAdmin();
+  if (!ok) return;
   const user=await CP.Auth.getUser(); document.getElementById('admin-name').textContent=user?.email||'Admin';
   const {data}=await CP.sb().from('applications').select('app_id,first_name,last_name,email,property_address,lease_signed_date,move_in_status,move_in_date_actual,lease_status').or('lease_status.in.(signed,co_signed),move_in_status.eq.pending').neq('move_in_status','completed').order('lease_signed_date',{ascending:false});
   const tb=document.getElementById('tbody');
   if(!data?.length){tb.innerHTML='<tr><td colspan="8" class="empty-state">No signed leases yet</td></tr>';return;}
-  tb.innerHTML=(data||[]).map(a=>`<tr>
+  tb.innerHTML=(data||[]).map(a=>`<tr id="row-${a.app_id}">
     <td class="mono">${a.app_id}</td><td><strong>${a.first_name} ${a.last_name}</strong></td>
     <td class="truncate">${a.property_address||'—'}</td>
     <td>${CP.UI.leaseBadge(a.lease_status)}</td>
@@ -51,6 +52,16 @@ let cur=null;
     <td>${a.move_in_date_actual?CP.UI.fmt.date(a.move_in_date_actual):'—'}</td>
     <td>${!a.move_in_status||a.move_in_status==='pending'?`<button class="btn btn-primary btn-sm" onclick="openModal('${a.app_id}')">Confirm Move-In</button>`:'<span class="text-success">✓ Done</span>'}</td>
   </tr>`).join('');
+
+  // Deep-link: scroll to and highlight a specific application row if ?id= is present
+  const targetId = new URLSearchParams(location.search).get('id');
+  if (targetId) {
+    const row = document.getElementById(`row-${targetId}`);
+    if (row) {
+      row.style.outline = '2px solid var(--color-brand-light)';
+      row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
 })();
 function openModal(id){cur=id;document.getElementById('m-date').value=new Date().toISOString().split('T')[0];document.getElementById('movein-modal').classList.add('open');}
 function closeModal(){document.getElementById('movein-modal').classList.remove('open');}

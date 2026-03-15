@@ -49,7 +49,7 @@
       <div class="stat-card"><div class="stat-label">Total Applications</div><div class="stat-value gold" id="s-total">—</div><div class="stat-sub">All time</div></div>
       <div class="stat-card"><div class="stat-label">Pending Review</div><div class="stat-value" id="s-pending">—</div><div class="stat-sub">Awaiting action</div></div>
       <div class="stat-card"><div class="stat-label">Fee Unpaid</div><div class="stat-value red" id="s-unpaid">—</div><div class="stat-sub">Needs collection</div></div>
-      <div class="stat-card"><div class="stat-label">Approved</div><div class="stat-value green" id="s-approved">—</div><div class="stat-sub">This month</div></div>
+      <div class="stat-card"><div class="stat-label">Approved</div><div class="stat-value green" id="s-approved">—</div><div class="stat-sub">All time</div></div>
       <div class="stat-card"><div class="stat-label">Leases Sent</div><div class="stat-value blue" id="s-leases">—</div><div class="stat-sub">Awaiting signature · <span id="s-leases-signed">—</span> executed</div></div>
       <div class="stat-card"><div class="stat-label">Active Listings</div><div class="stat-value gold" id="s-listings">—</div><div class="stat-sub">Live on platform</div></div>
     </div>
@@ -116,12 +116,11 @@
   ]);
 
   const apps = appsRes.data || [];
-  const now  = new Date(); const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
   document.getElementById('s-total').textContent    = apps.length;
   document.getElementById('s-pending').textContent  = apps.filter(a => a.status === 'pending').length;
   document.getElementById('s-unpaid').textContent   = apps.filter(a => a.payment_status === 'unpaid').length;
-  document.getElementById('s-approved').textContent = apps.filter(a => a.status === 'approved' && new Date(a.created_at) >= monthStart).length;
+  document.getElementById('s-approved').textContent = apps.filter(a => a.status === 'approved').length;
   document.getElementById('s-leases').textContent        = apps.filter(a => a.lease_status === 'sent').length;
   document.getElementById('s-leases-signed').textContent = apps.filter(a => a.lease_status === 'signed' || a.lease_status === 'co_signed').length;
   document.getElementById('s-listings').textContent = (listingsRes.data || []).filter(l => l.status === 'active').length;

@@ -257,7 +257,7 @@ function renderApps(apps) {
         ${a.lease_status === 'sent' ? `<button class="btn btn-ghost btn-sm" onclick="openLeaseModal('${a.app_id}','${a.first_name} ${a.last_name}',true,${a.monthly_rent||0},${a.security_deposit||0},'${a.requested_move_in_date||''}')">🔄 Resend Lease</button>` : ''}
         ${(a.lease_status === 'voided' || a.lease_status === 'expired') ? `<button class="btn btn-primary btn-sm" onclick="openLeaseModal('${a.app_id}','${a.first_name} ${a.last_name}',false,${a.monthly_rent||0},${a.security_deposit||0},'${a.requested_move_in_date||''}')">📄 Send New Lease</button>` : ''}
         ${(a.lease_status && a.lease_status !== 'none' && a.lease_status !== 'voided' && a.lease_status !== 'expired' && a.lease_status !== 'co_signed') ? `<button class="btn btn-sm" style="background:#991b1b" onclick="voidLease('${a.app_id}')">✕ Void Lease</button>` : ''}
-        ${(a.lease_status === 'signed' || a.lease_status === 'co_signed') && !a.move_in_status ? `<a href="move-ins.html" class="btn btn-sm" style="background:#065f46;color:#fff">🏠 Move-In</a>` : ''}
+        ${(a.lease_status === 'signed' || a.lease_status === 'co_signed') && !a.move_in_status ? `<a href="move-ins.html?id=${a.app_id}" class="btn btn-sm" style="background:#065f46;color:#fff">🏠 Move-In</a>` : ''}
         <button class="btn btn-ghost btn-sm" onclick="openMsgModal('${a.app_id}')">💬 Message</button>
         <a href="email-logs.html?app=${a.app_id}" class="btn btn-ghost btn-sm">📧 Emails</a>
       </div>
