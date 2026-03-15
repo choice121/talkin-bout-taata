@@ -35,9 +35,9 @@
 <thead><tr><th>Date/Time</th><th>Type</th><th>Recipient</th><th>App ID</th><th>Status</th><th>Error</th></tr></thead>
 <tbody id="tbody"></tbody></table></div></div></div></div>
 <script type="module" src="/js/cp-api.js"></script>
-<script type="module">
+<script>
 let all=[];
-(async()=>{
+document.addEventListener('DOMContentLoaded', async()=>{
   const ok = await CP.Auth.requireAdmin();
   if (!ok) return;
   const user=await CP.Auth.getUser(); document.getElementById('admin-name').textContent=user?.email||'Admin';
@@ -46,7 +46,7 @@ let all=[];
   if(params.get('status')) document.getElementById('f-status').value=params.get('status');
   const {data}=await CP.sb().from('email_logs').select('*').order('created_at',{ascending:false}).limit(500);
   all=data||[]; applyFilter();
-})();
+});
 function applyFilter(){
   const app=document.getElementById('f-app').value.toLowerCase();
   const type=document.getElementById('f-type').value;

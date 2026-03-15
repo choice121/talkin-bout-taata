@@ -102,8 +102,8 @@
 </div>
 
 <script type="module" src="/js/cp-api.js"></script>
-<script type="module">
-(async () => {
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
   const ok = await CP.Auth.requireAdmin();
   if (!ok) return;
   const user = await CP.Auth.getUser();

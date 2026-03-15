@@ -43,9 +43,10 @@ input:focus{border-color:#c9a84c}
   <div class="footer-note">Admin access only. Unauthorized access is prohibited.</div>
 </div>
 <script type="module" src="/js/cp-api.js"></script>
-<script type="module">
-// If already logged in as admin, redirect
-CP.Auth.isAdmin().then(is => { if (is) location.href = 'dashboard.html'; });
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  CP.Auth.isAdmin().then(is => { if (is) location.href = 'dashboard.html'; });
+});
 
 async function login() {
   const email = document.getElementById('email').value.trim();

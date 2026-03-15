@@ -30,16 +30,16 @@
 <thead><tr><th>App ID</th><th>Tenant</th><th>Property</th><th>Lease Status</th><th>Rent/mo</th><th>Deposit</th><th>Move-In Total</th><th>Sent</th><th>Signed</th><th>Expires</th><th>Actions</th></tr></thead>
 <tbody id="tbody"></tbody></table></div></div></div></div>
 <script type="module" src="/js/cp-api.js"></script>
-<script type="module">
+<script>
 let all=[];
-(async()=>{
+document.addEventListener('DOMContentLoaded', async()=>{
   const ok = await CP.Auth.requireAdmin();
   if (!ok) return;
   const user=await CP.Auth.getUser(); document.getElementById('admin-name').textContent=user?.email||'Admin';
   const params=new URLSearchParams(location.search);
   if(params.get('filter')) document.getElementById('f-lease').value=params.get('filter');
   await load(); CP.subscribeToApplications(load);
-})();
+});
 async function load(){
   const {data}=await CP.sb().from('applications').select('app_id,first_name,last_name,email,property_address,lease_status,monthly_rent,security_deposit,move_in_costs,lease_sent_date,lease_signed_date,lease_expiry_date,tenant_signature,co_applicant_signature').neq('lease_status','none').order('lease_sent_date',{ascending:false});
   all=data||[]; applyFilter();

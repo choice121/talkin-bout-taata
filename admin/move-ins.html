@@ -34,9 +34,9 @@
 <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="submit()">Confirm Move-In</button></div>
 </div></div>
 <script type="module" src="/js/cp-api.js"></script>
-<script type="module">
+<script>
 let cur=null;
-(async()=>{
+document.addEventListener('DOMContentLoaded', async()=>{
   const ok = await CP.Auth.requireAdmin();
   if (!ok) return;
   const user=await CP.Auth.getUser(); document.getElementById('admin-name').textContent=user?.email||'Admin';
@@ -62,7 +62,7 @@ let cur=null;
       row.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }
-})();
+});
 function openModal(id){cur=id;document.getElementById('m-date').value=new Date().toISOString().split('T')[0];document.getElementById('movein-modal').classList.add('open');}
 function closeModal(){document.getElementById('movein-modal').classList.remove('open');}
 async function submit(){

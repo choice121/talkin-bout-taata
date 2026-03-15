@@ -3,6 +3,13 @@
 All notable changes to this project are documented here.
 Every task, fix, or update must add an entry. Most recent changes appear first.
 
+## [2026-03-15] — Fix Admin & Landlord Dashboard Login (ES Module Scoping)
+
+- **Root cause fixed:** `cp-api.js` uses ES module `export` statements. When loaded as a classic `<script>`, browsers throw a SyntaxError and `window.CP` is never defined, silently breaking all admin/landlord pages.
+- **Fix — all 9 admin pages:** `cp-api.js` tag changed to `type="module"`. Inline data scripts reverted from `type="module"` back to classic `<script>` and their init IIFEs wrapped in `document.addEventListener('DOMContentLoaded', ...)`, which fires *after* module scripts — guaranteeing `window.CP` is set before any page logic runs.
+- **`onclick` handlers preserved:** Because all page functions (`login`, `applyFilter`, `openModal`, `sendReply`, `toggleVerify`, `voidLease`, `changeStatus`, `submitStatus`, `submitLease`, `submitMessage`, `closeModal`, `openLeaseModal`, `markPaid`, `toggleDetail`, `clearFilters`, `submit`, `openMsgModal`) are defined at the top level of classic scripts, they remain on `window` and are reachable by HTML `onclick="..."` attributes and dynamically-generated button HTML.
+- **Landlord pages unaffected:** Their inline scripts already used `type="module"` with explicit `import` statements; no change needed.
+
 ## [2026-03-15] — Gallery, Lightbox & Card UX Upgrade (Zillow-parity)
 
 - **Gallery mosaic:** Height raised 480px → 560px (1024px+), side panel changed from 1-column × 2-row to a proper 2×2 grid showing all 4 thumbnails (indices 1–4). Added gradient overlays on main image and hover image-zoom on all panels. "See all photos" button now shows a live photo count badge and uses a cleaner pill design with backdrop blur. All class/ID names preserved for JS compatibility.
