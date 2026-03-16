@@ -178,7 +178,14 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ success: false, error: 'Invalid JSON body' }), { status: 400, headers: { ...cors, 'Content-Type': 'application/json' } })
   }
 
-  const { app_id, signature, ip_address, is_co_applicant, co_token, token, action } = body
+  const { app_id, signature, is_co_applicant, co_token, token, action } = body
+
+  // ── Extract real client IP server-side (not from client body) ──
+  // The client-supplied ip_address is intentionally ignored to prevent spoofing.
+  // Supabase Edge Functions receive the real IP in x-forwarded-for.
+  const realIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+              || req.headers.get('x-real-ip')
+              || 'unknown'
 
   // ── Admin-only actions: void ─────────────────────────────
   const requiresAdmin = action === 'void'
@@ -239,7 +246,7 @@ Deno.serve(async (req) => {
 
     // ── Sign via DB function ────────────────────────────────
     const fn = is_co_applicant ? 'sign_lease_co_applicant' : 'sign_lease'
-    const { data, error } = await supabase.rpc(fn, { p_app_id: app_id, p_signature: signature, p_ip: ip_address || '' })
+    const { data, error } = await supabase.rpc(fn, { p_app_id: app_id, p_signature: signature, p_ip: realIp })
     if (error) throw new Error(error.message)
     if (!data?.success) throw new Error(data?.error || 'Sign failed')
 

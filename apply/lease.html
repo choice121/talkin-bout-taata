@@ -376,17 +376,16 @@ function renderCoSignPage(app) {
     </div>`;
 }
 
-// ── IP lookup with 3-provider fallback ─────────────────────
-async function getClientIP() {
-  const providers = [
-    () => fetch('https://api.ipify.org?format=json').then(r=>r.json()).then(d=>d.ip),
-    () => fetch('https://api.my-ip.io/ip.json').then(r=>r.json()).then(d=>d.ip),
-    () => fetch('https://ipapi.co/json/').then(r=>r.json()).then(d=>d.ip),
-  ];
-  for (const fn of providers) {
-    try { const ip = await fn(); if (ip) return ip; } catch(_) {}
-  }
-  return '0.0.0.0';
+// ── Soft name match helper ──────────────────────────────────
+// Returns true if the typed signature plausibly matches the applicant's
+// recorded name (case-insensitive, partial-match on last name).
+function nameMatchesApplicant(typedSig, app) {
+  if (!app) return true; // can't validate, allow
+  const norm = s => s.toLowerCase().replace(/[^a-z\s]/g, '').trim();
+  const typed = norm(typedSig);
+  const last  = norm(app.last_name  || '');
+  const first = norm(app.first_name || '');
+  return typed.includes(last) || typed.includes(first);
 }
 
 // ── Primary applicant sign ──────────────────────────────────
@@ -398,11 +397,17 @@ async function doSign() {
   const sig = document.getElementById('sig-input').value.trim();
   if (!sig || sig.length < 3) { showAlert('Please enter your full legal name as your signature.','err'); return; }
 
+  // Soft name match — warn but do not block (allows legal name variations)
+  if (currentApp && !nameMatchesApplicant(sig, currentApp)) {
+    const proceed = confirm(`The name you entered ("${sig}") does not appear to match the name on the application ("${currentApp.first_name} ${currentApp.last_name}").\n\nIf this is your legal name, click OK to continue. Otherwise click Cancel to correct it.`);
+    if (!proceed) return;
+  }
+
   const btn = document.getElementById('sign-btn');
   btn.disabled = true; btn.textContent = 'Processing…';
 
-  const ip = await getClientIP();
-  const res = await CP.Applications.signLease(appId, sig, ip, signToken);
+  // IP is recorded server-side from the request — no client-side IP lookup needed
+  const res = await CP.Applications.signLease(appId, sig, '', signToken);
 
   if (res.success) {
     // Reload to show the correct post-sign state (awaiting_co_sign or fully signed)
@@ -422,16 +427,21 @@ async function doCoSign() {
   const sig = document.getElementById('co-sig-input').value.trim();
   if (!sig || sig.length < 3) { showCoAlert('Please enter your full legal name as your signature.'); return; }
 
+  // Soft name match for co-applicant
+  if (currentApp && currentApp.co_applicant_last_name && !nameMatchesApplicant(sig, { first_name: currentApp.co_applicant_first_name, last_name: currentApp.co_applicant_last_name })) {
+    const proceed = confirm(`The name you entered ("${sig}") does not appear to match the co-applicant name on the application ("${currentApp.co_applicant_first_name || ''} ${currentApp.co_applicant_last_name || ''}".trim()).\n\nIf this is your legal name, click OK to continue. Otherwise click Cancel to correct it.`);
+    if (!proceed) return;
+  }
+
   const btn = document.getElementById('co-sign-btn');
   btn.disabled = true; btn.textContent = 'Processing…';
 
-  const ip = await getClientIP();
-
+  // IP is recorded server-side from the request — no client-side IP lookup needed
   // Pass co_token so edge function can validate this is the real co-applicant
   const res = await fetch(`${CONFIG.SUPABASE_URL}/functions/v1/sign-lease`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'apikey': CONFIG.SUPABASE_ANON_KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}` },
-    body: JSON.stringify({ app_id: appId, signature: sig, ip_address: ip, is_co_applicant: true, co_token: coToken })
+    body: JSON.stringify({ app_id: appId, signature: sig, is_co_applicant: true, co_token: coToken })
   }).then(r => r.json());
 
   if (res.success) {
@@ -473,6 +483,8 @@ function attachScrollGate(leaseTextEl, btnId, hintId, noteId) {
     }
   }
   leaseTextEl.addEventListener('scroll', check);
+  // Also fire on keyboard navigation (End, Ctrl+End, etc.) within the div
+  leaseTextEl.addEventListener('keyup', check);
   // Also check immediately in case content is short enough to not need scrolling
   check();
 }

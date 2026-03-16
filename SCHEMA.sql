@@ -326,6 +326,11 @@ create table if not exists applications (
   co_applicant_monthly_income      text,
   co_applicant_employment_duration text,
   co_applicant_consent             boolean default false,
+  co_applicant_employment_status   text,
+
+  -- ── Auth Link ─────────────────────────────────────────────
+  -- Supabase Auth user_id of the primary applicant (set by process-application)
+  applicant_user_id                text,
 
   -- ── Document Upload ───────────────────────────────────────
   document_url text,
@@ -353,6 +358,7 @@ create table if not exists applications (
 
   -- ── Signatures ────────────────────────────────────────────
   tenant_signature                     text,
+  tenant_sign_token                    text,
   signature_timestamp                  timestamptz,
   lease_ip_address                     text,
   co_applicant_signature               text,
