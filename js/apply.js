@@ -1005,7 +1005,7 @@ class RentalApplication {
         this.hideSection(currentSection);
         this.showSection(currentSection + 1);
         this.updateProgressBar();
-        if (currentSection + 1 === 6) {
+        if (currentSection + 1 === 7) {
             this.generateApplicationSummary();
             // Show co-applicant SSN column if co-applicant is present
             const hasCoApp = document.getElementById('hasCoApplicant');
@@ -1037,16 +1037,16 @@ class RentalApplication {
 
     updateProgressBar() {
         const currentSection = this.getCurrentSection();
-        const progress = (currentSection / 6) * 100;
+        const progress = (currentSection / 7) * 100;
         const progressFill = document.getElementById('progressFill');
         if (progressFill) progressFill.style.width = `${progress}%`;
         const progressContainer = document.querySelector('.progress-container');
         if (progressContainer) progressContainer.setAttribute('aria-valuenow', String(currentSection));
         const t = this.getTranslations();
-        const stepNames = [t.step1Label, t.step2Label, t.step3Label, t.step4Label, t.step5Label, t.step6Label];
-        const progressText = `${t.stepPrefix} ${currentSection} ${t.stepOf} 6: ${stepNames[currentSection-1]}`;
+        const stepNames = [t.step1Label, t.step2Label, t.step3Label, t.step4Label, t.step5Label, t.step6Label, t.step7Label];
+        const progressText = `${t.stepPrefix} ${currentSection} ${t.stepOf} 7: ${stepNames[currentSection-1]}`;
         if (progressContainer) progressContainer.setAttribute('data-progress-text', progressText);
-        for (let i = 1; i <= 6; i++) {
+        for (let i = 1; i <= 7; i++) {
             const step = document.getElementById(`step${i}`);
             if (step) {
                 step.classList.remove('active', 'completed');
@@ -1082,7 +1082,8 @@ class RentalApplication {
             }
 
         }
-        if (stepNumber === 5) {
+        if (stepNumber === 6) {
+            // Payment: enforce unique selections
             const isUnique = this.validatePaymentSelections();
             if (!isUnique) {
                 const warning = document.getElementById('paymentDuplicateWarning');
@@ -1093,7 +1094,7 @@ class RentalApplication {
                 return false;
             }
 
-            // Contact preferences now live in Step 5 — enforce at least one contact method
+            // Enforce at least one contact method
             const methodBoxes = document.querySelectorAll('input[name="Preferred Contact Method"]');
             const anyChecked = Array.from(methodBoxes).some(cb => cb.checked);
             let contactErrEl = document.getElementById('contactMethodError');
@@ -1126,7 +1127,8 @@ class RentalApplication {
                 }
             }
         });
-        if (stepNumber === 4) {
+        if (stepNumber === 6) {
+            // Co-applicant validation (moved from old step 4)
             const hasCoApplicant = document.getElementById('hasCoApplicant');
             const coSection = document.getElementById('coApplicantSection');
             if (hasCoApplicant && hasCoApplicant.checked && coSection && coSection.style.display !== 'none') {
@@ -1520,12 +1522,13 @@ class RentalApplication {
                 timeEstimate: 'Estimated time: 15-20 minutes',
 
                 // ── Progress bar step labels ──
-                step1Label: 'Property & Applicant',
-                step2Label: 'Residency & Occupancy',
-                step3Label: 'Employment & Income',
-                step4Label: 'References & More',
-                step5Label: 'Payment Preferences',
-                step6Label: 'Review & Submit',
+                step1Label: 'Property & Basics',
+                step2Label: 'Residency',
+                step3Label: 'Employment',
+                step4Label: 'Documents',
+                step5Label: 'References',
+                step6Label: 'Payment',
+                step7Label: 'Review',
                 requiredFieldLegend: 'Required field',
                 stepPrefix: 'Step',
                 stepOf: 'of',
