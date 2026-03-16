@@ -266,7 +266,7 @@
 }
 .lightbox-img-wrap.transitioning {
   opacity: 0;
-  transform: scale(0.96);
+  transform: scale(0.96) translateX(var(--lb-slide-x, 0px));
 }
 
 .lightbox-img {
@@ -648,3 +648,20 @@
 @media (min-width: 1440px) {
   .gallery-mosaic { height: clamp(560px, 38vw, 700px); }
 }
+
+/* ── PROGRESSIVE IMAGE LOADING (LQIP BLUR-UP) ──────────── */
+.lqip-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: blur(24px);
+  transform: scale(1.1);
+  z-index: 0;
+  transition: opacity 600ms ease;
+  pointer-events: none;
+  will-change: opacity;
+}
+.lqip-bg.faded { opacity: 0; }
+.mosaic-main-img { position: relative; z-index: 1; }

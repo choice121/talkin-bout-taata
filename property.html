@@ -988,6 +988,28 @@ function formatDate(str) {
 }
 function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
+/* ── LQIP helper — returns a tiny blurred ImageKit URL for blur-up loading ── */
+function lqipUrl(url) {
+  if (!url || !window.CONFIG || !CONFIG.IMAGEKIT_URL || CONFIG.IMAGEKIT_URL === '') return null;
+  const base = url.startsWith(CONFIG.IMAGEKIT_URL)
+    ? url.replace(/\/tr:[^/]+/, '')
+    : CONFIG.IMAGEKIT_URL + '/' + encodeURIComponent(url);
+  return base.replace(CONFIG.IMAGEKIT_URL, CONFIG.IMAGEKIT_URL + '/tr:w-30,bl-20,q-20,f-webp');
+}
+
+/* ── Preload adjacent lightbox images for instant prev/next navigation ── */
+function preloadLightboxAdjacentImages(idx) {
+  const n = allPhotos.length;
+  if (n < 2) return;
+  [1, -1].forEach(offset => {
+    const i = (idx + offset + n) % n;
+    if (i !== idx) {
+      const pre = new Image();
+      pre.src = CONFIG.img(allPhotos[i], 'lightbox');
+    }
+  });
+}
+
 function showToast(msg, type = 'info') {
   const c = document.getElementById('toastContainer');
   const t = document.createElement('div');
