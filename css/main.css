@@ -11,6 +11,7 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: var(--nav-h, 64px);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -999,7 +1000,6 @@ footer { background: var(--color-dark-surface); padding: var(--s-16) 0 var(--s-8
 .toast { background: var(--ink); color: var(--white); border-radius: var(--r-xl); padding: var(--s-4) var(--s-5); display: flex; align-items: center; gap: var(--s-3); min-width: 300px; max-width: 400px; box-shadow: var(--sh-xl); pointer-events: all; font-size: 14px; font-weight: 500; animation: toastIn 250ms var(--ease-out) forwards; border: 1px solid rgba(255,255,255,0.08); }
 .toast.toast-success i { color: #34d399; }
 .toast.toast-error i { color: #f87171; }
-@keyframes toastIn { from { opacity: 0; transform: translateY(8px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
 /* LOADING */
 .page-loading { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; gap: var(--s-4); }

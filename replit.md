@@ -87,9 +87,20 @@ All deployed to Supabase cloud — not run locally:
 - `mark-movein` — Record tenant move-in
 - `imagekit-upload` — Server-side ImageKit upload (keeps private key secure)
 
+## CSS Architecture
+All styles are split by concern and loaded in order on each page:
+- `css/main.css` — Design tokens (v16), base resets, shared component library (buttons, forms, modals, tables, toasts, step wizard, nav, footer)
+- `css/mobile.css` — Responsive layer (loaded last everywhere). Mobile-first with min-width breakpoints. Contains: touch improvements, prefers-reduced-motion, 320px micro-phone fixes, ultra-wide breakpoints (1440/1920/2560px+), admin table card layout on small screens, print styles
+- `css/listings.css` — Homepage hero, search bar, filter bar, property grid, why section, footer dark variant, card entrance animations
+- `css/property.css` — Gallery mosaic (fluid height via clamp), lightbox, detail layout, sidebar, apply card, landlord card
+- `css/apply.css` — Multi-step application form wizard
+- `css/admin.css` — Dark-themed admin dashboard
+- `css/landlord.css` — Landlord portal (auth, dashboard, listings wizard)
+
 ## Important Notes
 - Do NOT add a Node.js/Express backend — all API logic lives in Supabase Edge Functions
 - Do NOT add a local database (Neon, SQLite, etc.) — Supabase Postgres is the database
 - Do NOT add Drizzle or any ORM — this is a static site
 - `config.js` is regenerated every time `serve.js` starts — never edit it manually
 - The `supabase/functions/` folder contains Deno code deployed to Supabase cloud, not Node.js
+- Gallery mosaic height is fluid via `clamp(280px, 44vw, 620px)` — do not use a fixed `height` value

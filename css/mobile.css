@@ -552,12 +552,13 @@ input[type="reset"] {
 
 
 /* ── HORIZONTAL SCROLL POLISH ────────────────────────────── */
-/* Smooth momentum scrolling everywhere it's used */
+/* Smooth momentum scrolling everywhere it's used.
+   Proximity snap (not mandatory) avoids hijacking finger gestures. */
 .table-wrap,
 .filter-bar-inner,
 .steps {
   -webkit-overflow-scrolling: touch;
-  scroll-snap-type: x mandatory;
+  scroll-snap-type: x proximity;
 }
 
 
@@ -565,4 +566,318 @@ input[type="reset"] {
 .scroll-top {
   bottom: calc(var(--space-4) + var(--safe-bottom));
   left: var(--space-4);
+}
+
+
+/* ── GLOBAL TOUCH IMPROVEMENTS ───────────────────────────── */
+/* Remove the 300ms tap delay and the blue flash on mobile browsers */
+a,
+button,
+[role="button"],
+input,
+label,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Standard text-size-adjust alongside webkit prefix */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Prevent overscroll bounce from leaking outside modal/drawer */
+.modal-overlay,
+.nav-drawer {
+  overscroll-behavior: contain;
+}
+
+
+/* ── FOCUS RING — keyboard-only visibility ───────────────── */
+/* Show focus ring only for keyboard navigation, hide for mouse/touch */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+
+/* ── PREFERS-REDUCED-MOTION ──────────────────────────────── */
+/* Disable all animations and transitions for users who prefer less motion.
+   Scroll behaviour is also linearised via scroll-behavior. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Keep functional transforms (e.g. translateY for sticky) but zero duration */
+  .hero-eyebrow,
+  .hero-headline, .hero-title,
+  .hero-sub, .hero-subtitle,
+  .search-bar, .search-box,
+  .hero-stats,
+  .property-card,
+  .hiw-step-bubble,
+  .why-card {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+
+/* ── 320px MICRO-PHONE ───────────────────────────────────── */
+/* Target very small handsets (iPhone SE 1st gen, Galaxy A01, etc.)
+   that sit just under the standard 375px design reference. */
+@media (max-width: 360px) {
+  /* Hero headline: prevent text overflow on tiny viewports */
+  .hero-headline,
+  .hero-title {
+    font-size: clamp(26px, 9vw, 36px);
+  }
+
+  /* Section titles: clamp down from 24px minimum to 22px */
+  .section-title { font-size: clamp(20px, 7vw, 28px); }
+  .why-section-title { font-size: clamp(22px, 8vw, 34px); }
+
+  /* Container: tighten horizontal breathing room */
+  .container {
+    padding-left: var(--space-3);
+    padding-right: var(--space-3);
+  }
+
+  /* Nav inner: prevent logo/icon squish */
+  .nav-inner { padding: 0 var(--space-3); }
+
+  /* Footer links: wrap more gracefully */
+  .footer-links { gap: 10px; }
+
+  /* Buttons: let them be slightly smaller to avoid overflow */
+  .btn { padding: 10px 16px; font-size: 13px; }
+
+  /* Hero stats: single column on truly tiny screens */
+  .hero-stats { flex-direction: column; align-items: center; gap: var(--space-3); }
+  .hero-stat-divider { display: none; }
+
+  /* Step circles in the wizard shrink further */
+  .step-circle { width: 24px; height: 24px; font-size: 10px; }
+}
+
+
+/* ── ULTRA-WIDE SCREENS (1440px → 2560px+) ───────────────── */
+/* Prevent content from over-stretching on wide monitors.
+   Container max-width expands gracefully instead of hitting hard walls. */
+
+/* 1440px — large laptop / desktop */
+@media (min-width: 1440px) {
+  .container {
+    max-width: 1360px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Give property grid more breathing room on 4K-adjacent displays */
+  .property-grid {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important;
+    gap: var(--space-6) !important;
+  }
+
+  /* Wider hero search bar */
+  .search-bar,
+  .search-box {
+    max-width: 860px;
+  }
+}
+
+/* 1920px — Full HD / 2K monitors */
+@media (min-width: 1920px) {
+  .container {
+    max-width: 1600px;
+  }
+
+  /* Larger hero headline at very wide breakpoints */
+  .hero-headline,
+  .hero-title {
+    font-size: clamp(48px, 3.5vw, 72px);
+  }
+
+  .property-grid {
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)) !important;
+  }
+
+  /* Widen footer grid brand column */
+  .footer-grid {
+    grid-template-columns: 3fr 1fr 1fr 1fr !important;
+  }
+}
+
+/* 2560px+ — 2K / 4K / ultra-wide monitors */
+@media (min-width: 2560px) {
+  .container {
+    max-width: 2000px;
+  }
+
+  .property-grid {
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)) !important;
+  }
+}
+
+
+/* ── ADMIN TABLES — card layout on small phones ──────────── */
+/* On screens narrower than 600px, transform table rows into stacked cards
+   so users don't need to scroll horizontally to read critical data. */
+@media (max-width: 600px) {
+  /* Enable card-table by removing the wrapper's overflow so rows stack */
+  .table-wrap { overflow-x: visible; }
+
+  /* Hide header row — labels come from data-label attributes on each cell */
+  .table thead,
+  .listing-table thead { display: none; }
+
+  /* Each row becomes a card */
+  .table tbody tr,
+  .listing-table tbody tr {
+    display: block;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-3);
+    padding: var(--space-3);
+    background: var(--color-surface-raised);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+
+  /* Each cell becomes a label:value row */
+  .table tbody td,
+  .listing-table tbody td {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: 6px 0;
+    font-size: 13px;
+    border-bottom: 1px solid var(--color-border-muted);
+    text-align: right;
+  }
+  .table tbody td:last-child,
+  .listing-table tbody td:last-child { border-bottom: none; }
+
+  /* Inject label from data-label attribute before each cell */
+  .table tbody td[data-label]::before,
+  .listing-table tbody td[data-label]::before {
+    content: attr(data-label);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    text-align: left;
+    flex-shrink: 0;
+  }
+
+  /* Actions cell: show inline, flush right */
+  .table-actions,
+  .listing-row-actions {
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  /* Remove row hover background that looks odd on card layout */
+  .table tbody tr:hover td { background: transparent; }
+}
+
+
+/* ── ADMIN FILTER BAR — wrapping on phones ───────────────── */
+/* The admin page filter bar can overflow on small screens.
+   Let it wrap gracefully and keep buttons accessible. */
+@media (max-width: 640px) {
+  .filter-bar,
+  .filter-bar-inner {
+    flex-wrap: wrap;
+    height: auto;
+    padding-top: var(--space-2);
+    padding-bottom: var(--space-2);
+  }
+
+  .filter-pill,
+  .filter-btn {
+    flex-shrink: 0;
+  }
+
+  .listings-sort {
+    margin-left: auto;
+  }
+}
+
+
+/* ── PRINT STYLES ─────────────────────────────────────────── */
+/* Hide interactive chrome when the user prints a property listing
+   or applies for a rental. Keep the important content readable. */
+@media print {
+  /* Hide navigation, fixed elements, animations */
+  .nav,
+  .nav-drawer,
+  .mobile-bottom-nav,
+  .scroll-top,
+  .toast-container,
+  .modal-overlay,
+  .lightbox,
+  .mosaic-expand-btn,
+  .mosaic-nav-btn,
+  .mosaic-mobile-count,
+  .filter-bar,
+  .search-bar,
+  .hero-stats,
+  .why-section,
+  .hiw-section,
+  .footer {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+    color: #000;
+    font-size: 12pt;
+    line-height: 1.6;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: underline;
+  }
+
+  /* Show the URL of links after their text */
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 10pt;
+    color: #555;
+  }
+
+  /* Prevent page breaks inside cards and table rows */
+  .property-card,
+  .why-card,
+  .content-card,
+  .table tbody tr {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Gallery mosaic: single column, auto height for print */
+  .gallery-mosaic {
+    height: auto !important;
+    grid-template-columns: 1fr !important;
+  }
+  .mosaic-side { display: none !important; }
+  .mosaic-main { height: 280pt; border-radius: 0; }
+
+  .container { max-width: 100% !important; padding: 0 !important; }
 }
