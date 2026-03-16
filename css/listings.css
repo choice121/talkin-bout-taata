@@ -534,6 +534,57 @@
 .map-popup-apply { display: block; margin-top: 10px; text-align: center; background: var(--color-brand); color: var(--color-text-inverse); padding: 8px; border-radius: var(--radius-full); font-size: 13px; font-weight: 700; }
 
 
+/* ── FEATURED LISTINGS SECTION (homepage) ───────────────── */
+
+.featured-section {
+  padding: var(--space-20) 0 var(--space-24);
+  background: var(--color-surface-page);
+  position: relative;
+}
+.featured-section::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(to right, transparent 5%, var(--color-border) 30%, var(--color-border) 70%, transparent 95%);
+}
+.featured-header {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  margin-bottom: var(--space-10); gap: var(--space-4); flex-wrap: wrap;
+}
+.featured-title {
+  font-family: var(--font-base); font-size: clamp(26px, 3vw, 40px);
+  font-weight: 800; color: var(--color-text-primary);
+  line-height: 1.1; letter-spacing: var(--tracking-snug);
+  margin: var(--space-2) 0 var(--space-1);
+}
+.featured-subtitle {
+  font-size: 14.5px; color: var(--color-text-muted); margin: 0;
+}
+.featured-view-all {
+  flex-shrink: 0; white-space: nowrap;
+  font-size: 13.5px; font-weight: 600;
+  padding: 10px 20px; border-radius: var(--radius-full);
+  border: 1.5px solid var(--color-border);
+  color: var(--color-text-secondary); text-decoration: none;
+  display: inline-flex; align-items: center; gap: 6px;
+  transition: all var(--dur) var(--ease); background: transparent;
+}
+.featured-view-all:hover {
+  border-color: var(--color-brand); color: var(--color-brand);
+  background: var(--color-brand-pale);
+}
+.featured-cta {
+  text-align: center; margin-top: var(--space-12);
+}
+@media (min-width: 1320px) {
+  .featured-section .property-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (max-width: 540px) {
+  .featured-header { align-items: flex-start; }
+  .featured-view-all { display: none; }
+}
+
 /* ── WHY SECTION ──────────────────────────────────────────── */
 
 .why-section { background: var(--color-dark-surface); padding: var(--space-24) 0; position: relative; overflow: hidden; margin-top: var(--space-10); }

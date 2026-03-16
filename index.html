@@ -196,6 +196,51 @@
   </div>
 </div>
 
+<!-- ── Featured Listings ── -->
+<section class="featured-section" id="featuredSection" style="display:none">
+  <div class="container">
+    <div class="featured-header">
+      <div>
+        <div class="section-eyebrow"><i class="fas fa-bolt" style="font-size:9px"></i> Available Now</div>
+        <h2 class="featured-title">Featured Listings</h2>
+        <p class="featured-subtitle">Our newest available homes — updated in real time.</p>
+      </div>
+      <a href="/listings.html" class="featured-view-all">View All Listings <i class="fas fa-arrow-right" style="font-size:10px"></i></a>
+    </div>
+
+    <div class="property-grid" id="featuredGrid">
+      <div class="property-card property-card-skeleton">
+        <div class="property-card-img skeleton-img skeleton"></div>
+        <div class="property-card-body" style="gap:10px;padding:20px">
+          <div class="skeleton-line w-40 skeleton"></div>
+          <div class="skeleton-line w-80 skeleton"></div>
+          <div class="skeleton-line w-60 skeleton"></div>
+        </div>
+      </div>
+      <div class="property-card property-card-skeleton">
+        <div class="property-card-img skeleton-img skeleton"></div>
+        <div class="property-card-body" style="gap:10px;padding:20px">
+          <div class="skeleton-line w-40 skeleton"></div>
+          <div class="skeleton-line w-80 skeleton"></div>
+          <div class="skeleton-line w-60 skeleton"></div>
+        </div>
+      </div>
+      <div class="property-card property-card-skeleton">
+        <div class="property-card-img skeleton-img skeleton"></div>
+        <div class="property-card-body" style="gap:10px;padding:20px">
+          <div class="skeleton-line w-40 skeleton"></div>
+          <div class="skeleton-line w-80 skeleton"></div>
+          <div class="skeleton-line w-60 skeleton"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="featured-cta">
+      <a href="/listings.html" class="btn btn-primary btn-lg">Browse All Listings <i class="fas fa-arrow-right" style="font-size:12px;margin-left:4px"></i></a>
+    </div>
+  </div>
+</section>
+
 <!-- ── How It Works ── -->
 <section class="hiw-section" id="how-it-works">
   <div class="hiw-section-glow"></div>
@@ -346,19 +391,173 @@ const supabase = CP.sb();
   setupScrollTop();
   updateNav();
 
-  // Show live listing count in hero stats
-  try {
-    const { count } = await supabase
-      .from('properties')
-      .select('id', { count: 'exact', head: true })
-      .eq('status', 'active');
-    const el = document.getElementById('statListings');
-    if (el) el.textContent = count ?? '—';
-  } catch(e) {
-    const el = document.getElementById('statListings');
-    if (el) el.closest('.hero-stat').style.display = 'none';
+  // Load featured listings + hero stat count in parallel
+  const [, countResult] = await Promise.allSettled([
+    loadFeaturedListings(),
+    supabase.from('properties').select('id', { count: 'exact', head: true }).eq('status', 'active'),
+  ]);
+  const el = document.getElementById('statListings');
+  if (el) {
+    const count = countResult.status === 'fulfilled' ? countResult.value?.data?.length ?? countResult.value?.count : null;
+    if (count != null) el.textContent = count;
+    else el.closest('.hero-stat').style.display = 'none';
   }
 })();
+
+// ── Featured listings loader ───────────────────────────────
+async function loadFeaturedListings() {
+  const section = document.getElementById('featuredSection');
+  const grid    = document.getElementById('featuredGrid');
+  if (!section || !grid) return;
+  if (!CONFIG.SUPABASE_URL) return; // no credentials yet — stay hidden
+
+  try {
+    const { data: props, error } = await supabase
+      .from('properties')
+      .select('*, landlords(contact_name, business_name, avatar_url, verified)')
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .limit(6);
+
+    if (error || !props || !props.length) return;
+
+    grid.innerHTML = props.map(p => buildFeaturedCard(p)).join('');
+
+    grid.querySelectorAll('.property-card').forEach(card => {
+      initFeaturedCarousel(card);
+      card.addEventListener('click', e => {
+        if (e.target.closest('a, button')) return;
+        window.location.href = `/property.html?id=${card.dataset.id}`;
+      });
+    });
+
+    section.style.display = '';
+    animateFeaturedCards();
+  } catch (_) {
+    // silently hide — never break the homepage
+  }
+}
+
+// ── Card builder (mirrors listings.html buildCard) ────────
+function buildFeaturedCard(p) {
+  const photos    = p.photo_urls?.length ? p.photo_urls : ['/assets/placeholder-property.jpg'];
+  const avail     = p.available_date ? featFmtAvail(p.available_date) : 'Available Now';
+  const availNow  = !p.available_date || new Date(p.available_date) <= new Date();
+  const dom       = featDom(p.created_at);
+  const typeLabel = featCap(p.property_type || 'Property');
+  const applyURL  = `/apply.html?property_id=${p.id}${p.title ? '&property_name=' + encodeURIComponent(p.title) : ''}`;
+  const imgSizes  = '(max-width: 539px) calc(100vw - 32px), (max-width: 899px) calc(50vw - 28px), calc(33vw - 32px)';
+
+  const slidesHtml = photos.map((url, i) =>
+    `<div class="property-card-slide"><img src="${CONFIG.img(url,'card')}" alt="${p.title} photo ${i+1}" sizes="${imgSizes}" loading="${i===0?'eager':'lazy'}" ${i===0?'fetchpriority="high"':''} decoding="async" onload="this.classList.add('cp-img-loaded')" onerror="this.classList.add('cp-img-loaded');this.src='/assets/placeholder-property.jpg'"></div>`
+  ).join('');
+
+  const tags = [];
+  if (p.pets_allowed) tags.push(`<span class="property-card-tag tag-pet"><i class="fas fa-paw"></i> Pets OK</span>`);
+  if (p.parking) tags.push(`<span class="property-card-tag tag-parking"><i class="fas fa-car"></i> Parking</span>`);
+  if (Array.isArray(p.utilities_included) ? p.utilities_included.length > 0 : !!p.utilities_included)
+    tags.push(`<span class="property-card-tag tag-utilities"><i class="fas fa-bolt"></i> Utilities</span>`);
+
+  const badgeClass = dom === 0 ? 'badge-new' : dom <= 3 ? 'badge-green' : dom <= 14 ? 'badge-amber' : 'badge-slate';
+  const badgeText  = dom === 0 ? 'New Today' : dom <= 3 ? 'New' : typeLabel;
+  const addrLine   = [p.address, p.city, p.state].filter(Boolean).join(', ');
+
+  const landlord     = p.landlords;
+  const agentName    = landlord ? (landlord.business_name || landlord.contact_name || '') : '';
+  const agentAvatar  = landlord?.avatar_url ? CONFIG.img(landlord.avatar_url, 'avatar') : null;
+  const agentVerified = landlord?.verified === true;
+  const agentHtml = agentName ? `
+    <div class="property-card-agent">
+      ${agentAvatar
+        ? `<img class="property-card-agent-avatar" src="${agentAvatar}" alt="${agentName}" loading="lazy" onerror="this.style.display='none'">`
+        : `<span class="property-card-agent-avatar" style="background:var(--color-brand-pale);display:inline-flex;align-items:center;justify-content:center;"><i class="fas fa-user" style="font-size:9px;color:var(--color-brand)"></i></span>`
+      }
+      <span class="property-card-agent-name">${agentName}</span>
+      ${agentVerified ? `<i class="fas fa-circle-check property-card-agent-verified" title="Verified landlord"></i>` : ''}
+    </div>` : '';
+
+  return `
+    <article class="property-card" data-id="${p.id}">
+      <a href="/property.html?id=${p.id}" style="display:block;text-decoration:none" tabindex="-1" aria-hidden="true">
+        <div class="property-card-img">
+          <div class="property-card-slides">${slidesHtml}</div>
+          <div class="property-card-img-overlay"></div>
+          ${photos.length > 1 ? `
+            <button class="property-card-nav prev" data-dir="-1" aria-label="Previous photo"><i class="fas fa-chevron-left"></i></button>
+            <button class="property-card-nav next" data-dir="1"  aria-label="Next photo"><i class="fas fa-chevron-right"></i></button>
+            <div class="property-card-dots">${photos.map((_,i) => `<button class="property-card-dot${i===0?' active':''}" data-idx="${i}" aria-label="Photo ${i+1}"></button>`).join('')}</div>
+            <div class="property-card-photo-count"><i class="fas fa-camera"></i>${photos.length}</div>
+          ` : ''}
+          <div class="property-card-dom"><span class="badge ${badgeClass}">${badgeText}</span></div>
+          <div class="property-card-type-label">${typeLabel}</div>
+        </div>
+      </a>
+      <button class="property-card-save" data-id="${p.id}" aria-label="Save property"><i class="far fa-heart"></i></button>
+      <div class="property-card-body">
+        <div class="property-card-price">$${p.monthly_rent.toLocaleString()}<span>/mo</span></div>
+        <a href="/property.html?id=${p.id}" style="text-decoration:none">
+          <div class="property-card-title">${p.title}</div>
+        </a>
+        <div class="property-card-addr"><i class="fas fa-location-dot"></i>${addrLine}</div>
+        <div class="property-card-meta">
+          ${p.bedrooms != null ? `<div class="property-card-meta-item"><i class="fas fa-bed"></i>${p.bedrooms === 0 ? 'Studio' : p.bedrooms + ' Bed'}</div>` : ''}
+          ${p.bathrooms  ? `<div class="property-card-meta-item"><i class="fas fa-bath"></i>${p.bathrooms} Bath</div>` : ''}
+          ${p.square_footage ? `<div class="property-card-meta-item"><i class="fas fa-ruler-combined"></i>${p.square_footage.toLocaleString()} sqft</div>` : ''}
+        </div>
+        ${tags.length ? `<div class="property-card-tags">${tags.join('')}</div>` : ''}
+        <div class="property-card-footer">
+          <div class="property-card-avail">
+            <span class="avail-dot${availNow ? '' : ' soon'}"></span>${avail}
+          </div>
+          <div class="property-card-footer-actions">
+            <a href="/property.html?id=${p.id}" class="property-card-view">Details</a>
+            <a href="${applyURL}" class="property-card-apply">Apply <i class="fas fa-arrow-right"></i></a>
+          </div>
+        </div>
+        ${agentHtml}
+      </div>
+    </article>`;
+}
+
+// ── Carousel (same logic as listings.html) ────────────────
+function initFeaturedCarousel(card) {
+  const slides  = card.querySelector('.property-card-slides');
+  const dots    = card.querySelectorAll('.property-card-dot');
+  const navBtns = card.querySelectorAll('.property-card-nav');
+  if (!slides || !navBtns.length) return;
+  let idx = 0;
+  const total = card.querySelectorAll('.property-card-slide').length;
+  function goTo(n) {
+    idx = (n + total) % total;
+    slides.style.transform = `translateX(-${idx * 100}%)`;
+    dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+  }
+  navBtns.forEach(btn => btn.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); goTo(idx + parseInt(btn.dataset.dir)); }));
+  dots.forEach(dot => dot.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); goTo(parseInt(dot.dataset.idx)); }));
+  let touchX = 0;
+  slides.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; }, { passive: true });
+  slides.addEventListener('touchend', e => { const diff = touchX - e.changedTouches[0].clientX; if (Math.abs(diff) > 40) goTo(idx + (diff > 0 ? 1 : -1)); }, { passive: true });
+}
+
+// ── Staggered entrance animation ──────────────────────────
+function animateFeaturedCards() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    document.querySelectorAll('#featuredGrid .property-card').forEach(c => c.classList.add('cp-card-visible'));
+    return;
+  }
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('cp-card-visible'); observer.unobserve(e.target); } });
+  }, { threshold: 0.06 });
+  document.querySelectorAll('#featuredGrid .property-card').forEach((card, i) => {
+    card.style.setProperty('--cp-delay', Math.min(i * 60, 320) + 'ms');
+    observer.observe(card);
+  });
+}
+
+// ── Helpers ───────────────────────────────────────────────
+function featDom(createdAt) { return Math.floor((Date.now() - new Date(createdAt).getTime()) / 86400000); }
+function featFmtAvail(dateStr) { const d = new Date(dateStr); return d <= new Date() ? 'Available Now' : 'Avail. ' + d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); }
+function featCap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
 // Hero search → redirect to listings page with params
 document.getElementById('searchBtn').addEventListener('click', goToListings);

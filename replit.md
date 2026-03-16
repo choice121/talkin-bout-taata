@@ -12,7 +12,7 @@ Choice Properties is a nationwide rental marketplace — a **static site** serve
 - **Accessibility**: `aria-modal`, `aria-live` counter, focus trap (Tab/Shift+Tab), focus restoration on close
 
 ## Page Structure
-- **`/` (index.html)**: Marketing landing page — hero with search (redirects to /listings), How It Works, Why Choose Us
+- **`/` (index.html)**: Marketing landing page — hero with search (redirects to /listings), Featured Listings (live property cards, hidden gracefully when Supabase is not configured), How It Works, Why Choose Us
 - **`/listings.html`**: Dedicated browse page — search bar, filter pills, advanced filters, property grid, map view
 - **`/property.html`**: Property detail — gallery mosaic, lightbox, apply CTA
 - Hero search on index.html passes `?q=`, `?beds=`, `?maxrent=` params to listings.html which pre-populates filters
