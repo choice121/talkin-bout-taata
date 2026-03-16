@@ -7,18 +7,21 @@ const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers
 
 function fmt(n: any) { return parseFloat(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }
 function fmtDate(d: any) { return d ? new Date(d).toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' }) : '—' }
+function escHtml(s: any): string {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')
+}
 
 // Build the full signed-lease HTML for PDF/storage
 function buildLeaseHTML(app: any): string {
-  const tenantName    = `${app.first_name} ${app.last_name}`
+  const tenantName    = `${escHtml(app.first_name)} ${escHtml(app.last_name)}`
   const coName        = app.has_co_applicant && app.co_applicant_first_name
-    ? `${app.co_applicant_first_name} ${app.co_applicant_last_name || ''}`.trim() : null
-  const landlordName  = app.lease_landlord_name  || 'Choice Properties'
-  const landlordAddr  = app.lease_landlord_address || 'Nationwide'
+    ? `${escHtml(app.co_applicant_first_name)} ${escHtml(app.co_applicant_last_name || '')}`.trim() : null
+  const landlordName  = escHtml(app.lease_landlord_name  || 'Choice Properties')
+  const landlordAddr  = escHtml(app.lease_landlord_address || 'Nationwide')
   const lateFeeFlat   = fmt(app.lease_late_fee_flat  || 50)
   const lateFeeDaily  = fmt(app.lease_late_fee_daily || 10)
-  const petPolicy     = app.lease_pets_policy    || 'No pets permitted without prior written consent.'
-  const smokingPolicy = app.lease_smoking_policy || 'Smoking strictly prohibited on Premises.'
+  const petPolicy     = escHtml(app.lease_pets_policy    || 'No pets permitted without prior written consent.')
+  const smokingPolicy = escHtml(app.lease_smoking_policy || 'Smoking strictly prohibited on Premises.')
 
   let compliance: any = {}
   try { compliance = JSON.parse(app.lease_compliance_snapshot || '{}') } catch(_) {}
@@ -35,7 +38,7 @@ function buildLeaseHTML(app: any): string {
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Signed Lease — ${app.app_id}</title>
+<title>Signed Lease — ${escHtml(app.app_id)}</title>
 <style>
   body { font-family: Georgia, serif; font-size: 13px; line-height: 1.8; color: #1a1a1a; max-width: 760px; margin: 0 auto; padding: 40px 30px; }
   h1 { font-size: 18px; text-align: center; text-transform: uppercase; letter-spacing: .12em; margin-bottom: 4px; }
@@ -57,7 +60,7 @@ function buildLeaseHTML(app: any): string {
 </head>
 <body>
 <h1>Residential Lease Agreement</h1>
-<div class="subtitle">Signed Copy — ${app.app_id} — Generated ${today}</div>
+<div class="subtitle">Signed Copy — ${escHtml(app.app_id)} — Generated ${today}</div>
 
 <div class="stamp">✓ Electronically Executed — Legally Binding Document</div>
 
@@ -65,8 +68,8 @@ function buildLeaseHTML(app: any): string {
 <table class="info">
   <tr><td>Landlord</td><td><strong>${landlordName}</strong><br><span style="font-size:11px;color:#555">${landlordAddr}</span></td></tr>
   <tr><td>Tenant</td><td><strong>${tenantName}</strong>${coName ? `<br>Co-Applicant: <strong>${coName}</strong>` : ''}</td></tr>
-  <tr><td>Premises</td><td><strong>${app.property_address || '—'}</strong></td></tr>
-  <tr><td>Application Reference</td><td style="font-family:monospace">${app.app_id}</td></tr>
+  <tr><td>Premises</td><td><strong>${escHtml(app.property_address || '—')}</strong></td></tr>
+  <tr><td>Application Reference</td><td style="font-family:monospace">${escHtml(app.app_id)}</td></tr>
 </table>
 
 <h2>Article 2 — Lease Term</h2>
@@ -128,20 +131,20 @@ ${disclosures.map((d: string) => `<div class="disclosure">⚠️ ${d}</div>`).jo
 
 <p><strong>Tenant Signature:</strong></p>
 <div class="sig-block">
-  <div class="sig-name">${app.tenant_signature || '—'}</div>
+  <div class="sig-name">${escHtml(app.tenant_signature || '—')}</div>
   <div class="sig-meta">
     ${tenantName} &nbsp;·&nbsp; Signed electronically on ${signedAt}<br>
-    IP Address: ${app.lease_ip_address || 'recorded'} &nbsp;·&nbsp; Application: ${app.app_id}
+    IP Address: ${escHtml(app.lease_ip_address || 'recorded')} &nbsp;·&nbsp; Application: ${escHtml(app.app_id)}
   </div>
 </div>
 
 ${app.has_co_applicant && app.co_applicant_signature ? `
 <p><strong>Co-Applicant Signature:</strong></p>
 <div class="sig-block">
-  <div class="sig-name">${app.co_applicant_signature}</div>
+  <div class="sig-name">${escHtml(app.co_applicant_signature)}</div>
   <div class="sig-meta">
     ${coName || 'Co-Applicant'} &nbsp;·&nbsp; Signed electronically on ${app.co_applicant_signature_timestamp ? new Date(app.co_applicant_signature_timestamp).toLocaleString('en-US') : signedAt}<br>
-    Application: ${app.app_id}
+    Application: ${escHtml(app.app_id)}
   </div>
 </div>` : (app.has_co_applicant ? '<p style="color:#b45309"><em>Co-applicant signature pending.</em></p>' : '')}
 
@@ -153,7 +156,7 @@ ${app.has_co_applicant && app.co_applicant_signature ? `
 
 <div class="footer">
   Choice Properties &nbsp;·&nbsp; Nationwide Rental Marketplace &nbsp;·&nbsp; Equal Housing Opportunity<br>
-  Document Reference: ${app.app_id} &nbsp;·&nbsp; Generated: ${today}<br>
+  Document Reference: ${escHtml(app.app_id)} &nbsp;·&nbsp; Generated: ${today}<br>
   This is a legally binding electronic lease agreement executed under applicable state and federal e-signature law.
 </div>
 </body>

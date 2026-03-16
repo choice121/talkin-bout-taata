@@ -115,6 +115,12 @@ Deno.serve(async (req) => {
     const { data: app, error: fetchErr } = await supabase.from('applications').select('*').eq('app_id', app_id).single()
     if (fetchErr) throw new Error(fetchErr.message)
 
+    // ── 1b. Require approved status before sending a lease ──
+    // Resends are allowed regardless of current status (admin is intentionally re-sending).
+    if (!resend && app.status !== 'approved') {
+      throw new Error(`Cannot send a lease — application status is "${app.status}". Approve the application first, or use resend=true to override.`)
+    }
+
     // ── 2. Fetch property + landlord ────────────────────────
     let property: any = null
     let landlord: any = null
@@ -239,35 +245,12 @@ Deno.serve(async (req) => {
       await supabase.from('email_logs').insert({ type: 'lease_sent', recipient: app.email, status: 'failed', app_id, error_msg: e?.message || 'Network error' })
     })
 
-    // ── 10. Co-applicant gets their own separate email + unique link ──
-    if (app.has_co_applicant && app.co_applicant_email && coLeaseLink) {
-      const coName = app.co_applicant_first_name
-        ? `${app.co_applicant_first_name} ${app.co_applicant_last_name || ''}`.trim()
-        : 'Co-Applicant'
-      fetch(gasUrl, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          secret,
-          template: 'lease_sent_co_applicant',
-          to: app.co_applicant_email,
-          cc: null,
-          data: {
-            app_id, primary_name: `${app.first_name} ${app.last_name}`,
-            tenant_name: coName, lease_link: coLeaseLink,
-            preferred_language: app.preferred_language || 'en',
-            property: app.property_address, term: app.desired_lease_term || '12 Months',
-            startDate: baseLeaseData.startDate, endDate: baseLeaseData.endDate,
-            rent, deposit, move_in_costs: moveIn,
-          }
-        })
-      }).then(async (r) => {
-        const json = await r.json().catch(() => ({}))
-        const ok = r.ok && json.success !== false
-        await supabase.from('email_logs').insert({ type: 'lease_sent_co_applicant', recipient: app.co_applicant_email, status: ok ? 'sent' : 'failed', app_id, error_msg: ok ? null : (json.error || `HTTP ${r.status}`) })
-      }).catch(async (e) => {
-        await supabase.from('email_logs').insert({ type: 'lease_sent_co_applicant', recipient: app.co_applicant_email, status: 'failed', app_id, error_msg: e?.message || 'Network error' })
-      })
-    }
+    // ── 10. Co-applicant email ───────────────────────────────
+    // The co-applicant's signing invitation is sent by sign-lease AFTER the primary
+    // applicant has signed (status → awaiting_co_sign). Sending it here — before the
+    // primary has signed — causes confusion because their link shows "waiting for
+    // primary applicant" when they open it. The co-applicant will receive their
+    // signing link automatically once the primary tenant completes their signature.
 
     return new Response(
       JSON.stringify({ success: true, lease_link: leaseLink, lease_end_date: endDate, move_in_costs: moveIn }),
