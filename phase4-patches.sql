@@ -1,6 +1,25 @@
--- PHASE 4 PATCHES — Dashboard bug-fixes
--- Apply in Supabase → SQL Editor after Phase 1–3 patches.
+-- PHASE 4 PATCHES — Dashboard bug-fixes + Phase 2 column migrations
+-- Apply in Supabase → SQL Editor, or run: node run-patches.js
+-- All statements are idempotent — safe to re-run on any database.
 -- ============================================================
+
+
+-- ── Phase 2 columns — extended application fields ───────────────────────────
+-- These columns are required by the process-application Edge Function.
+-- Safe to re-run: ADD COLUMN IF NOT EXISTS is a no-op if already present.
+alter table applications add column if not exists landlord_email               text;
+alter table applications add column if not exists government_id_type            text;
+alter table applications add column if not exists government_id_number          text;
+alter table applications add column if not exists previous_address              text;
+alter table applications add column if not exists previous_residency_duration   text;
+alter table applications add column if not exists previous_landlord_name        text;
+alter table applications add column if not exists previous_landlord_phone       text;
+alter table applications add column if not exists has_bankruptcy                boolean default false;
+alter table applications add column if not exists bankruptcy_explanation        text;
+alter table applications add column if not exists has_criminal_history          boolean default false;
+alter table applications add column if not exists criminal_history_explanation  text;
+alter table applications add column if not exists employer_address              text;
+alter table applications add column if not exists employment_start_date         text;
 
 
 -- ── P4-1. get_application_status — restore admin_notes and co_applicant_email ──

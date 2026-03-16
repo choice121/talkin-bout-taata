@@ -1,14 +1,25 @@
 /**
  * run-patches.js
- * Applies the Phase 4 database patches to your Supabase project.
+ * Applies all required database migrations to your Supabase project.
+ *
+ * This includes:
+ *   - Phase 2 extended application columns (bankruptcy, criminal history,
+ *     government ID, previous address, employer address, etc.)
+ *   - Phase 4 dashboard bug-fix patches (get_application_status,
+ *     get_lease_financials, message_sender enum, get_apps_by_email)
+ *
+ * All statements are idempotent — safe to re-run on any database.
  *
  * Setup (one-time):
  *   1. Go to your Supabase project → Settings → Database
- *   2. Copy the "Connection string" (URI format)
+ *   2. Copy the "Connection string" (URI format, under "Connection string")
  *   3. In Replit → Secrets, add:  SUPABASE_DB_URL = <that connection string>
  *
  * Then run:
  *   node run-patches.js
+ *
+ * Alternatively, paste the contents of phase4-patches.sql directly into
+ * the Supabase SQL Editor and click Run.
  */
 
 const { Client } = require('pg');

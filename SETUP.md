@@ -19,8 +19,12 @@ Save it somewhere (Notes app, password manager). You'll paste it in two places �
 3. Paste the entire contents of `SCHEMA.sql` → click **Run** → wait for success
 4. Click **New query** again
 5. Paste the entire contents of `SECURITY-PATCHES.sql` → click **Run**
+6. Click **New query** again
+7. Paste the entire contents of `phase4-patches.sql` → click **Run**
 
-> Don't skip the security patches. They make the lease PDF bucket private and mask any existing SSNs.
+> Don't skip any of the patch files. They add required application columns (bankruptcy, criminal history, government ID, etc.), make the lease PDF bucket private, and fix critical dashboard functions.
+>
+> **Alternatively**, if you have `SUPABASE_DB_URL` set in Replit Secrets (Supabase → Settings → Database → URI), you can run all patches automatically with: `node run-patches.js`
 
 **Save these from Supabase → Project Settings → API:**
 - Project URL (looks like `https://xxxx.supabase.co`)
