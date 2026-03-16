@@ -1382,6 +1382,7 @@ class RentalApplication {
                 dobLabel: 'Date of Birth',
                 ssnLabel: 'Social Security Number (Last 4 Digits)',
                 ssnHint: 'Only last 4 digits required',
+                ssnPrivacyNote: '<i class="fas fa-shield-alt"></i> Encrypted in transit and stored in masked format (e.g., XXX-XX-1234). Used only for identity verification — never shared with third parties.',
                 ssnPlaceholder: '1234',
                 coApplicantCheckbox: 'I have a co-applicant or guarantor',
                 coApplicantInfo: 'Additional Person Information',
@@ -1547,7 +1548,13 @@ class RentalApplication {
                 legalDeclaration: 'Legal Declaration',
                 legalCertify: 'I certify that the information provided in this application is true and correct to the best of my knowledge.',
                 legalAuthorize: 'I authorize verification of the information provided, including employment, income, and references.',
-                termsAgreeLabel: 'I agree to the terms and conditions',
+                termsAgreeLabel: 'I agree to the <a href="/terms.html" target="_blank" style="color:var(--secondary,#2563eb);text-decoration:underline;">Terms and Conditions</a>',
+                fcraTitle: 'Background &amp; Credit Check Authorization',
+                fcraDisclosureText: 'In connection with your rental application, Choice Properties may obtain a consumer report (including a background check and/or credit report) from a consumer reporting agency. This report may include information about your character, general reputation, personal characteristics, and mode of living. You have the right to request disclosure of the nature and scope of any such investigation, and to receive a free copy of the report within 60 days of any adverse action decision.',
+                fcraConsentLabel: 'I have read and understand the above disclosure, and I authorize Choice Properties to obtain a consumer report in connection with my rental application.',
+                errFcraRequired: 'You must authorize the background &amp; credit check to proceed.',
+                dataRetentionNote: '<i class="fas fa-info-circle"></i> Application data is retained in accordance with our <a href="/privacy.html" target="_blank" style="color:inherit;text-decoration:underline;">Privacy Policy</a>. You may request deletion at any time by contacting support.',
+                landlordContactNote: '<i class="fas fa-info-circle"></i> We may contact your current landlord to verify your tenancy as part of the application review process.',
                 submitBtn: 'Submit Application',
                 submitDisclaimer: 'By clicking submit, your application will be securely transmitted to Choice Properties.',
                 privacyPolicy: 'Privacy Policy',
@@ -1684,6 +1691,7 @@ class RentalApplication {
                 dobLabel: 'Fecha de Nacimiento',
                 ssnLabel: 'Número de Seguro Social (Últimos 4 dígitos)',
                 ssnHint: 'Solo últimos 4 dígitos requeridos',
+                ssnPrivacyNote: '<i class="fas fa-shield-alt"></i> Encriptado en tránsito y almacenado en formato enmascarado (ej. XXX-XX-1234). Usado solo para verificación de identidad — nunca compartido con terceros.',
                 ssnPlaceholder: '1234',
                 coApplicantCheckbox: 'Tengo un co-solicitante o fiador',
                 coApplicantInfo: 'Información de Persona Adicional',
@@ -1849,7 +1857,13 @@ class RentalApplication {
                 legalDeclaration: 'Declaración Legal',
                 legalCertify: 'Certifico que la información proporcionada en esta solicitud es verdadera y correcta a mi leal saber y entender.',
                 legalAuthorize: 'Autorizo la verificación de la información proporcionada, incluyendo empleo, ingresos y referencias.',
-                termsAgreeLabel: 'Acepto los términos y condiciones',
+                termsAgreeLabel: 'Acepto los <a href="/terms.html" target="_blank" style="color:var(--secondary,#2563eb);text-decoration:underline;">Términos y Condiciones</a>',
+                fcraTitle: 'Autorización de Verificación de Antecedentes y Crédito',
+                fcraDisclosureText: 'En relación con su solicitud de alquiler, Choice Properties puede obtener un informe del consumidor (incluyendo verificación de antecedentes y/o reporte de crédito) de una agencia de informes al consumidor. Este informe puede incluir información sobre su carácter, reputación general, características personales y modo de vida. Usted tiene el derecho de solicitar la divulgación de la naturaleza y alcance de cualquier investigación, y de recibir una copia gratuita del informe dentro de 60 días de cualquier decisión adversa.',
+                fcraConsentLabel: 'He leído y entiendo la divulgación anterior, y autorizo a Choice Properties a obtener un informe del consumidor en relación con mi solicitud de alquiler.',
+                errFcraRequired: 'Debe autorizar la verificación de antecedentes y crédito para continuar.',
+                dataRetentionNote: '<i class="fas fa-info-circle"></i> Los datos de la solicitud se conservan según nuestra <a href="/privacy.html" target="_blank" style="color:inherit;text-decoration:underline;">Política de Privacidad</a>. Puede solicitar su eliminación en cualquier momento contactando a soporte.',
+                landlordContactNote: '<i class="fas fa-info-circle"></i> Podemos contactar a su arrendador actual para verificar su arrendamiento como parte del proceso de revisión de la solicitud.',
                 submitBtn: 'Enviar Solicitud',
                 submitDisclaimer: 'Al hacer clic en enviar, su solicitud será transmitida de forma segura a Choice Properties.',
                 privacyPolicy: 'Política de Privacidad',
@@ -1918,7 +1932,12 @@ class RentalApplication {
             } else if (el.tagName === 'OPTION') {
                 el.textContent = t[key];
             } else {
-                el.textContent = t[key];
+                // data-i18n-html allows translation values that contain safe HTML (e.g., anchor tags)
+                if (el.hasAttribute('data-i18n-html')) {
+                    el.innerHTML = t[key];
+                } else {
+                    el.textContent = t[key];
+                }
             }
         });
 
@@ -2153,6 +2172,22 @@ class RentalApplication {
             }
             this.setState({ isSubmitting: false });
             return;
+        }
+
+        // FCRA consent is its own block with its own error element
+        const fcraConsent = document.getElementById('fcraConsent');
+        if (fcraConsent && !fcraConsent.checked) {
+            const fcraErr = document.getElementById('fcraConsentError');
+            if (fcraErr) fcraErr.style.display = 'block';
+            fcraConsent.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            const submitBtn = document.getElementById('mainSubmitBtn');
+            if (submitBtn) { submitBtn.classList.remove('loading'); submitBtn.disabled = false; }
+            this.setState({ isSubmitting: false });
+            return;
+        }
+        if (fcraConsent) {
+            const fcraErr = document.getElementById('fcraConsentError');
+            if (fcraErr) fcraErr.style.display = 'none';
         }
 
         const certify = document.getElementById('certifyCorrect');
@@ -2665,6 +2700,7 @@ window.copyAppId = function() {
         });
         
         // Step 6
+        safeSetCheckbox('fcraConsent', true);
         safeSetCheckbox('certifyCorrect', true);
         safeSetCheckbox('authorizeVerify', true);
         safeSetCheckbox('termsAgree', true);

@@ -528,6 +528,10 @@
                     </div>
                 </div>
 
+                <p class="field-hint" data-i18n="landlordContactNote" data-i18n-html style="margin-bottom:16px;">
+                    <i class="fas fa-info-circle"></i> We may contact your current landlord to verify your tenancy as part of the application review process.
+                </p>
+
                 <h3 data-i18n="occupantsPets">Occupants & Pets</h3>
                 <div class="form-group">
                     <label for="totalOccupants" data-i18n="totalOccupantsLabel">Number of total occupants (including children)</label>
@@ -1002,6 +1006,9 @@
                                 <div class="ssn-container">
                                     <input type="password" id="ssn" name="SSN" placeholder="1234" maxlength="4" inputmode="numeric" autocomplete="off" required aria-required="true" aria-describedby="ssnError" data-i18n="ssnPlaceholder">
                                 </div>
+                                <p class="field-hint" data-i18n="ssnPrivacyNote" data-i18n-html style="margin-top:8px;font-size:12px;">
+                                    <i class="fas fa-shield-alt"></i> Encrypted in transit and stored in masked format (e.g., XXX-XX-1234). Used only for identity verification — never shared with third parties.
+                                </p>
                                 <div class="error-message" id="ssnError"></div>
                             </div>
                         </div>
@@ -1015,6 +1022,19 @@
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <div class="form-section-block" id="fcraSection" style="margin-bottom:24px;background:#f8faff;border:1.5px solid #bfdbfe;border-radius:10px;padding:20px;">
+                    <h3 style="font-size:16px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+                        <i class="fas fa-file-contract" style="color:var(--color-brand-light,#2563eb)"></i>
+                        <span data-i18n="fcraTitle">Background &amp; Credit Check Authorization</span>
+                    </h3>
+                    <p style="font-size:13px;color:#4b5563;line-height:1.7;margin-bottom:14px;" data-i18n="fcraDisclosureText">In connection with your rental application, Choice Properties may obtain a consumer report (including a background check and/or credit report) from a consumer reporting agency. This report may include information about your character, general reputation, personal characteristics, and mode of living. You have the right to request disclosure of the nature and scope of any such investigation, and to receive a free copy of the report within 60 days of any adverse action decision.</p>
+                    <div class="custom-checkbox">
+                        <input type="checkbox" id="fcraConsent" required aria-required="true">
+                        <label for="fcraConsent" data-i18n="fcraConsentLabel">I have read and understand the above disclosure, and I authorize Choice Properties to obtain a consumer report in connection with my rental application.</label>
+                    </div>
+                    <div class="error-message" id="fcraConsentError" style="display:none;" data-i18n="errFcraRequired">You must authorize the background &amp; credit check to proceed.</div>
                 </div>
 
                 <div class="legal-section">
@@ -1033,9 +1053,12 @@
 
                         <div class="custom-checkbox">
                             <input type="checkbox" id="termsAgree" required aria-required="true">
-                            <label for="termsAgree" data-i18n="termsAgreeLabel">I agree to the terms and conditions</label>
+                            <label for="termsAgree" data-i18n="termsAgreeLabel" data-i18n-html>I agree to the <a href="/terms.html" target="_blank" style="color:var(--secondary,#2563eb);text-decoration:underline;">Terms and Conditions</a></label>
                         </div>
                     </div>
+                    <p class="field-hint" data-i18n="dataRetentionNote" data-i18n-html style="margin-top:14px;font-size:12px;">
+                        <i class="fas fa-info-circle"></i> Application data is retained in accordance with our <a href="/privacy.html" target="_blank" style="color:inherit;text-decoration:underline;">Privacy Policy</a>. You may request deletion at any time by contacting support.
+                    </p>
                 </div>
 
                 <div class="btn-container">
@@ -1065,6 +1088,10 @@
                 <i class="fas fa-lock" title="SSL Secured"></i>
                 <i class="fas fa-user-lock" title="Data Encrypted"></i>
                 <i class="fas fa-shield-alt" title="Secure Transmission"></i>
+            </div>
+            <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);font-size:11px;color:#9ca3af;display:flex;align-items:flex-start;justify-content:center;gap:7px;max-width:620px;margin-left:auto;margin-right:auto;text-align:center;line-height:1.6;">
+                <i class="fas fa-balance-scale" style="margin-top:2px;flex-shrink:0;"></i>
+                <span>We are an Equal Opportunity Housing Provider. We do not discriminate on the basis of race, color, national origin, religion, sex, familial status, or disability (Fair Housing Act).</span>
             </div>
             <div class="contact-info">
                 <p id="footerContactLine"><i class="fas fa-phone"></i> — | <i class="fas fa-envelope"></i> —</p>
