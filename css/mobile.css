@@ -997,9 +997,9 @@ html {
 
 /* ── PROPERTY CARD IMAGE — landscape phones ──────────────── */
 /* In landscape the card photos can be disproportionately short
-   because the viewport is wide. Use a wider aspect-ratio instead. */
+   because the viewport is wide. Use 16/9 to match most property photos. */
 @media (orientation: landscape) and (max-height: 500px) {
   .property-card-img {
-    aspect-ratio: 16 / 7;
+    aspect-ratio: 16 / 9;
   }
 }
