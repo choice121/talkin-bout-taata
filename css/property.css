@@ -123,7 +123,8 @@
   align-items: center; justify-content: center;
   font-size: 16px; color: var(--color-ink);
   cursor: pointer; z-index: 10;
-  backdrop-filter: blur(8px); box-shadow: 0 2px 12px rgba(0,0,0,0.22);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.22);
   transition: all 200ms ease;
 }
 .mosaic-nav-btn.prev { left: var(--space-4); }
@@ -205,7 +206,7 @@
   justify-content: center;
   position: relative;
   min-height: 0;
-  padding: 0 76px;
+  padding: 0 clamp(52px, 10vw, 76px);
 }
 
 .lightbox-img-wrap {

@@ -39,6 +39,8 @@ input[type="tel"],
 input[type="search"],
 input[type="date"],
 input[type="url"],
+input[type="color"],
+input[type="range"],
 select,
 textarea {
   font-size: 16px !important;
@@ -52,6 +54,8 @@ textarea {
   input[type="search"],
   input[type="date"],
   input[type="url"],
+  input[type="color"],
+  input[type="range"],
   select,
   textarea {
     font-size: inherit !important;
@@ -222,11 +226,11 @@ input[type="reset"] {
 }
 
 /* Property card photo — slightly shorter on small phones */
-.property-card-image {
+.property-card-img {
   padding-top: 58%;
 }
 @media (min-width: 480px) {
-  .property-card-image {
+  .property-card-img {
     padding-top: 65%;
   }
 }
@@ -579,6 +583,27 @@ label,
 select,
 textarea {
   -webkit-tap-highlight-color: transparent;
+}
+
+/* ── HOVER GUARD — touch devices ────────────────────────── */
+/* Hover lift/scale effects are designed for pointer (mouse) devices.
+   On touch screens the :hover state fires on tap and can stick,
+   causing a visual jump before navigation. Guard all lift-on-hover
+   rules so they only activate when a true hover is available. */
+@media (hover: none) {
+  .property-card:hover {
+    transform: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    border-color: var(--color-border);
+  }
+  .property-card:hover::before { opacity: 0; }
+  .property-card:hover .property-card-nav { opacity: 0; }
+  .property-card:hover .property-card-dots { opacity: 0; }
+  .property-card:hover .property-card-slide img { transform: none; }
+  .property-card-apply:hover { transform: none; box-shadow: 0 2px 10px rgba(0,106,255,0.22); }
+  .detail-meta-item:hover { transform: none; }
+  .amenity-item:hover { background: var(--color-surface-raised); border-color: var(--color-border); box-shadow: var(--shadow-xs); }
+  .hiw-step-bubble:hover { transform: none; }
 }
 
 /* Standard text-size-adjust alongside webkit prefix */

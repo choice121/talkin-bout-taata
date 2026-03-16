@@ -6,7 +6,7 @@
    ============================================================ */
 
 /* ── Unified font: Inter replaces Sora + Manrope ───────────── */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html {
@@ -401,6 +401,7 @@ button { font-family: var(--font-body); }
   height: var(--nav-h); z-index: var(--z-nav);
   background: rgba(255,255,255,0.97);
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
   transition: box-shadow var(--dur) var(--ease), background var(--dur) var(--ease);
 }
@@ -1140,6 +1141,7 @@ footer { background: var(--color-dark-surface); padding: var(--s-16) 0 var(--s-8
   justify-content: center;
   padding: var(--space-5);
   backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
 }
 .modal-overlay.open {
   display: flex;

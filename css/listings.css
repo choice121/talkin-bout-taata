@@ -314,7 +314,8 @@
   display: flex; align-items: center; justify-content: center;
   font-size: 11px; color: var(--color-ink); cursor: pointer;
   opacity: 0; transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
-  backdrop-filter: blur(8px); z-index: 5; box-shadow: 0 2px 12px rgba(0,0,0,0.22);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  z-index: 5; box-shadow: 0 2px 12px rgba(0,0,0,0.22);
 }
 .property-card-nav.prev { left: var(--space-3); }
 .property-card-nav.next { right: var(--space-3); }
