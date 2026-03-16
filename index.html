@@ -474,10 +474,14 @@ function buildFeaturedCard(p) {
     badge = `<div class="property-card-badge badge-new"><i class="fas fa-tag"></i> New Listing</div>`;
   } else if (p.landlords?.verified) {
     badge = `<div class="property-card-badge badge-verified"><i class="fas fa-shield-halved"></i> Verified</div>`;
-  } else if (availNow) {
+  } else if (availNow || !p.available_date) {
     badge = `<div class="property-card-badge badge-available"><i class="fas fa-circle-check"></i> Available Now</div>`;
+  } else {
+    const availLabel = new Date(p.available_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    badge = `<div class="property-card-badge badge-available"><i class="fas fa-calendar"></i> Avail. ${availLabel}</div>`;
   }
   const photoCountHtml = photos.length > 1 ? `<div class="property-card-photo-count"><i class="fas fa-camera"></i> ${photos.length}</div>` : '';
+  const dotsHtml = photos.length > 1 ? photos.slice(0, 8).map((_, i) => `<button class="property-card-dot${i === 0 ? ' active' : ''}" data-idx="${i}" aria-label="Photo ${i + 1}"></button>`).join('') : '';
 
   return `
     <article class="property-card" data-id="${p.id}">
@@ -489,6 +493,7 @@ function buildFeaturedCard(p) {
             <button class="property-card-nav next" data-dir="1"  aria-label="Next photo"><i class="fas fa-chevron-right"></i></button>
           ` : ''}
           ${badge}
+          ${dotsHtml ? `<div class="property-card-dots">${dotsHtml}</div>` : ''}
           ${photoCountHtml}
         </div>
       </a>
