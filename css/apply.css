@@ -273,6 +273,40 @@ body {
     }
 }
 
+/* ── COMPACT PROGRESS BAR on small phones (<= 640px) ──────── */
+/* Replace the multi-row step grid with a slim progress track  */
+@media (max-width: 640px) {
+    .progress-container {
+        padding: var(--space-3) var(--space-4);
+        margin-bottom: var(--space-4);
+        border-radius: var(--radius-lg);
+    }
+    .progress-bar {
+        padding: 0;
+        height: 8px;
+        gap: 0;
+        flex-wrap: nowrap;
+    }
+    .progress-step { display: none !important; }
+    .progress-bar::before {
+        display: block !important;
+        top: 1px;
+        height: 6px;
+        border-radius: 3px;
+    }
+    .progress-fill {
+        display: block !important;
+        top: 1px;
+        height: 6px;
+        border-radius: 3px;
+    }
+    .progress-container::after {
+        margin-top: var(--space-3);
+        font-size: 12.5px;
+        padding: 6px var(--space-3);
+    }
+}
+
 
 /* ── FORM SECTIONS ────────────────────────────────────────── */
 /* JS reads .form-section and .form-section.active — do not rename */
@@ -287,6 +321,14 @@ body {
     margin-bottom: var(--space-6);
 }
 .form-section.active { display: block; }
+
+@media (max-width: 640px) {
+    .form-section {
+        padding: var(--space-5) var(--space-4);
+        border-radius: var(--radius-lg);
+        margin-bottom: var(--space-4);
+    }
+}
 
 @keyframes sectionFadeIn {
     from { opacity: 0; transform: translateY(8px); }
@@ -312,6 +354,9 @@ h2 {
     letter-spacing: var(--tracking-snug);
 }
 h2 i { color: var(--color-brand); }
+@media (max-width: 640px) {
+    h2 { font-size: var(--text-lg); margin-bottom: var(--space-4); }
+}
 
 h3 {
     color: var(--color-brand);
@@ -739,8 +784,8 @@ input.error, select.error, textarea.error {
     border-top: 1px solid var(--color-border);
 }
 @media (max-width: 768px) {
-    .btn-container { flex-direction: column; gap: var(--space-3); }
-    button { width: 100%; justify-content: center; }
+    .btn-container { flex-direction: column-reverse; gap: var(--space-3); }
+    .btn-container button { width: 100%; justify-content: center; }
 }
 
 /* Global button base for apply form buttons */
@@ -1199,8 +1244,6 @@ footer {
 
 /* ── RESPONSIVE UTILITY CATCH-ALL ─────────────────────────── */
 @media (max-width: 768px) {
-    .progress-bar { flex-wrap: wrap; gap: var(--space-3); }
-    .progress-step { flex: 1; min-width: 80px; }
     .summary-grid { grid-template-columns: 1fr; }
     .pref-item { flex-direction: column; gap: var(--space-2); }
     .pref-label { width: 100%; }
@@ -1361,3 +1404,72 @@ footer {
 .leg-primary, .leg-backup        { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 .leg-primary                     { background: var(--color-brand); }
 .leg-backup                      { background: #6366f1; }
+
+
+/* ══════════════════════════════════════════════════════════
+   SITE NAV — replaces inline styles for responsive control
+   ══════════════════════════════════════════════════════════ */
+.apply-nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(255,255,255,0.97);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid #e4e7ef;
+    padding: 0 24px; height: 56px;
+    display: flex; align-items: center; justify-content: space-between;
+}
+.apply-nav-logo {
+    display: flex; align-items: center; gap: 10px;
+    text-decoration: none; flex-shrink: 0;
+}
+.apply-nav-logo-icon {
+    width: 30px; height: 30px; background: #0f1117; border-radius: 7px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.apply-nav-logo-name {
+    font-family: var(--font-base, inherit);
+    font-weight: 700; font-size: 15px; color: #0f1117; letter-spacing: -0.01em;
+}
+.apply-nav-right {
+    display: flex; align-items: center; gap: 4px; flex-shrink: 0;
+}
+.apply-nav-back {
+    color: #6b7280; font-size: 13px; text-decoration: none;
+    padding: 6px 10px; border-radius: 7px; transition: all 0.15s;
+    display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
+}
+.apply-nav-back:hover { background: #f8f9fc; color: #0f1117; }
+.apply-nav-track {
+    color: #2563eb; font-size: 13px; font-weight: 600;
+    text-decoration: none; padding: 6px 10px; border-radius: 7px; transition: all 0.15s;
+    display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+}
+.apply-nav-track:hover { background: #eff6ff; }
+.apply-nav-lang {
+    background: none; border: 1.5px solid #e4e7ef; color: #4b5563;
+    padding: 5px 11px; border-radius: 20px; font-size: 12px; font-weight: 500;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 5px;
+    transition: all 0.15s; margin-left: 4px;
+    font-family: var(--font-base, inherit); flex-shrink: 0;
+}
+.apply-nav-lang:hover { background: #f8f9fc; border-color: #c8cdd8; }
+
+/* On narrow phones: hide link text labels, keep icons + arrow only */
+@media (max-width: 520px) {
+    .apply-nav { padding: 0 14px; }
+    .apply-nav-link-text { display: none; }
+    .apply-nav-logo-name { font-size: 13.5px; }
+    .apply-nav-lang { padding: 5px 9px; }
+}
+
+/* ── MOBILE: reduce form group spacing ──────────────────── */
+@media (max-width: 640px) {
+    .form-group { margin-bottom: var(--space-5); }
+    h3 { margin: var(--space-6) 0 var(--space-3); }
+    .btn-container { margin-top: var(--space-6); padding-top: var(--space-4); }
+}
+
+/* ── iOS safe area: prevent content hiding behind home bar ── */
+@media (max-width: 768px) {
+    body { padding-bottom: env(safe-area-inset-bottom, 0); }
+}
