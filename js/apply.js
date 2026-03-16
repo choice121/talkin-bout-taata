@@ -170,6 +170,48 @@ class RentalApplication {
         }
     }
 
+    // ---------- Prior residence conditional (2.1) ----------
+    // Show the prior residence section when "How long at this address?" suggests < 2 years.
+    setupPriorResidenceConditional() {
+        const input = document.getElementById('residencyStart');
+        const group = document.getElementById('priorResidenceGroup');
+        if (!input || !group) return;
+        const check = () => {
+            group.style.display = this._isUnderTwoYears(input.value) ? '' : 'none';
+        };
+        input.addEventListener('input', check);
+        input.addEventListener('change', check);
+        check(); // Apply on load (restored draft)
+    }
+
+    _isUnderTwoYears(text) {
+        const t = (text || '').toLowerCase().trim();
+        if (!t) return false;
+        // Month-only pattern: "6 months", "18 months" (no year)
+        const moOnly = t.match(/^(\d+)\s*month/);
+        if (moOnly) return parseInt(moOnly[1]) < 24;
+        // Year pattern: "1 year", "1.5 years"
+        const yrMatch = t.match(/(\d+\.?\d*)\s*year/);
+        if (yrMatch) return parseFloat(yrMatch[1]) < 2;
+        // Common phrase cues
+        if (/less than|under 2|just moved|recently moved|new(ly)?/.test(t)) return true;
+        return false;
+    }
+
+    // ---------- Co-applicant employment status conditional (2.8) ----------
+    setupCoEmploymentConditionals() {
+        const statusEl = document.getElementById('coEmploymentStatus');
+        if (!statusEl) return;
+        const EMPLOYED = ['Full-time', 'Part-time', 'Self-employed'];
+        const toggle = (val) => {
+            const group = document.getElementById('coEmployedFieldsGroup');
+            if (!group) return;
+            group.style.display = EMPLOYED.includes(val) ? '' : 'none';
+        };
+        statusEl.addEventListener('change', e => toggle(e.target.value));
+        toggle(statusEl.value); // Apply on load
+    }
+
     // ---------- Eviction / Bankruptcy / Criminal explain boxes ----------
     setupEvictionExplain() {
         const makeToggle = (radioName, groupId) => {
@@ -560,7 +602,9 @@ class RentalApplication {
         this.setupConditionalFields();
         this.applyFeatureFlags();
         this.setupEmploymentConditionals();
+        this.setupCoEmploymentConditionals();
         this.setupEvictionExplain();
+        this.setupPriorResidenceConditional();
         this.setupCharacterCounters();
         this.restoreSavedProgress();
         this.setupGeoapify();
@@ -954,7 +998,7 @@ class RentalApplication {
                 }
             }
         });
-        if (stepNumber === 1) {
+        if (stepNumber === 4) {
             const hasCoApplicant = document.getElementById('hasCoApplicant');
             const coSection = document.getElementById('coApplicantSection');
             if (hasCoApplicant && hasCoApplicant.checked && coSection && coSection.style.display !== 'none') {
@@ -1230,7 +1274,10 @@ class RentalApplication {
         });
 
         // Restore radio button groups — saved by FormData name, not by element id
-        const radioGroups = ['Has Pets', 'Has Vehicle', 'Ever Evicted', 'Smoker', 'Has Bankruptcy', 'Has Criminal History'];
+        const radioGroups = [
+            'Has Pets', 'Has Vehicle', 'Ever Evicted', 'Smoker',
+            'Has Bankruptcy', 'Has Criminal History', 'Additional Person Role'
+        ];
         radioGroups.forEach(name => {
             const savedValue = data[name];
             if (!savedValue) return;
@@ -1260,6 +1307,23 @@ class RentalApplication {
         const criminalYes   = document.getElementById('criminalYes');
         const criminalGroup = document.getElementById('criminalExplainGroup');
         if (criminalYes && criminalGroup) criminalGroup.style.display = criminalYes.checked ? '' : 'none';
+
+        // Restore co-applicant employment status (saved by name, not id)
+        const coStatusSaved = data['Co-Applicant Employment Status'];
+        const coStatusEl    = document.getElementById('coEmploymentStatus');
+        if (coStatusEl && coStatusSaved) {
+            coStatusEl.value = coStatusSaved;
+            const EMPLOYED = ['Full-time', 'Part-time', 'Self-employed'];
+            const coEmpGroup = document.getElementById('coEmployedFieldsGroup');
+            if (coEmpGroup) coEmpGroup.style.display = EMPLOYED.includes(coStatusSaved) ? '' : 'none';
+        }
+
+        // Re-trigger prior residence conditional after draft values are loaded
+        const residencyStartEl   = document.getElementById('residencyStart');
+        const priorResidenceGrp  = document.getElementById('priorResidenceGroup');
+        if (residencyStartEl && priorResidenceGrp) {
+            priorResidenceGrp.style.display = this._isUnderTwoYears(residencyStartEl.value) ? '' : 'none';
+        }
 
         if (data._language && data._language !== this.state.language) {
             this.state.language = data._language;
@@ -1319,9 +1383,10 @@ class RentalApplication {
                 step1Label: 'Property & Applicant',
                 step2Label: 'Residency & Occupancy',
                 step3Label: 'Employment & Income',
-                step4Label: 'Financial & References',
+                step4Label: 'References & More',
                 step5Label: 'Payment Preferences',
                 step6Label: 'Review & Submit',
+                requiredFieldLegend: 'Required field',
                 stepPrefix: 'Step',
                 stepOf: 'of',
 
@@ -1398,6 +1463,7 @@ class RentalApplication {
                 ssnHint: 'Only last 4 digits required',
                 ssnPrivacyNote: '<i class="fas fa-shield-alt"></i> Encrypted in transit and stored in masked format (e.g., XXX-XX-1234). Used only for identity verification — never shared with third parties.',
                 ssnPlaceholder: '1234',
+                coApplicantSectionHeader: 'Co-Applicant / Guarantor',
                 coApplicantCheckbox: 'I have a co-applicant or guarantor',
                 coApplicantInfo: 'Additional Person Information',
                 coRoleLabel: 'Role (Select one)',
@@ -1410,6 +1476,13 @@ class RentalApplication {
                 coDobLabel: 'Date of Birth',
                 coSsnLabel: 'SSN (Last 4)',
                 employmentIncome: 'Employment & Income',
+                coEmploymentStatusLabel: 'Employment Status',
+                empFullTime: 'Full-time Employed',
+                empPartTime: 'Part-time Employed',
+                empSelfEmployed: 'Self-employed',
+                empRetired: 'Retired',
+                empStudent: 'Student',
+                empUnemployed: 'Unemployed / Other',
                 coEmployerLabel: 'Employer',
                 coJobTitleLabel: 'Job Title',
                 coMonthlyIncomeLabel: 'Gross Monthly Income ($)',
@@ -1528,7 +1601,7 @@ class RentalApplication {
                 altIncomeSourcePlaceholder: 'e.g., Savings, Social Security, Financial Aid, Spouse income',
 
                 // ── Step 4: References ──
-                financialHeader: 'References & Emergency Contact',
+                financialHeader: 'References, Emergency & Co-Applicant',
                 personalReferences: 'Personal References',
                 referencesHint: 'Please provide two references who are not relatives',
                 ref1NameLabel: 'Reference 1 Name',
@@ -1653,9 +1726,10 @@ class RentalApplication {
                 step1Label: 'Propiedad y Solicitante',
                 step2Label: 'Residencia y Ocupación',
                 step3Label: 'Empleo e Ingresos',
-                step4Label: 'Finanzas y Referencias',
+                step4Label: 'Referencias y Más',
                 step5Label: 'Preferencias de Pago',
                 step6Label: 'Revisar y Enviar',
+                requiredFieldLegend: 'Campo obligatorio',
                 stepPrefix: 'Paso',
                 stepOf: 'de',
 
@@ -1732,6 +1806,7 @@ class RentalApplication {
                 ssnHint: 'Solo últimos 4 dígitos requeridos',
                 ssnPrivacyNote: '<i class="fas fa-shield-alt"></i> Encriptado en tránsito y almacenado en formato enmascarado (ej. XXX-XX-1234). Usado solo para verificación de identidad — nunca compartido con terceros.',
                 ssnPlaceholder: '1234',
+                coApplicantSectionHeader: 'Co-Solicitante / Fiador',
                 coApplicantCheckbox: 'Tengo un co-solicitante o fiador',
                 coApplicantInfo: 'Información de Persona Adicional',
                 coRoleLabel: 'Rol (Seleccione uno)',
@@ -1744,6 +1819,13 @@ class RentalApplication {
                 coDobLabel: 'Fecha de Nacimiento',
                 coSsnLabel: 'SSN (Últimos 4)',
                 employmentIncome: 'Empleo e Ingresos',
+                coEmploymentStatusLabel: 'Estado Laboral',
+                empFullTime: 'Empleado a tiempo completo',
+                empPartTime: 'Empleado a tiempo parcial',
+                empSelfEmployed: 'Trabajador independiente',
+                empRetired: 'Jubilado',
+                empStudent: 'Estudiante',
+                empUnemployed: 'Desempleado / Otro',
                 coEmployerLabel: 'Empleador',
                 coJobTitleLabel: 'Puesto',
                 coMonthlyIncomeLabel: 'Ingreso Mensual Bruto ($)',
@@ -1862,7 +1944,7 @@ class RentalApplication {
                 altIncomeSourcePlaceholder: 'ej., Ahorros, Seguro Social, Ayuda Financiera, Ingreso del cónyuge',
 
                 // ── Step 4 ──
-                financialHeader: 'Finanzas y Referencias',
+                financialHeader: 'Referencias, Emergencia y Co-Solicitante',
                 personalReferences: 'Referencias Personales',
                 referencesHint: 'Por favor proporcione dos referencias que no sean parientes',
                 ref1NameLabel: 'Nombre de Referencia 1',

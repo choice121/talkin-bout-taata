@@ -158,6 +158,7 @@
                 </div>
 
                 <h2><i class="fas fa-home"></i> <span data-i18n="propertyHeader">Property & Applicant Details</span></h2>
+                <p style="font-size:12px;color:#6b7280;margin:0 0 16px;"><span style="color:#dc2626;font-weight:700;">*</span> <span data-i18n="requiredFieldLegend">Required field</span></p>
 
                 <h3 data-i18n="propertyInfo">Property Information</h3>
 
@@ -278,125 +279,6 @@
                     </div>
                 </div>
 
-                <!-- ===== IMPROVED CO-APPLICANT / GUARANTOR SECTION ===== -->
-                <div id="coApplicantFeature">
-                <div class="form-group">
-                    <label>
-                        <input type="checkbox" id="hasCoApplicant" name="Has Co-Applicant" value="Yes">
-                        <span data-i18n="coApplicantCheckbox">I have a co-applicant or guarantor</span>
-                    </label>
-                </div>
-
-                <div id="coApplicantSection" style="display: none;">
-                    <h4 data-i18n="coApplicantInfo">Additional Person Information</h4>
-
-                    <!-- Role selection -->
-                    <div class="form-group">
-                        <label data-i18n="coRoleLabel">Role <span class="field-hint">(Select one)</span></label>
-                        <div class="checkbox-group">
-                            <div class="checkbox-item">
-                                <input type="radio" id="roleCoApplicant" name="Additional Person Role" value="Co-applicant" checked>
-                                <label for="roleCoApplicant" data-i18n="roleCoApplicant">Co-applicant (will live in the unit)</label>
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="radio" id="roleGuarantor" name="Additional Person Role" value="Guarantor">
-                                <label for="roleGuarantor" data-i18n="roleGuarantor">Guarantor (financial backup only)</label>
-                            </div>
-                        </div>
-                        <div class="error-message"></div>
-                    </div>
-
-                    <!-- Personal details -->
-                    <div class="form-row">
-                        <div class="form-col">
-                            <div class="form-group">
-                                <label for="coFirstName" data-i18n="coFirstNameLabel">First Name</label>
-                                <input type="text" id="coFirstName" name="Co-Applicant First Name">
-                                <div class="error-message"></div>
-                            </div>
-                        </div>
-                        <div class="form-col">
-                            <div class="form-group">
-                                <label for="coLastName" data-i18n="coLastNameLabel">Last Name</label>
-                                <input type="text" id="coLastName" name="Co-Applicant Last Name">
-                                <div class="error-message"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-col">
-                            <div class="form-group">
-                                <label for="coEmail" data-i18n="coEmailLabel">Email</label>
-                                <input type="email" id="coEmail" name="Co-Applicant Email">
-                                <div class="error-message"></div>
-                            </div>
-                        </div>
-                        <div class="form-col">
-                            <div class="form-group">
-                                <label for="coPhone" data-i18n="coPhoneLabel">Phone</label>
-                                <input type="tel" id="coPhone" name="Co-Applicant Phone">
-                                <div class="error-message"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-col">
-                            <div class="form-group">
-                                <label for="coDob" data-i18n="coDobLabel">Date of Birth</label>
-                                <input type="date" id="coDob" name="Co-Applicant DOB">
-                                <div class="error-message"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Employment & Income -->
-                    <h5 data-i18n="employmentIncome">Employment & Income</h5>
-                    <div class="form-row">
-                        <div class="form-col">
-                            <div class="form-group">
-                                <label for="coEmployer" data-i18n="coEmployerLabel">Employer</label>
-                                <input type="text" id="coEmployer" name="Co-Applicant Employer">
-                                <div class="error-message"></div>
-                            </div>
-                        </div>
-                        <div class="form-col">
-                            <div class="form-group">
-                                <label for="coJobTitle" data-i18n="coJobTitleLabel">Job Title</label>
-                                <input type="text" id="coJobTitle" name="Co-Applicant Job Title">
-                                <div class="error-message"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-col">
-                            <div class="form-group">
-                                <label for="coMonthlyIncome" data-i18n="coMonthlyIncomeLabel">Gross Monthly Income ($)</label>
-                                <input type="text" id="coMonthlyIncome" name="Co-Applicant Monthly Income" placeholder="e.g., 4000" data-i18n="coMonthlyIncomePlaceholder">
-                                <div class="error-message"></div>
-                            </div>
-                        </div>
-                        <div class="form-col">
-                            <div class="form-group">
-                                <label for="coEmploymentDuration" data-i18n="coEmploymentDurationLabel">Length of Employment</label>
-                                <input type="text" id="coEmploymentDuration" name="Co-Applicant Employment Duration" placeholder="e.g., 2 years" data-i18n="coEmploymentDurationPlaceholder">
-                                <div class="error-message"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Consent -->
-                    <div class="form-group">
-                        <div class="custom-checkbox">
-                            <input type="checkbox" id="coConsent" name="Co-Applicant Consent">
-                            <label for="coConsent" data-i18n="coConsentLabel">I authorise verification of the information provided for this additional person, including credit and background check.</label>
-                        </div>
-                        <div class="error-message"></div>
-                    </div>
-                </div>
-                <!-- ===== END CO-APPLICANT SECTION ===== -->
-
-                </div><!-- /#coApplicantFeature -->
-
                 <div class="btn-container">
                     <div></div>
                     <button type="button" class="btn-next"><span data-i18n="nextStep">Next Step</span> <i class="fas fa-arrow-right"></i></button>
@@ -495,6 +377,7 @@
                     </div>
                 </div>
 
+                <div id="priorResidenceGroup" style="display:none">
                 <h3 data-i18n="priorResidenceHeader">Prior Residence <span style="font-weight:400;font-size:14px;color:#888;">(if applicable)</span></h3>
                 <div class="form-row">
                     <div class="form-col">
@@ -524,6 +407,7 @@
                         </div>
                     </div>
                 </div>
+                </div><!-- /#priorResidenceGroup -->
 
                 <h3 data-i18n="occupantsPets">Occupants & Pets</h3>
                 <div class="form-group">
@@ -904,6 +788,139 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- ===== CO-APPLICANT / GUARANTOR SECTION (moved to Step 4) ===== -->
+                <div id="coApplicantFeature" style="margin-top:24px;">
+                <h3 data-i18n="coApplicantSectionHeader">Co-Applicant / Guarantor</h3>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="hasCoApplicant" name="Has Co-Applicant" value="Yes">
+                        <span data-i18n="coApplicantCheckbox">I have a co-applicant or guarantor</span>
+                    </label>
+                </div>
+
+                <div id="coApplicantSection" style="display: none;">
+                    <h4 data-i18n="coApplicantInfo">Additional Person Information</h4>
+
+                    <!-- Role selection -->
+                    <div class="form-group">
+                        <label data-i18n="coRoleLabel">Role <span class="field-hint">(Select one)</span></label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="radio" id="roleCoApplicant" name="Additional Person Role" value="Co-applicant" checked>
+                                <label for="roleCoApplicant" data-i18n="roleCoApplicant">Co-applicant (will live in the unit)</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="radio" id="roleGuarantor" name="Additional Person Role" value="Guarantor">
+                                <label for="roleGuarantor" data-i18n="roleGuarantor">Guarantor (financial backup only)</label>
+                            </div>
+                        </div>
+                        <div class="error-message"></div>
+                    </div>
+
+                    <!-- Personal details -->
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="coFirstName" data-i18n="coFirstNameLabel">First Name</label>
+                                <input type="text" id="coFirstName" name="Co-Applicant First Name">
+                                <div class="error-message"></div>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="coLastName" data-i18n="coLastNameLabel">Last Name</label>
+                                <input type="text" id="coLastName" name="Co-Applicant Last Name">
+                                <div class="error-message"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="coEmail" data-i18n="coEmailLabel">Email</label>
+                                <input type="email" id="coEmail" name="Co-Applicant Email">
+                                <div class="error-message"></div>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="coPhone" data-i18n="coPhoneLabel">Phone</label>
+                                <input type="tel" id="coPhone" name="Co-Applicant Phone">
+                                <div class="error-message"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="coDob" data-i18n="coDobLabel">Date of Birth</label>
+                                <input type="date" id="coDob" name="Co-Applicant DOB">
+                                <div class="error-message"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Employment & Income -->
+                    <h5 data-i18n="employmentIncome">Employment & Income</h5>
+                    <div class="form-group">
+                        <label for="coEmploymentStatus" data-i18n="coEmploymentStatusLabel">Employment Status</label>
+                        <select id="coEmploymentStatus" name="Co-Applicant Employment Status">
+                            <option value="" data-i18n="selectStatus">— Select —</option>
+                            <option value="Full-time" data-i18n="empFullTime">Full-time Employed</option>
+                            <option value="Part-time" data-i18n="empPartTime">Part-time Employed</option>
+                            <option value="Self-employed" data-i18n="empSelfEmployed">Self-employed</option>
+                            <option value="Retired" data-i18n="empRetired">Retired</option>
+                            <option value="Student" data-i18n="empStudent">Student</option>
+                            <option value="Unemployed" data-i18n="empUnemployed">Unemployed / Other</option>
+                        </select>
+                    </div>
+                    <div id="coEmployedFieldsGroup" style="display:none">
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="coEmployer" data-i18n="coEmployerLabel">Employer</label>
+                                <input type="text" id="coEmployer" name="Co-Applicant Employer">
+                                <div class="error-message"></div>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="coJobTitle" data-i18n="coJobTitleLabel">Job Title</label>
+                                <input type="text" id="coJobTitle" name="Co-Applicant Job Title">
+                                <div class="error-message"></div>
+                            </div>
+                        </div>
+                    </div>
+                    </div><!-- /#coEmployedFieldsGroup -->
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="coMonthlyIncome" data-i18n="coMonthlyIncomeLabel">Gross Monthly Income ($)</label>
+                                <input type="text" id="coMonthlyIncome" name="Co-Applicant Monthly Income" placeholder="e.g., 4000" data-i18n="coMonthlyIncomePlaceholder">
+                                <div class="error-message"></div>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="coEmploymentDuration" data-i18n="coEmploymentDurationLabel">Length of Employment</label>
+                                <input type="text" id="coEmploymentDuration" name="Co-Applicant Employment Duration" placeholder="e.g., 2 years" data-i18n="coEmploymentDurationPlaceholder">
+                                <div class="error-message"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Consent -->
+                    <div class="form-group">
+                        <div class="custom-checkbox">
+                            <input type="checkbox" id="coConsent" name="Co-Applicant Consent">
+                            <label for="coConsent" data-i18n="coConsentLabel">I authorise verification of the information provided for this additional person, including credit and background check.</label>
+                        </div>
+                        <div class="error-message"></div>
+                    </div>
+                </div>
+                <!-- ===== END CO-APPLICANT SECTION ===== -->
+                </div><!-- /#coApplicantFeature -->
 
                 <div class="btn-container">
                     <button type="button" class="btn-prev"><i class="fas fa-arrow-left"></i> <span data-i18n="prevStep">Previous</span></button>
