@@ -305,9 +305,9 @@
   border-color: rgba(0,106,255,0.20);
 }
 
-/* 3:2 aspect ratio — the standard for real estate photography */
+/* 4:3 aspect ratio — taller image, more immersive (Zillow/Apartments.com standard) */
 .property-card-img {
-  position: relative; padding-top: 66.67%; overflow: hidden; flex-shrink: 0;
+  position: relative; padding-top: 75%; overflow: hidden; flex-shrink: 0;
   background: linear-gradient(135deg, #dce4ee 0%, #c8d4e3 100%);
 }
 .property-card-slides { position: absolute; inset: 0; display: flex; transition: transform 360ms var(--ease); }
@@ -321,11 +321,49 @@
 .property-card-slide img.cp-img-loaded { opacity: 1; filter: none; transform: scale(1); }
 .property-card:hover .property-card-slide img.cp-img-loaded { transform: scale(1.04); }
 
+/* Gradient scrim — covers bottom 75% to support price/meta overlay legibility */
 .property-card-img-overlay {
-  position: absolute; bottom: 0; left: 0; right: 0; height: 65%;
+  position: absolute; bottom: 0; left: 0; right: 0; height: 75%;
   pointer-events: none; z-index: 2;
-  background: linear-gradient(to top, rgba(0,0,0,0.58) 0%, rgba(0,0,0,0.22) 40%, transparent 100%);
+  background: linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.32) 45%, transparent 100%);
 }
+
+/* Price + meta stats — overlaid at bottom of the photo */
+.property-card-img-stats {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 32px 14px 13px;
+  z-index: 3; pointer-events: none;
+  display: flex; align-items: flex-end; justify-content: space-between; gap: 8px;
+}
+.property-card-img-price {
+  font-size: 23px; font-weight: 800; color: #fff; line-height: 1;
+  letter-spacing: -0.02em; text-shadow: 0 1px 6px rgba(0,0,0,0.35);
+  display: flex; align-items: baseline; gap: 3px;
+}
+.property-card-img-price span { font-size: 11px; font-weight: 500; opacity: 0.82; letter-spacing: 0; }
+.property-card-img-meta {
+  display: flex; align-items: center; gap: 3px; flex-shrink: 0;
+  font-size: 11.5px; color: rgba(255,255,255,0.90); font-weight: 600;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.40);
+}
+.property-card-img-meta-item { display: flex; align-items: center; gap: 3px; white-space: nowrap; }
+.property-card-img-meta-item i { font-size: 8.5px; opacity: 0.75; }
+.property-card-img-meta-item + .property-card-img-meta-item::before { content: '·'; margin: 0 3px; opacity: 0.50; }
+
+/* Availability pill badge — floats on photo top-left (replaces old DOM badge) */
+.property-card-avail-badge {
+  position: absolute; top: var(--space-3); left: var(--space-3); z-index: 6;
+  border-radius: var(--radius-full); padding: 5px 11px;
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+  display: inline-flex; align-items: center; gap: 5px;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.18);
+}
+.property-card-avail-badge .avail-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+.property-card-avail-badge.avail-now  { background: rgba(5,150,105,0.88); color: #fff; }
+.property-card-avail-badge.avail-now  .avail-dot { background: #a7f3d0; }
+.property-card-avail-badge.avail-soon { background: rgba(12,12,12,0.72); color: rgba(255,255,255,0.92); }
+.property-card-avail-badge.avail-soon .avail-dot { background: #fbbf24; }
 
 .property-card-nav {
   position: absolute; top: 50%; transform: translateY(-50%);
@@ -343,24 +381,9 @@
 .property-card-nav:hover { transform: translateY(-50%) scale(1.12); background: #fff; }
 .property-card-nav:disabled { opacity: 0 !important; }
 
-.property-card-dots { position: absolute; bottom: var(--space-3); left: 50%; transform: translateX(-50%); display: flex; gap: 4px; z-index: 5; opacity: 0; transition: opacity var(--dur) var(--ease); }
-.property-card:hover .property-card-dots { opacity: 1; }
-.property-card-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.55); border: none; cursor: pointer; padding: 0; transition: all var(--dur) var(--ease); }
-.property-card-dot.active { background: var(--color-text-inverse); width: 18px; border-radius: 3px; }
-
-.property-card-photo-count {
-  position: absolute; bottom: var(--space-3); left: var(--space-3);
-  background: rgba(8,8,8,0.72); color: #fff;
-  border-radius: var(--radius-md); padding: 4px 10px; font-size: 11px; font-weight: 700;
-  display: flex; align-items: center; gap: 5px;
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-  z-index: 5; letter-spacing: 0.02em;
-  border: 1px solid rgba(255,255,255,0.10);
-}
-
 .property-card-save {
   position: absolute; top: var(--space-3); right: var(--space-3);
-  width: 36px; height: 36px; border-radius: 50%;
+  width: 34px; height: 34px; border-radius: 50%;
   background: rgba(255,255,255,0.96); border: none;
   display: flex; align-items: center; justify-content: center;
   font-size: 14px; color: var(--color-text-muted); cursor: pointer;
@@ -371,23 +394,13 @@
 .property-card-save:hover { color: var(--color-error); background: #fff; transform: scale(1.12); }
 .property-card-save.saved { color: var(--color-error); background: #fff; }
 
-.property-card-dom { position: absolute; top: var(--space-3); left: var(--space-3); z-index: 6; }
+/* Card body — lean and focused */
+.property-card-body { padding: 13px 14px 14px; display: flex; flex-direction: column; flex: 1; gap: 0; }
 
-.property-card-body { padding: var(--space-4) var(--space-5) var(--space-5); display: flex; flex-direction: column; flex: 1; gap: 0; }
-
-/* Price — the most prominent piece of information */
-.property-card-price {
-  font-family: var(--font-base); font-size: 28px; font-weight: 800;
-  color: var(--color-text-primary); line-height: 1; margin-bottom: 5px;
-  letter-spacing: var(--tracking-tight);
-  display: flex; align-items: baseline; gap: 5px;
-}
-.property-card-price span { font-size: 13px; font-weight: 500; color: var(--color-text-muted); font-family: var(--font-base); letter-spacing: 0; }
-
-/* Title — secondary, clamp at 1 line for grid alignment */
+/* Title — primary info now that price lives on the photo */
 .property-card-title {
-  font-weight: 600; font-size: 14px; color: var(--color-text-secondary);
-  margin-bottom: 4px; line-height: 1.4;
+  font-weight: 700; font-size: 14.5px; color: var(--color-text-primary);
+  margin-bottom: 4px; line-height: 1.35;
   display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;
 }
 .property-card-addr {
@@ -395,18 +408,6 @@
   display: flex; align-items: center; gap: 4px; line-height: 1.3;
 }
 .property-card-addr i { font-size: 9px; color: var(--color-brand); flex-shrink: 0; }
-
-/* Beds / Baths / Sqft row */
-.property-card-meta {
-  display: flex; align-items: center; gap: 0;
-  padding: var(--space-3) 0;
-  border-top: 1px solid var(--color-border-muted);
-  border-bottom: 1px solid var(--color-border-muted);
-  margin-bottom: var(--space-3);
-}
-.property-card-meta-item { display: flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--color-text-primary); font-weight: 600; }
-.property-card-meta-item + .property-card-meta-item::before { content: '·'; margin: 0 9px; color: var(--color-border-strong); font-size: 16px; line-height: 1; }
-.property-card-meta-item i { color: var(--color-brand); font-size: 10.5px; }
 
 .property-card-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: var(--space-3); }
 .property-card-tag {
@@ -420,66 +421,18 @@
 .property-card-tag.tag-parking  { background: rgba(0,106,255,0.07);  color: #1d4ed8; border-color: rgba(0,106,255,0.20); }
 .property-card-tag.tag-utilities { background: rgba(5,150,105,0.08); color: #065f46; border-color: rgba(5,150,105,0.22); }
 
-.property-card-footer {
-  display: flex; align-items: center; justify-content: space-between; gap: var(--space-2);
-  margin-top: auto; padding-top: var(--space-3);
-  border-top: 1px solid var(--color-border-muted);
-}
-.property-card-avail { font-size: 11.5px; color: var(--color-success); font-weight: 600; display: flex; align-items: center; gap: 5px; }
-.avail-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-success); flex-shrink: 0; box-shadow: 0 0 0 2px rgba(5,150,105,0.18); }
-.avail-dot.soon { background: var(--color-warning); box-shadow: 0 0 0 2px rgba(217,119,6,0.18); }
-
-.property-card-footer-actions { display: flex; align-items: center; gap: var(--space-2); flex-shrink: 0; }
-
-/* "Details" ghost button */
-.property-card-view {
-  font-size: 12px; font-weight: 600; color: var(--color-text-secondary);
-  text-decoration: none; padding: 7px 13px;
-  border-radius: var(--radius-full); border: 1.5px solid var(--color-border);
-  background: transparent;
+/* Full-width Apply Now CTA — single action, pushed to bottom */
+.property-card-cta {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  margin-top: auto; padding: 11px 16px;
+  background: var(--color-brand); color: var(--color-text-inverse);
+  border-radius: var(--radius-full); font-size: 13px; font-weight: 700;
+  text-decoration: none; font-family: var(--font-base); letter-spacing: 0.01em;
   transition: all var(--dur) var(--ease);
-  display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
-  letter-spacing: 0.01em;
+  box-shadow: 0 2px 10px rgba(0,106,255,0.20);
 }
-.property-card-view:hover { background: var(--color-surface-subtle); border-color: var(--color-text-muted); color: var(--color-text-primary); }
-
-/* "Apply Now" primary CTA */
-.property-card-apply {
-  background: var(--color-brand); color: var(--color-text-inverse); border: none;
-  border-radius: var(--radius-full); padding: 7px 16px; font-size: 12px; font-weight: 700;
-  cursor: pointer; transition: all var(--dur) var(--ease); font-family: var(--font-base);
-  letter-spacing: 0.01em; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;
-  white-space: nowrap; box-shadow: 0 2px 8px rgba(0,106,255,0.20);
-}
-.property-card-apply:hover { background: var(--color-brand-hover); transform: translateY(-1px); box-shadow: 0 5px 16px rgba(0,106,255,0.30); }
-.property-card-apply i { font-size: 10px; }
-
-/* Agent / landlord attribution line */
-.property-card-agent {
-  display: flex; align-items: center; gap: 6px;
-  padding-top: var(--space-3); margin-top: var(--space-2);
-  border-top: 1px solid var(--color-border-muted);
-  font-size: 11px; color: var(--color-text-muted); font-weight: 400;
-  min-height: 0;
-}
-.property-card-agent-avatar {
-  width: 20px; height: 20px; border-radius: 50%; object-fit: cover;
-  background: var(--color-surface-subtle); flex-shrink: 0;
-  border: 1px solid var(--color-border);
-}
-.property-card-agent-name { font-weight: 500; color: var(--color-text-secondary); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.property-card-agent-verified { color: var(--color-brand); font-size: 10px; flex-shrink: 0; }
-
-/* Property type floating chip on image */
-.property-card-type-label {
-  position: absolute; bottom: var(--space-3); right: var(--space-3); z-index: 5;
-  background: rgba(255,255,255,0.93); color: var(--color-text-primary);
-  border-radius: var(--radius-md); padding: 3px 9px;
-  font-size: 10px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase;
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.35);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.14);
-}
+.property-card-cta:hover { background: var(--color-brand-hover); transform: translateY(-1px); box-shadow: 0 5px 18px rgba(0,106,255,0.32); }
+.property-card-cta i { font-size: 10px; }
 
 /* Glass badges on dark card images */
 .badge-new   { background: var(--color-ink);              color: var(--color-brand-light); }
@@ -491,7 +444,7 @@
 /* ── SKELETON LOADERS ─────────────────────────────────────── */
 
 .property-card-skeleton { pointer-events: none; border-radius: var(--radius-2xl); overflow: hidden; }
-.skeleton-img { padding-top: 66.67%; }
+.skeleton-img { padding-top: 75%; }
 .skeleton-line { height: 15px; margin-bottom: 8px; border-radius: var(--radius-sm); }
 .skeleton-line.w-40 { width: 40%; }
 .skeleton-line.w-60 { width: 60%; }
