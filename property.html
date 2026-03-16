@@ -25,7 +25,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="/css/main.css?v=3">
-  <link rel="stylesheet" href="/css/property.css?v=4">
+  <link rel="stylesheet" href="/css/property.css?v=5">
   <link rel="stylesheet" href="/css/mobile.css?v=2">
   <!-- Styles in property.css -->
 <style>
@@ -107,7 +107,7 @@
 <div class="gallery-mosaic" id="gallery">
   <!-- Main large panel -->
   <div class="mosaic-main" id="mosaicMain">
-    <img class="mosaic-main-img" id="mosaicMainImg" src="" alt="Property photo">
+    <img class="mosaic-main-img" id="mosaicMainImg" src="" alt="Property photo" fetchpriority="high" decoding="async">
   </div>
   <!-- Right 2×2 side grid -->
   <div class="mosaic-side" id="mosaicSide"></div>
@@ -125,6 +125,9 @@
   <!-- Legacy galleryExpand kept for JS compatibility -->
   <button id="galleryExpand" style="display:none"></button>
 </div>
+
+<!-- ── Gallery Thumbnail Strip ── -->
+<div class="gallery-strip" id="galleryStrip" role="list" aria-label="Property photos"></div>
 
 <!-- ── Lightbox ── -->
 
@@ -686,10 +689,14 @@ function renderGallery(photos) {
   const prevBtn    = document.getElementById('mosaicPrev');
   const nextBtn    = document.getElementById('mosaicNext');
 
-  mainImg.src = CONFIG.img(photos[0], 'gallery');
-  mainImg.alt = 'Property photo 1';
+  // Hero image — LCP candidate, load at high priority with srcset for retina
+  mainImg.src    = CONFIG.img(photos[0], 'gallery');
+  mainImg.srcset = `${CONFIG.img(photos[0], 'card')} 600w, ${CONFIG.img(photos[0], 'gallery')} 1200w, ${CONFIG.img(photos[0], 'gallery_2x')} 2400w`;
+  mainImg.sizes  = '(max-width: 768px) 100vw, (max-width: 1280px) 65vw, 55vw';
+  mainImg.alt    = 'Property photo 1';
   mosaicMain.addEventListener('click', () => openLightbox(0));
 
+  // Side 2×2 grid — use gallery preset for crisp quality, lazy-load each cell
   const sidePanels = photos.slice(1, 5);
   if (sidePanels.length > 0) {
     mosaicSide.innerHTML = sidePanels.map((url, i) => {
@@ -698,7 +705,10 @@ function renderGallery(photos) {
       const remaining = photos.length - 5;
       return `
         <div class="mosaic-cell" data-idx="${idx}">
-          <img src="${CONFIG.img(url,'thumb')}" alt="Property photo ${idx+1}" loading="lazy" decoding="async">
+          <img src="${CONFIG.img(url,'gallery')}"
+               srcset="${CONFIG.img(url,'card')} 600w, ${CONFIG.img(url,'gallery')} 1200w"
+               sizes="(max-width: 768px) 50vw, 25vw"
+               alt="Property photo ${idx+1}" loading="lazy" decoding="async">
           ${isLast ? `
             <div class="mosaic-cell-overlay">
               <span class="mosaic-overlay-icon"><i class="fas fa-images"></i></span>
@@ -721,6 +731,7 @@ function renderGallery(photos) {
   prevBtn.addEventListener('click', () => showPhoto((photoIndex - 1 + photos.length) % photos.length));
   nextBtn.addEventListener('click', () => showPhoto((photoIndex + 1) % photos.length));
 
+  // Touch swipe on mosaic (mobile carousel)
   let touchX = 0;
   mosaicMain.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; }, { passive: true });
   mosaicMain.addEventListener('touchend', e => {
@@ -728,6 +739,7 @@ function renderGallery(photos) {
     if (Math.abs(diff) > 40) showPhoto((photoIndex + (diff > 0 ? 1 : -1) + photos.length) % photos.length);
   }, { passive: true });
 
+  // Keyboard — lightbox arrows + escape
   document.addEventListener('keydown', e => {
     if (document.getElementById('lightbox').classList.contains('open')) {
       if (e.key === 'ArrowLeft')  lightboxNav(-1);
@@ -737,6 +749,43 @@ function renderGallery(photos) {
   });
 
   document.getElementById('galleryExpand').addEventListener('click', () => openLightbox(photoIndex));
+
+  // Build thumbnail strip
+  buildGalleryStrip(photos);
+}
+
+/* ── Thumbnail Strip ── */
+function buildGalleryStrip(photos) {
+  const strip = document.getElementById('galleryStrip');
+  if (!strip) return;
+  if (photos.length < 2) { strip.style.display = 'none'; return; }
+
+  strip.innerHTML = photos.map((url, i) => `
+    <button class="gallery-strip-thumb${i === 0 ? ' active' : ''}"
+            data-idx="${i}" role="listitem"
+            aria-label="View photo ${i + 1}" aria-pressed="${i === 0 ? 'true' : 'false'}">
+      <img src="${CONFIG.img(url, 'strip')}"
+           alt="Photo ${i + 1}"
+           loading="${i < 5 ? 'eager' : 'lazy'}"
+           decoding="async">
+    </button>`).join('');
+
+  strip.querySelectorAll('.gallery-strip-thumb').forEach(btn => {
+    btn.addEventListener('click', () => showPhoto(parseInt(btn.dataset.idx)));
+  });
+}
+
+function syncStripActive(idx) {
+  const thumbs = document.querySelectorAll('.gallery-strip-thumb');
+  thumbs.forEach((t, i) => {
+    const active = i === idx;
+    t.classList.toggle('active', active);
+    t.setAttribute('aria-pressed', active ? 'true' : 'false');
+  });
+  const activeThumb = document.querySelector('.gallery-strip-thumb.active');
+  if (activeThumb) {
+    activeThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }
 }
 
 function showPhoto(idx) {
@@ -745,12 +794,14 @@ function showPhoto(idx) {
   mainImg.style.opacity = '0';
   mainImg.style.transition = 'opacity 150ms';
   setTimeout(() => {
-    mainImg.src = CONFIG.img(allPhotos[idx], 'gallery');
-    mainImg.alt = `Property photo ${idx + 1}`;
+    mainImg.src    = CONFIG.img(allPhotos[idx], 'gallery');
+    mainImg.srcset = `${CONFIG.img(allPhotos[idx], 'card')} 600w, ${CONFIG.img(allPhotos[idx], 'gallery')} 1200w, ${CONFIG.img(allPhotos[idx], 'gallery_2x')} 2400w`;
+    mainImg.alt    = `Property photo ${idx + 1}`;
     mainImg.style.opacity = '1';
   }, 150);
   const mobileCount = document.getElementById('mosaicMobileCount');
   if (mobileCount) mobileCount.textContent = `${idx + 1} / ${allPhotos.length}`;
+  syncStripActive(idx);
 }
 
 /* ── Lightbox ── */
@@ -792,13 +843,17 @@ function lightboxShow(idx) {
 
   wrap.classList.add('transitioning');
   setTimeout(() => {
-    img.src = CONFIG.img(allPhotos[idx], 'lightbox');
-    img.alt = `Property photo ${idx + 1}`;
+    // Full-quality lightbox image with srcset for retina screens
+    img.src    = CONFIG.img(allPhotos[idx], 'lightbox');
+    img.srcset = `${CONFIG.img(allPhotos[idx], 'gallery')} 1200w, ${CONFIG.img(allPhotos[idx], 'gallery_2x')} 2400w, ${CONFIG.img(allPhotos[idx], 'lightbox')} 4000w`;
+    img.sizes  = '100vw';
+    img.alt    = `Property photo ${idx + 1}`;
     wrap.classList.remove('transitioning');
   }, 160);
 
   document.getElementById('lightboxCounter').textContent = `${idx + 1} / ${allPhotos.length}`;
 
+  // Sync lightbox filmstrip
   document.querySelectorAll('.lb-thumb').forEach((t, i) => {
     t.classList.toggle('active', i === idx);
   });
@@ -806,6 +861,9 @@ function lightboxShow(idx) {
   if (activeThumb) {
     activeThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
   }
+
+  // Also sync the main page thumbnail strip so it tracks lightbox navigation
+  syncStripActive(idx);
 }
 
 function lightboxNav(dir) {
