@@ -660,20 +660,22 @@ function buildCard(p) {
 
   const badgeClass = dom === 0 ? 'badge-new' : dom <= 3 ? 'badge-green' : dom <= 14 ? 'badge-amber' : 'badge-slate';
   const badgeText  = dom === 0 ? 'New Today' : dom <= 3 ? 'New' : typeLabel;
+  const addrLine   = [p.address, p.city, p.state].filter(Boolean).join(', ');
 
   return `
     <article class="property-card" data-id="${p.id}">
-      <a href="/property.html?id=${p.id}" style="display:block;text-decoration:none">
+      <a href="/property.html?id=${p.id}" style="display:block;text-decoration:none" tabindex="-1" aria-hidden="true">
         <div class="property-card-img">
           <div class="property-card-slides">${slidesHtml}</div>
           <div class="property-card-img-overlay"></div>
           ${photos.length > 1 ? `
-            <button class="property-card-nav prev" data-dir="-1" aria-label="Previous"><i class="fas fa-chevron-left"></i></button>
-            <button class="property-card-nav next" data-dir="1"  aria-label="Next"><i class="fas fa-chevron-right"></i></button>
+            <button class="property-card-nav prev" data-dir="-1" aria-label="Previous photo"><i class="fas fa-chevron-left"></i></button>
+            <button class="property-card-nav next" data-dir="1"  aria-label="Next photo"><i class="fas fa-chevron-right"></i></button>
             <div class="property-card-dots">${photos.map((_,i) => `<button class="property-card-dot${i===0?' active':''}" data-idx="${i}" aria-label="Photo ${i+1}"></button>`).join('')}</div>
             <div class="property-card-photo-count"><i class="fas fa-camera"></i>${photos.length}</div>
           ` : ''}
           <div class="property-card-dom"><span class="badge ${badgeClass}">${badgeText}</span></div>
+          <div class="property-card-type-label">${typeLabel}</div>
         </div>
       </a>
       <button class="property-card-save" data-id="${p.id}" aria-label="Save property"><i class="far fa-heart"></i></button>
@@ -682,7 +684,7 @@ function buildCard(p) {
         <a href="/property.html?id=${p.id}" style="text-decoration:none">
           <div class="property-card-title">${p.title}</div>
         </a>
-        <div class="property-card-addr"><i class="fas fa-map-marker-alt"></i> ${p.address}, ${p.city}</div>
+        <div class="property-card-addr"><i class="fas fa-map-marker-alt"></i>${addrLine}</div>
         <div class="property-card-meta">
           ${p.bedrooms != null ? `<div class="property-card-meta-item"><i class="fas fa-bed"></i>${p.bedrooms === 0 ? 'Studio' : p.bedrooms + ' Bed'}</div>` : ''}
           ${p.bathrooms  ? `<div class="property-card-meta-item"><i class="fas fa-bath"></i>${p.bathrooms} Bath</div>` : ''}
@@ -694,9 +696,12 @@ function buildCard(p) {
             <span class="avail-dot${availNow ? '' : ' soon'}"></span>
             ${avail}
           </div>
-          <a href="${applyURL}" class="property-card-apply" onclick="window.trackApply('${p.id}')">
-            Apply Now <i class="fas fa-arrow-right"></i>
-          </a>
+          <div class="property-card-footer-actions">
+            <a href="/property.html?id=${p.id}" class="property-card-view">View</a>
+            <a href="${applyURL}" class="property-card-apply" onclick="window.trackApply('${p.id}')">
+              Apply <i class="fas fa-arrow-right"></i>
+            </a>
+          </div>
         </div>
       </div>
     </article>`;
