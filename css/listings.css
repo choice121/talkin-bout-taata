@@ -313,29 +313,50 @@
     0 0 0 1px rgba(0,106,255,0.09);
 }
 
-/* 4:3 aspect ratio — richer photo presence */
+/* 4:3 aspect ratio — modern approach, no padding-top hacks */
 .property-card-img {
-  position: relative; padding-top: 75%; overflow: hidden; flex-shrink: 0;
+  position: relative;
+  aspect-ratio: 4 / 3;
+  width: 100%;
+  overflow: hidden;
+  flex-shrink: 0;
   background: linear-gradient(145deg, #c8d8e8 0%, #b8cad8 50%, #a8bac8 100%);
 }
 
-/* Smooth photo carousel */
-.property-card-slides { position: absolute; inset: 0; display: flex; transition: transform 380ms cubic-bezier(0.22,1,0.36,1); }
-.property-card-slide { min-width: 100%; height: 100%; flex-shrink: 0; }
+/* Smooth photo carousel — fills the full image box */
+.property-card-slides {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  transition: transform 380ms cubic-bezier(0.22,1,0.36,1);
+}
+.property-card-slide {
+  min-width: 100%;
+  height: 100%;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
 
-/* Image — cinematic blur-up reveal */
+/* Image — always centered, always fills the slide */
 .property-card-slide img {
-  width: 100%; height: 100%; object-fit: cover;
-  opacity: 0; filter: blur(24px) saturate(0.6); transform: scale(1.08);
-  transition: transform 700ms cubic-bezier(0.22,1,0.36,1), opacity 450ms ease, filter 450ms ease;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  opacity: 0;
+  filter: blur(20px) saturate(0.7);
+  transform: scale(1.04);
+  transition: transform 600ms cubic-bezier(0.22,1,0.36,1), opacity 400ms ease, filter 400ms ease;
   will-change: opacity, filter, transform;
 }
 .property-card-slide img.cp-img-loaded {
   opacity: 1; filter: none; transform: scale(1);
 }
 .property-card:hover .property-card-slide img.cp-img-loaded {
-  transform: scale(1.055);
-  transition: transform 5s cubic-bezier(0.22,1,0.36,1), opacity 450ms ease, filter 450ms ease;
+  transform: scale(1.05);
+  transition: transform 5s cubic-bezier(0.22,1,0.36,1), opacity 400ms ease, filter 400ms ease;
 }
 
 /* Vignette — subtle editorial darkening at the edges */
@@ -505,7 +526,7 @@
 /* ── SKELETON LOADERS ─────────────────────────────────────── */
 
 .property-card-skeleton { pointer-events: none; border-radius: var(--radius-2xl); overflow: hidden; }
-.skeleton-img { padding-top: 75%; }
+.skeleton-img { aspect-ratio: 4 / 3; width: 100%; }
 .skeleton-line { height: 15px; margin-bottom: 8px; border-radius: var(--radius-sm); }
 .skeleton-line.w-40 { width: 40%; }
 .skeleton-line.w-60 { width: 60%; }
@@ -729,7 +750,7 @@
 }
 @media (max-width: 539px) {
   .property-grid { grid-template-columns: 1fr; }
-  .property-card-img { padding-top: 62%; }
+  .property-card-img { aspect-ratio: 16 / 10; }
 }
 @media (max-width: 640px) {
   .footer-grid { grid-template-columns: 1fr; }
