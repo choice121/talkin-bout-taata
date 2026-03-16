@@ -1212,3 +1212,152 @@ footer {
     .success-card { padding: var(--space-5); }
     .id-number { font-size: 18px; padding: var(--space-3); }
 }
+
+
+/* ── DOCUMENT UPLOAD ZONES (Step 4) ──────────────────────── */
+.upload-intro-banner {
+    display: flex; align-items: flex-start; gap: var(--space-4);
+    background: var(--color-info-bg); border: 1px solid var(--color-info-border);
+    border-radius: var(--radius-xl); padding: var(--space-5); margin-bottom: var(--space-6);
+}
+.upload-intro-icon {
+    background: var(--color-brand); color: white; width: 40px; height: 40px;
+    border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+}
+.upload-intro-body strong { display: block; color: var(--color-brand); font-size: 15px; margin-bottom: 4px; }
+.upload-intro-body p { color: var(--color-text-secondary); font-size: 14px; margin: 0; line-height: 1.5; }
+
+.upload-zone {
+    border: 2px dashed var(--color-border); border-radius: var(--radius-xl);
+    padding: var(--space-6); text-align: center; cursor: pointer;
+    transition: all var(--dur) var(--ease); background: var(--color-surface-page);
+    position: relative; margin-bottom: var(--space-4);
+}
+.upload-zone:hover, .upload-zone-drag {
+    border-color: var(--color-brand); background: var(--color-info-bg);
+}
+.upload-zone-optional { opacity: 0.88; }
+.upload-zone-content {
+    display: flex; flex-direction: column; align-items: center; gap: var(--space-3);
+}
+.upload-zone-icon { font-size: 32px; color: var(--color-brand); opacity: 0.7; }
+.upload-zone-text { display: flex; flex-direction: column; gap: 4px; align-items: center; }
+.upload-zone-text strong { font-size: 15px; color: var(--color-text-primary); }
+.upload-zone-text span  { font-size: 14px; color: var(--color-text-secondary); }
+.upload-zone-text small { font-size: 12px; color: var(--color-text-muted); }
+.upload-link { color: var(--color-brand); text-decoration: underline; font-weight: 600; }
+
+.upload-preview {
+    display: flex; align-items: center; justify-content: center; padding: var(--space-4);
+}
+.upload-preview-inner {
+    display: flex; align-items: center; gap: var(--space-3);
+    background: var(--color-surface-raised); padding: var(--space-3) var(--space-5);
+    border-radius: var(--radius-lg); border: 1px solid var(--color-success); max-width: 100%;
+}
+.upload-check    { color: var(--color-success); font-size: 20px; flex-shrink: 0; }
+.upload-filename { font-size: 14px; font-weight: 500; color: var(--color-text-primary); word-break: break-all; }
+.upload-remove-btn {
+    background: none; border: none; cursor: pointer; color: var(--color-text-muted);
+    font-size: 16px; padding: 2px 6px; border-radius: var(--radius-sm); flex-shrink: 0;
+    transition: color var(--dur) var(--ease);
+}
+.upload-remove-btn:hover { color: var(--color-error); }
+
+.upload-skip-note {
+    display: flex; align-items: flex-start; gap: var(--space-2);
+    font-size: 13px; color: var(--color-text-muted); padding: var(--space-4) 0;
+    border-top: 1px dashed var(--color-border); margin-top: var(--space-2); line-height: 1.5;
+}
+.upload-skip-note i { color: var(--color-brand); font-size: 14px; flex-shrink: 0; margin-top: 2px; }
+
+
+/* ── PAYMENT PROCESS CARD (ppc-) ─────────────────────────── */
+.payment-process-card {
+    background: var(--color-surface-raised); border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl); padding: var(--space-6);
+    margin-bottom: var(--space-6); box-shadow: var(--shadow-xs);
+}
+.ppc-header {
+    display: flex; align-items: center; gap: var(--space-3);
+    color: var(--color-brand); font-size: 15px; font-weight: 700;
+    margin-bottom: var(--space-5); padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--color-border);
+}
+.ppc-header i { font-size: 18px; }
+.ppc-steps    { display: flex; flex-direction: column; gap: var(--space-4); }
+.ppc-step     { display: flex; align-items: flex-start; gap: var(--space-4); }
+.ppc-step-num {
+    background: var(--color-brand); color: white;
+    width: 28px; height: 28px; border-radius: var(--radius-full);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; flex-shrink: 0;
+}
+.ppc-step-body         { display: flex; flex-direction: column; gap: 2px; padding-top: 3px; }
+.ppc-step-body strong  { font-size: 14.5px; color: var(--color-text-primary); font-weight: 700; }
+.ppc-step-body span    { font-size: 13px; color: var(--color-text-secondary); line-height: 1.5; }
+.ppc-trust-note {
+    display: flex; align-items: flex-start; gap: var(--space-3);
+    margin-top: var(--space-5); padding-top: var(--space-4);
+    border-top: 1px dashed var(--color-border);
+    font-size: 13px; color: var(--color-text-muted); line-height: 1.5;
+}
+.ppc-trust-note i { color: var(--color-brand); font-size: 14px; flex-shrink: 0; margin-top: 2px; }
+
+
+/* ── PAYMENT ICON GRID ──────────────────────────────────── */
+.payment-icon-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-3); margin: var(--space-5) 0;
+}
+@media (max-width: 640px) { .payment-icon-grid { grid-template-columns: repeat(2, 1fr); } }
+
+.payment-icon-card {
+    position: relative; border: 2px solid var(--color-border);
+    border-radius: var(--radius-xl); padding: var(--space-4) var(--space-3);
+    cursor: pointer; text-align: center;
+    background: var(--color-surface-page);
+    transition: all 0.18s var(--ease); user-select: none;
+    display: flex; flex-direction: column; align-items: center; gap: var(--space-2);
+}
+.payment-icon-card:hover {
+    border-color: var(--color-brand); background: var(--color-info-bg);
+    transform: translateY(-2px); box-shadow: var(--shadow-sm);
+}
+.payment-icon-card .pic-icon  { font-size: 26px; line-height: 1; }
+.payment-icon-card .pic-label { font-size: 12.5px; font-weight: 600; color: var(--color-text-primary); }
+.payment-icon-card .pic-badge {
+    position: absolute; top: -8px; left: 50%; transform: translateX(-50%);
+    background: var(--color-brand); color: white;
+    font-size: 9px; font-weight: 800; padding: 2px 8px;
+    border-radius: var(--radius-full); text-transform: uppercase; letter-spacing: 0.06em;
+    white-space: nowrap;
+}
+.payment-icon-card.is-primary {
+    border-color: var(--color-brand); background: var(--color-info-bg);
+    box-shadow: 0 0 0 3px var(--color-brand-glow);
+}
+.payment-icon-card.is-backup {
+    border-color: #6366f1; background: #eef2ff;
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+}
+.payment-icon-card.is-backup .pic-badge { background: #6366f1; }
+
+.payment-other-inline {
+    grid-column: 1 / -1; display: none;
+    background: var(--color-surface-page); border-radius: var(--radius-lg);
+    border: 1.5px dashed var(--color-border); padding: var(--space-4);
+}
+.payment-other-inline.visible { display: block; }
+.payment-other-inline label  { font-size: 13px; font-weight: 600; color: var(--color-text-secondary); margin-bottom: var(--space-2); display: block; }
+.payment-other-inline input  { width: 100%; }
+
+.payment-icon-legend {
+    display: flex; gap: var(--space-4); font-size: 12px; color: var(--color-text-muted);
+    margin-top: var(--space-2); flex-wrap: wrap; align-items: center;
+}
+.payment-icon-legend span        { display: flex; align-items: center; gap: 6px; }
+.leg-primary, .leg-backup        { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.leg-primary                     { background: var(--color-brand); }
+.leg-backup                      { background: #6366f1; }

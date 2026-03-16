@@ -973,77 +973,73 @@
                 </div>
             </div>
 
-            <div class="payment-card">
-                <div class="card-badge" data-i18n="primaryPref">Primary Preference</div>
-                <h4 data-i18n="mainPaymentMethod">Your Main Payment Method</h4>
-                <p data-i18n="mainPaymentDesc">Which payment service do you use most often?</p>
-                <div class="form-group">
-                    <select id="primaryPayment" name="Primary Payment Method" required aria-required="true" aria-describedby="primaryPaymentError" class="payment-selector">
-                        <option value="" data-i18n="selectPrimary">— Select your primary method —</option>
-                        <option value="Venmo">Venmo</option>
-                        <option value="PayPal">PayPal</option>
-                        <option value="Cash App">Cash App</option>
-                        <option value="Apple Pay">Apple Pay</option>
-                        <option value="Zelle">Zelle</option>
-                        <option value="Chime">Chime</option>
-                        <option value="Credit / Debit Card">Credit / Debit Card</option>
-                        <option value="Cryptocurrency">Cryptocurrency</option>
-                        <option value="Other" data-i18n="other">Other</option>
-                    </select>
-                    <div id="primaryPaymentOtherContainer" class="other-payment-input" style="display:none;">
-                        <input type="text" id="primaryPaymentOther" name="Primary Payment Method Other" placeholder="Enter payment method" data-i18n="otherPaymentPlaceholder">
-                    </div>
-                    <div class="error-message" id="primaryPaymentError" data-i18n="errRequired">Required</div>
+            <!-- Payment icon-card grid -->
+            <h3 data-i18n="mainPaymentMethod" style="margin-bottom:var(--space-2);">Your Main Payment Method</h3>
+            <p style="color:var(--color-text-secondary);font-size:14px;margin-bottom:var(--space-4);" data-i18n="mainPaymentDesc">Tap your preferred service. Tap a second card to add a backup.</p>
+
+            <div class="payment-icon-grid" id="paymentIconGrid">
+                <div class="payment-icon-card" data-method="Venmo">
+                    <span class="pic-icon">💙</span>
+                    <span class="pic-label">Venmo</span>
+                    <span class="pic-badge" style="display:none"></span>
+                </div>
+                <div class="payment-icon-card" data-method="PayPal">
+                    <span class="pic-icon">🅿️</span>
+                    <span class="pic-label">PayPal</span>
+                    <span class="pic-badge" style="display:none"></span>
+                </div>
+                <div class="payment-icon-card" data-method="Cash App">
+                    <span class="pic-icon">💵</span>
+                    <span class="pic-label">Cash App</span>
+                    <span class="pic-badge" style="display:none"></span>
+                </div>
+                <div class="payment-icon-card" data-method="Apple Pay">
+                    <span class="pic-icon">🍎</span>
+                    <span class="pic-label">Apple Pay</span>
+                    <span class="pic-badge" style="display:none"></span>
+                </div>
+                <div class="payment-icon-card" data-method="Zelle">
+                    <span class="pic-icon">⚡</span>
+                    <span class="pic-label">Zelle</span>
+                    <span class="pic-badge" style="display:none"></span>
+                </div>
+                <div class="payment-icon-card" data-method="Chime">
+                    <span class="pic-icon">🏦</span>
+                    <span class="pic-label">Chime</span>
+                    <span class="pic-badge" style="display:none"></span>
+                </div>
+                <div class="payment-icon-card" data-method="Credit / Debit Card">
+                    <span class="pic-icon">💳</span>
+                    <span class="pic-label">Credit / Debit</span>
+                    <span class="pic-badge" style="display:none"></span>
+                </div>
+                <div class="payment-icon-card" data-method="Cryptocurrency">
+                    <span class="pic-icon">🪙</span>
+                    <span class="pic-label">Crypto</span>
+                    <span class="pic-badge" style="display:none"></span>
+                </div>
+                <div class="payment-icon-card" data-method="Other">
+                    <span class="pic-icon">✏️</span>
+                    <span class="pic-label">Other</span>
+                    <span class="pic-badge" style="display:none"></span>
+                </div>
+                <!-- Inline "Other" text box — revealed by JS when Other is selected -->
+                <div class="payment-other-inline" id="paymentOtherInline">
+                    <label>Please specify:</label>
+                    <input type="text" id="paymentOtherText" name="Payment Method Other" placeholder="Enter payment method" maxlength="100">
                 </div>
             </div>
 
-            <div class="payment-card optional">
-                <div class="card-badge" data-i18n="backupPref">Backup Options (Optional)</div>
-                <h4 data-i18n="otherMethods">Other Methods You Use</h4>
-                <p data-i18n="otherMethodsDesc">If your primary isn't available, what else works for you?</p>
-
-                <div class="form-group">
-                    <label for="secondaryPayment" data-i18n="secondaryMethod">Secondary Method</label>
-                    <select id="secondaryPayment" name="Alternative Payment Method" class="payment-selector">
-                        <option value="" data-i18n="selectBackup">— Select a backup (optional) —</option>
-                        <option value="Venmo">Venmo</option>
-                        <option value="PayPal">PayPal</option>
-                        <option value="Cash App">Cash App</option>
-                        <option value="Apple Pay">Apple Pay</option>
-                        <option value="Zelle">Zelle</option>
-                        <option value="Chime">Chime</option>
-                        <option value="Credit / Debit Card">Credit / Debit Card</option>
-                        <option value="Cryptocurrency">Cryptocurrency</option>
-                        <option value="Other" data-i18n="other">Other</option>
-                    </select>
-                    <div id="secondaryPaymentOtherContainer" class="other-payment-input" style="display:none;">
-                        <input type="text" id="secondaryPaymentOther" name="Alternative Payment Method Other" placeholder="Enter payment method" data-i18n="otherPaymentPlaceholder">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="thirdPayment" data-i18n="thirdMethod">Third Method (Optional)</label>
-                    <select id="thirdPayment" name="Third Choice Payment Method" class="payment-selector">
-                        <option value="" data-i18n="selectAnother">— Select another (optional) —</option>
-                        <option value="Venmo">Venmo</option>
-                        <option value="PayPal">PayPal</option>
-                        <option value="Cash App">Cash App</option>
-                        <option value="Apple Pay">Apple Pay</option>
-                        <option value="Zelle">Zelle</option>
-                        <option value="Chime">Chime</option>
-                        <option value="Credit / Debit Card">Credit / Debit Card</option>
-                        <option value="Cryptocurrency">Cryptocurrency</option>
-                        <option value="Other" data-i18n="other">Other</option>
-                    </select>
-                    <div id="thirdPaymentOtherContainer" class="other-payment-input" style="display:none;">
-                        <input type="text" id="thirdPaymentOther" name="Third Choice Payment Method Other" placeholder="Enter payment method" data-i18n="otherPaymentPlaceholder">
-                    </div>
-                </div>
+            <div class="payment-icon-legend">
+                <span><span class="leg-primary"></span> Primary (required)</span>
+                <span><span class="leg-backup"></span> Backup (optional)</span>
             </div>
 
-            <div id="paymentDuplicateWarning" class="error-message" data-i18n="duplicateWarning">
-                <i class="fas fa-exclamation-circle"></i> Please select different payment methods for each choice.
-            </div>
+            <!-- Hidden inputs maintain backward compat with form data collection -->
+            <input type="hidden" id="primaryPayment"   name="Primary Payment Method"       value="">
+            <input type="hidden" id="secondaryPayment" name="Alternative Payment Method"    value="">
+            <input type="hidden" id="thirdPayment"     name="Third Choice Payment Method"   value="">
+            <div class="error-message" id="primaryPaymentError" data-i18n="errRequired" style="margin-top:var(--space-2);">Please select a payment method.</div>
 
             <!-- Contact Preferences -->
             <div class="contact-preferences">
@@ -1062,49 +1058,6 @@
                         </div>
                     </div>
                     <div class="field-hint" data-i18n="contactMethodHint">You can select both methods</div>
-                </div>
-
-                <div class="form-group">
-                    <label data-i18n="availabilityLabel">Best Times to Reach You <span style="font-weight:400;color:#888;">(Optional)</span></label>
-                    <div class="time-categories">
-                        <div class="time-category">
-                            <h5 data-i18n="weekdays">Weekdays</h5>
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="timeMorning" name="Preferred Time" value="Morning (8am-11am)">
-                                <label for="timeMorning" data-i18n="timeMorning">Morning (8am–11am)</label>
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="timeMidday" name="Preferred Time" value="Midday (11am-2pm)">
-                                <label for="timeMidday" data-i18n="timeMidday">Midday (11am–2pm)</label>
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="timeAfternoon" name="Preferred Time" value="Afternoon (2pm-5pm)">
-                                <label for="timeAfternoon" data-i18n="timeAfternoon">Afternoon (2pm–5pm)</label>
-                            </div>
-                        </div>
-                        <div class="time-category">
-                            <h5 data-i18n="eveningsWeekends">Evenings &amp; Weekends</h5>
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="timeEarlyEvening" name="Preferred Time" value="Early Evening (5pm-8pm)">
-                                <label for="timeEarlyEvening" data-i18n="timeEarlyEvening">Early Evening (5pm–8pm)</label>
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="timeLateEvening" name="Preferred Time" value="Late Evening (8pm-10pm)">
-                                <label for="timeLateEvening" data-i18n="timeLateEvening">Late Evening (8pm–10pm)</label>
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="timeWeekend" name="Preferred Time" value="Weekend">
-                                <label for="timeWeekend" data-i18n="timeWeekend">Weekend</label>
-                            </div>
-                        </div>
-                        <div class="time-category">
-                            <h5 data-i18n="flexible">Flexible</h5>
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="timeAnytime" name="Preferred Time" value="Anytime">
-                                <label for="timeAnytime" data-i18n="timeAnytime">Anytime — I'm flexible</label>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <div class="form-group">

@@ -1083,14 +1083,12 @@ class RentalApplication {
 
         }
         if (stepNumber === 6) {
-            // Payment: enforce unique selections
+            // Payment: require a primary method selected via icon grid
             const isUnique = this.validatePaymentSelections();
             if (!isUnique) {
-                const warning = document.getElementById('paymentDuplicateWarning');
-                if (warning) {
-                    warning.classList.add('shake');
-                    setTimeout(() => warning.classList.remove('shake'), 400);
-                }
+                const grid = document.getElementById('paymentIconGrid');
+                if (grid) { grid.classList.add('shake'); setTimeout(() => grid.classList.remove('shake'), 400); }
+                grid?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 return false;
             }
 
@@ -1176,16 +1174,15 @@ class RentalApplication {
     }
 
     validatePaymentSelections() {
-        const s1 = document.getElementById('primaryPayment').value;
-        const s2 = document.getElementById('secondaryPayment').value;
-        const s3 = document.getElementById('thirdPayment').value;
-        const warning = document.getElementById('paymentDuplicateWarning');
-        let hasDuplicate = false;
-        const values = [s1, s2, s3].filter(v => v);
-        const uniqueValues = new Set(values);
-        if (values.length !== uniqueValues.size) hasDuplicate = true;
-        if (warning) warning.style.display = hasDuplicate ? 'block' : 'none';
-        return !hasDuplicate;
+        const primaryInput = document.getElementById('primaryPayment');
+        const primaryVal   = primaryInput ? primaryInput.value : '';
+        const errEl        = document.getElementById('primaryPaymentError');
+        if (!primaryVal) {
+            if (errEl) { errEl.style.display = 'block'; errEl.textContent = 'Please select a payment method.'; }
+            return false;
+        }
+        if (errEl) errEl.style.display = 'none';
+        return true;
     }
 
     scrollToInvalidField(field) {
@@ -1229,19 +1226,11 @@ class RentalApplication {
         // (no UI element exists yet; flag is reserved for when the section is added)
     }
 
-    // ---------- Conditional fields (unchanged) ----------
+    // ---------- Conditional fields ----------
     setupConditionalFields() {
-        const paymentSelectors = ['primaryPayment', 'secondaryPayment', 'thirdPayment'];
-        paymentSelectors.forEach(id => {
-            const select = document.getElementById(id);
-            if (select) {
-                select.addEventListener('change', (e) => {
-                    const otherContainer = document.getElementById(`${id}OtherContainer`);
-                    if (otherContainer) otherContainer.style.display = e.target.value === 'Other' ? 'block' : 'none';
-                    this.validatePaymentSelections();
-                });
-            }
-        });
+        // Payment icon grid wiring
+        this.setupPaymentIconGrid();
+
         const petsRadio = document.getElementsByName('Has Pets');
         const petGroup = document.getElementById('petDetailsGroup');
         if (petsRadio && petGroup) {
@@ -1308,7 +1297,119 @@ class RentalApplication {
         if (propSelect) propSelect.addEventListener('change', updateRatio);
     }
 
-    setupFileUploads() {}
+    setupFileUploads() {
+        const zones = [
+            { zoneId: 'idUploadZone',         triggerId: 'idUploadTrigger',         inputId: 'docIdUpload',
+              previewId: 'idUploadPreview',     filenameId: 'idUploadFilename',       removeId: 'idUploadRemove',     stateKey: 'docId' },
+            { zoneId: 'incomeUploadZone',      triggerId: 'incomeUploadTrigger',     inputId: 'docIncomeUpload',
+              previewId: 'incomeUploadPreview', filenameId: 'incomeUploadFilename',   removeId: 'incomeUploadRemove', stateKey: 'docIncome' },
+            { zoneId: 'additionalUploadZone',  triggerId: 'additionalUploadTrigger', inputId: 'docAdditionalUpload',
+              previewId: 'additionalUploadPreview', filenameId: 'additionalUploadFilename', removeId: 'additionalUploadRemove', stateKey: 'docAdditional' },
+        ];
+
+        if (!this._uploadedDocs) this._uploadedDocs = {};
+        const MAX_SIZE = 10 * 1024 * 1024;
+        const ALLOWED  = ['image/jpeg', 'image/png', 'application/pdf'];
+
+        const processFile = (file, cfg) => {
+            if (!ALLOWED.includes(file.type)) { alert('Please upload a JPG, PNG, or PDF file.'); return; }
+            if (file.size > MAX_SIZE)          { alert('File exceeds 10 MB. Please upload a smaller file.'); return; }
+            this._uploadedDocs[cfg.stateKey] = file;
+            const fnEl      = document.getElementById(cfg.filenameId);
+            const previewEl = document.getElementById(cfg.previewId);
+            const contentEl = document.getElementById(cfg.triggerId);
+            if (fnEl)      fnEl.textContent = file.name;
+            if (previewEl) previewEl.style.display = 'flex';
+            if (contentEl) contentEl.style.display = 'none';
+        };
+
+        zones.forEach(cfg => {
+            const zone      = document.getElementById(cfg.zoneId);
+            const trigger   = document.getElementById(cfg.triggerId);
+            const input     = document.getElementById(cfg.inputId);
+            const removeBtn = document.getElementById(cfg.removeId);
+            if (!zone || !trigger || !input) return;
+
+            trigger.addEventListener('click', () => input.click());
+            input.addEventListener('change', (e) => { const f = e.target.files[0]; if (f) processFile(f, cfg); });
+
+            zone.addEventListener('dragover',  (e) => { e.preventDefault(); zone.classList.add('upload-zone-drag'); });
+            zone.addEventListener('dragleave', ()  => zone.classList.remove('upload-zone-drag'));
+            zone.addEventListener('drop',      (e) => {
+                e.preventDefault(); zone.classList.remove('upload-zone-drag');
+                const f = e.dataTransfer.files[0]; if (f) processFile(f, cfg);
+            });
+
+            if (removeBtn) {
+                removeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    delete this._uploadedDocs[cfg.stateKey];
+                    input.value = '';
+                    const previewEl = document.getElementById(cfg.previewId);
+                    const contentEl = document.getElementById(cfg.triggerId);
+                    if (previewEl) previewEl.style.display = 'none';
+                    if (contentEl) contentEl.style.display = 'flex';
+                });
+            }
+        });
+    }
+
+    setupPaymentIconGrid() {
+        const grid          = document.getElementById('paymentIconGrid');
+        if (!grid) return;
+        const primaryInput  = document.getElementById('primaryPayment');
+        const backupInput   = document.getElementById('secondaryPayment');
+        const otherInline   = document.getElementById('paymentOtherInline');
+        let primaryCard     = null;
+        let backupCard      = null;
+
+        const updateBadge = (card, text, show) => {
+            const badge = card.querySelector('.pic-badge');
+            if (!badge) return;
+            badge.textContent = text;
+            badge.style.display = show ? 'block' : 'none';
+        };
+
+        const updateInputs = () => {
+            if (primaryInput) primaryInput.value = primaryCard ? primaryCard.dataset.method : '';
+            if (backupInput)  backupInput.value  = backupCard  ? backupCard.dataset.method  : '';
+            const showOther = (primaryCard && primaryCard.dataset.method === 'Other') ||
+                              (backupCard  && backupCard.dataset.method  === 'Other');
+            if (otherInline) otherInline.classList.toggle('visible', !!showOther);
+        };
+
+        grid.querySelectorAll('.payment-icon-card').forEach(card => {
+            card.addEventListener('click', () => {
+                if (card === primaryCard) {
+                    card.classList.remove('is-primary');
+                    updateBadge(card, '', false);
+                    primaryCard = backupCard;
+                    backupCard  = null;
+                    if (primaryCard) {
+                        primaryCard.classList.remove('is-backup');
+                        primaryCard.classList.add('is-primary');
+                        updateBadge(primaryCard, 'Primary', true);
+                    }
+                } else if (card === backupCard) {
+                    card.classList.remove('is-backup');
+                    updateBadge(card, '', false);
+                    backupCard = null;
+                } else if (!primaryCard) {
+                    primaryCard = card;
+                    card.classList.add('is-primary');
+                    updateBadge(card, 'Primary', true);
+                } else {
+                    if (backupCard) { backupCard.classList.remove('is-backup'); updateBadge(backupCard, '', false); }
+                    backupCard = card;
+                    card.classList.add('is-backup');
+                    updateBadge(card, 'Backup', true);
+                }
+                updateInputs();
+                const errEl = document.getElementById('primaryPaymentError');
+                if (primaryCard && errEl) errEl.style.display = 'none';
+            });
+        });
+    }
 
     setupCharacterCounters() {
         const textareas = document.querySelectorAll('textarea');
@@ -2554,7 +2655,7 @@ class RentalApplication {
             const rawFormData = new FormData(form);
             const jsonPayload = {};
             // Fields that can have multiple checked values
-            const multiFields = ['Preferred Contact Method', 'Preferred Time'];
+            const multiFields = ['Preferred Contact Method'];
             rawFormData.forEach((value, key) => {
                 if (multiFields.includes(key)) {
                     if (!jsonPayload[key]) jsonPayload[key] = [];
@@ -2921,14 +3022,6 @@ window.copyAppId = function() {
         safeSetCheckbox('contactMethodText', true);
         safeSetCheckbox('contactMethodEmail', true);
         
-        safeSetCheckbox('timeMorning', true);
-        safeSetCheckbox('timeMidday', false);
-        safeSetCheckbox('timeAfternoon', false);
-        safeSetCheckbox('timeEarlyEvening', true);
-        safeSetCheckbox('timeLateEvening', false);
-        safeSetCheckbox('timeWeekend', true);
-        safeSetCheckbox('timeAnytime', false);
-        
         // Co-applicant
         safeSetCheckbox('hasCoApplicant', true);
         safeSetCheckbox('roleCoApplicant', true);
@@ -2986,14 +3079,11 @@ window.copyAppId = function() {
         document.getElementById('evictedNo')?.click();
         document.getElementById('smokeNo')?.click();
         
-        // Step 5
-        safeSetSelect('primaryPayment', 'Venmo');
-        safeSetSelect('secondaryPayment', 'PayPal');
-        safeSetSelect('thirdPayment', 'Cash App');
-        
-        document.querySelectorAll('.other-payment-input').forEach(el => {
-            el.style.display = 'none';
-        });
+        // Step 5 — payment icon grid (click Venmo as primary, PayPal as backup)
+        const venmoCard  = document.querySelector('.payment-icon-card[data-method="Venmo"]');
+        const paypalCard = document.querySelector('.payment-icon-card[data-method="PayPal"]');
+        if (venmoCard)  venmoCard.click();
+        if (paypalCard) paypalCard.click();
         
         // Step 6
         safeSetCheckbox('fcraConsent', true);
@@ -3028,16 +3118,6 @@ window.copyAppId = function() {
         if (el) {
             el.value = value;
             el.dispatchEvent(new Event('change', { bubbles: true }));
-            
-            if (id === 'primaryPayment' && value === 'Other') {
-                document.getElementById('primaryPaymentOtherContainer').style.display = 'block';
-            }
-            if (id === 'secondaryPayment' && value === 'Other') {
-                document.getElementById('secondaryPaymentOtherContainer').style.display = 'block';
-            }
-            if (id === 'thirdPayment' && value === 'Other') {
-                document.getElementById('thirdPaymentOtherContainer').style.display = 'block';
-            }
         }
     }
     
