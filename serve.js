@@ -145,6 +145,30 @@ const server = http.createServer((req, res) => {
         'Referrer-Policy': 'strict-origin-when-cross-origin',
       };
 
+      // For HTML files: inject mobile.css before </head> if not already present
+      if (ext === '.html') {
+        let html = fs.readFileSync(candidate, 'utf8');
+        if (!html.includes('/css/mobile.css')) {
+          html = html.replace(
+            /<\/head>/i,
+            '  <link rel="stylesheet" href="/css/mobile.css?v=1">\n</head>'
+          );
+        }
+        const buf = Buffer.from(html, 'utf8');
+        if (useGzip) {
+          headers['Content-Encoding'] = 'gzip';
+          res.writeHead(code, headers);
+          zlib.gzip(buf, (err, compressed) => {
+            res.end(err ? buf : compressed);
+          });
+        } else {
+          headers['Content-Length'] = buf.length;
+          res.writeHead(code, headers);
+          res.end(buf);
+        }
+        return;
+      }
+
       if (useGzip) {
         headers['Content-Encoding'] = 'gzip';
         res.writeHead(code, headers);
