@@ -869,7 +869,7 @@ class RentalApplication {
 
     updateProgressBar() {
         const currentSection = this.getCurrentSection();
-        const progress = ((currentSection - 1) / 5) * 100;
+        const progress = (currentSection / 6) * 100;
         const progressFill = document.getElementById('progressFill');
         if (progressFill) progressFill.style.width = `${progress}%`;
         const progressContainer = document.querySelector('.progress-container');
@@ -904,7 +904,19 @@ class RentalApplication {
                 select.style.borderColor = '';
             }
 
-            // Enforce at least one contact method checkbox selected
+        }
+        if (stepNumber === 5) {
+            const isUnique = this.validatePaymentSelections();
+            if (!isUnique) {
+                const warning = document.getElementById('paymentDuplicateWarning');
+                if (warning) {
+                    warning.classList.add('shake');
+                    setTimeout(() => warning.classList.remove('shake'), 400);
+                }
+                return false;
+            }
+
+            // Contact preferences now live in Step 5 — enforce at least one contact method
             const methodBoxes = document.querySelectorAll('input[name="Preferred Contact Method"]');
             const anyChecked = Array.from(methodBoxes).some(cb => cb.checked);
             let contactErrEl = document.getElementById('contactMethodError');
@@ -922,17 +934,6 @@ class RentalApplication {
                 return false;
             } else {
                 if (contactErrEl) contactErrEl.style.display = 'none';
-            }
-        }
-        if (stepNumber === 5) {
-            const isUnique = this.validatePaymentSelections();
-            if (!isUnique) {
-                const warning = document.getElementById('paymentDuplicateWarning');
-                if (warning) {
-                    warning.classList.add('shake');
-                    setTimeout(() => warning.classList.remove('shake'), 400);
-                }
-                return false;
             }
         }
         const section = document.getElementById(`section${stepNumber}`);

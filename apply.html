@@ -395,80 +395,6 @@
                 </div>
                 <!-- ===== END CO-APPLICANT SECTION ===== -->
 
-                <!-- Contact Preferences -->
-                <div class="contact-preferences">
-                    <h4><i class="fas fa-phone-alt"></i> <span data-i18n="contactPrefsHeader">Contact Preferences (For Follow-up After Payment)</span></h4>
-
-                    <div class="form-group">
-                        <label class="required" data-i18n="prefContactMethod">Preferred Contact Method</label>
-                        <div class="checkbox-group">
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="contactMethodText" name="Preferred Contact Method" value="Text Message">
-                                <label for="contactMethodText" data-i18n="contactMethodText">Text Message</label>
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="contactMethodEmail" name="Preferred Contact Method" value="Email">
-                                <label for="contactMethodEmail" data-i18n="contactMethodEmail">Email</label>
-                            </div>
-                        </div>
-                        <div class="field-hint" data-i18n="contactMethodHint">You can select both methods</div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="required" data-i18n="availabilityLabel">Availability for Follow-up (After Payment)</label>
-                        <div class="time-categories">
-                            <div class="time-category">
-                                <h5 data-i18n="weekdays">Weekdays</h5>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="timeMorning" name="Preferred Time" value="Morning (8am-11am)">
-                                    <label for="timeMorning" data-i18n="timeMorning">Morning (8am-11am)</label>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="timeMidday" name="Preferred Time" value="Midday (11am-2pm)">
-                                    <label for="timeMidday" data-i18n="timeMidday">Midday (11am-2pm)</label>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="timeAfternoon" name="Preferred Time" value="Afternoon (2pm-5pm)">
-                                    <label for="timeAfternoon" data-i18n="timeAfternoon">Afternoon (2pm-5pm)</label>
-                                </div>
-                            </div>
-                            <div class="time-category">
-                                <h5 data-i18n="eveningsWeekends">Evenings & Weekends</h5>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="timeEarlyEvening" name="Preferred Time" value="Early Evening (5pm-8pm)">
-                                    <label for="timeEarlyEvening" data-i18n="timeEarlyEvening">Early Evening (5pm-8pm)</label>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="timeLateEvening" name="Preferred Time" value="Late Evening (8pm-10pm)">
-                                    <label for="timeLateEvening" data-i18n="timeLateEvening">Late Evening (8pm-10pm)</label>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="timeWeekend" name="Preferred Time" value="Weekend">
-                                    <label for="timeWeekend" data-i18n="timeWeekend">Weekend</label>
-                                </div>
-                            </div>
-                            <div class="time-category">
-                                <h5 data-i18n="flexible">Flexible</h5>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="timeAnytime" name="Preferred Time" value="Anytime">
-                                    <label for="timeAnytime" data-i18n="timeAnytime">Anytime — I'm flexible</label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="contactTimeSpecific" data-i18n="additionalNotesLabel">Additional Notes (Optional)</label>
-                        <input type="text" id="contactTimeSpecific" name="Preferred Time Specific" maxlength="200"
-                               placeholder="e.g., Best after 7pm, avoid Wednesdays" data-i18n="additionalNotesPlaceholder">
-                    </div>
-
-                    <div class="note">
-                        <i class="fas fa-info-circle"></i>
-                        <span data-i18n="preferencesNote">These preferences are for non-urgent follow-up after your payment is complete.</span>
-                    </div>
-                </div>
-
                 </div><!-- /#coApplicantFeature -->
 
                 <div class="btn-container">
@@ -864,6 +790,14 @@
             <div class="form-section" id="section5">
                 <h2><i class="fas fa-credit-card"></i> <span data-i18n="paymentHeader">Payment Preferences</span></h2>
 
+                <div class="fee-display" id="feeDisplay" style="display:none">
+                    <div class="fee-info">
+                        <h4 id="feeTitleText">Application Fee: —</h4>
+                        <p data-i18n="feeDesc">This fee is required before review can begin. Our team will contact you immediately after submission to arrange payment.</p>
+                    </div>
+                    <div class="fee-amount" id="feeAmountDisplay">—</div>
+                </div>
+
                 <div class="payment-section-intro">
                     <p data-i18n="paymentIntro">Tell us which payment services you use. When we contact you about the application fee, we'll discuss options you're familiar with.</p>
                     <div class="important">
@@ -945,6 +879,80 @@
                     <i class="fas fa-exclamation-circle"></i> Please select different payment methods for each choice.
                 </div>
 
+                <!-- Contact Preferences — moved here from Step 1; contextually belongs with payment follow-up -->
+                <div class="contact-preferences">
+                    <h4><i class="fas fa-phone-alt"></i> <span data-i18n="contactPrefsHeader">Contact Preferences (For Follow-up After Payment)</span></h4>
+
+                    <div class="form-group">
+                        <label class="required" data-i18n="prefContactMethod">Preferred Contact Method</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="contactMethodText" name="Preferred Contact Method" value="Text Message">
+                                <label for="contactMethodText" data-i18n="contactMethodText">Text Message</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="contactMethodEmail" name="Preferred Contact Method" value="Email">
+                                <label for="contactMethodEmail" data-i18n="contactMethodEmail">Email</label>
+                            </div>
+                        </div>
+                        <div class="field-hint" data-i18n="contactMethodHint">You can select both methods</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="required" data-i18n="availabilityLabel">Availability for Follow-up (After Payment)</label>
+                        <div class="time-categories">
+                            <div class="time-category">
+                                <h5 data-i18n="weekdays">Weekdays</h5>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="timeMorning" name="Preferred Time" value="Morning (8am-11am)">
+                                    <label for="timeMorning" data-i18n="timeMorning">Morning (8am-11am)</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="timeMidday" name="Preferred Time" value="Midday (11am-2pm)">
+                                    <label for="timeMidday" data-i18n="timeMidday">Midday (11am-2pm)</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="timeAfternoon" name="Preferred Time" value="Afternoon (2pm-5pm)">
+                                    <label for="timeAfternoon" data-i18n="timeAfternoon">Afternoon (2pm-5pm)</label>
+                                </div>
+                            </div>
+                            <div class="time-category">
+                                <h5 data-i18n="eveningsWeekends">Evenings &amp; Weekends</h5>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="timeEarlyEvening" name="Preferred Time" value="Early Evening (5pm-8pm)">
+                                    <label for="timeEarlyEvening" data-i18n="timeEarlyEvening">Early Evening (5pm-8pm)</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="timeLateEvening" name="Preferred Time" value="Late Evening (8pm-10pm)">
+                                    <label for="timeLateEvening" data-i18n="timeLateEvening">Late Evening (8pm-10pm)</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="timeWeekend" name="Preferred Time" value="Weekend">
+                                    <label for="timeWeekend" data-i18n="timeWeekend">Weekend</label>
+                                </div>
+                            </div>
+                            <div class="time-category">
+                                <h5 data-i18n="flexible">Flexible</h5>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="timeAnytime" name="Preferred Time" value="Anytime">
+                                    <label for="timeAnytime" data-i18n="timeAnytime">Anytime — I'm flexible</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contactTimeSpecific" data-i18n="additionalNotesLabel">Additional Notes (Optional)</label>
+                        <input type="text" id="contactTimeSpecific" name="Preferred Time Specific" maxlength="200"
+                               placeholder="e.g., Best after 7pm, avoid Wednesdays" data-i18n="additionalNotesPlaceholder">
+                    </div>
+
+                    <div class="note">
+                        <i class="fas fa-info-circle"></i>
+                        <span data-i18n="preferencesNote">These preferences are for non-urgent follow-up after your payment is complete.</span>
+                    </div>
+                </div>
+
                 <div class="btn-container">
                     <button type="button" class="btn-prev"><i class="fas fa-arrow-left"></i> <span data-i18n="prevStep">Previous</span></button>
                     <button type="button" class="btn-next"><span data-i18n="nextStep">Next Step</span> <i class="fas fa-arrow-right"></i></button>
@@ -954,14 +962,6 @@
             <!-- ===== STEP 6: Review & Submit ===== -->
             <div class="form-section" id="section6">
                 <h2><i class="fas fa-check-double"></i> <span data-i18n="reviewHeader">Review & Submit</span></h2>
-
-                <div class="fee-display" id="feeDisplay" style="display:none">
-                    <div class="fee-info">
-                        <h4 id="feeTitleText">Application Fee: —</h4>
-                        <p data-i18n="feeDesc">This fee is required before review can begin. Our team will contact you immediately after submission to arrange payment.</p>
-                    </div>
-                    <div class="fee-amount" id="feeAmountDisplay">—</div>
-                </div>
 
                 <div id="summaryContainer" class="summary-section">
                     <div class="summary-grid" id="applicationSummary">
@@ -990,7 +990,21 @@
                     <span><strong data-i18n="reapplicationPolicyTitle">Reapplication Protection:</strong> <span data-i18n="reapplicationPolicyTextShort">If denied, apply again within 30 days with no new fee. Screening results valid for 60 days.</span></span>
                 </div>
 
-                <!-- SSN collected here — after all other info is reviewed -->
+                <!-- FCRA disclosure comes first — applicant reads and accepts before entering sensitive data -->
+                <div class="form-section-block" id="fcraSection" style="margin-bottom:24px;background:#f8faff;border:1.5px solid #bfdbfe;border-radius:10px;padding:20px;">
+                    <h3 style="font-size:16px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+                        <i class="fas fa-file-contract" style="color:var(--color-brand-light,#2563eb)"></i>
+                        <span data-i18n="fcraTitle">Background &amp; Credit Check Authorization</span>
+                    </h3>
+                    <p style="font-size:13px;color:#4b5563;line-height:1.7;margin-bottom:14px;" data-i18n="fcraDisclosureText">In connection with your rental application, Choice Properties may obtain a consumer report (including a background check and/or credit report) from a consumer reporting agency. This report may include information about your character, general reputation, personal characteristics, and mode of living. You have the right to request disclosure of the nature and scope of any such investigation, and to receive a free copy of the report within 60 days of any adverse action decision.</p>
+                    <div class="custom-checkbox">
+                        <input type="checkbox" id="fcraConsent" required aria-required="true">
+                        <label for="fcraConsent" data-i18n="fcraConsentLabel">I have read and understand the above disclosure, and I authorize Choice Properties to obtain a consumer report in connection with my rental application.</label>
+                    </div>
+                    <div class="error-message" id="fcraConsentError" style="display:none;" data-i18n="errFcraRequired">You must authorize the background &amp; credit check to proceed.</div>
+                </div>
+
+                <!-- SSN collected after FCRA authorization — logical flow: consent → sensitive data entry -->
                 <div class="form-section-block" id="ssnSection6" style="margin-bottom:24px">
                     <h3 style="font-size:16px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px">
                         <i class="fas fa-lock" style="color:var(--color-brand-light,#006AFF)"></i>
@@ -1022,19 +1036,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <div class="form-section-block" id="fcraSection" style="margin-bottom:24px;background:#f8faff;border:1.5px solid #bfdbfe;border-radius:10px;padding:20px;">
-                    <h3 style="font-size:16px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;">
-                        <i class="fas fa-file-contract" style="color:var(--color-brand-light,#2563eb)"></i>
-                        <span data-i18n="fcraTitle">Background &amp; Credit Check Authorization</span>
-                    </h3>
-                    <p style="font-size:13px;color:#4b5563;line-height:1.7;margin-bottom:14px;" data-i18n="fcraDisclosureText">In connection with your rental application, Choice Properties may obtain a consumer report (including a background check and/or credit report) from a consumer reporting agency. This report may include information about your character, general reputation, personal characteristics, and mode of living. You have the right to request disclosure of the nature and scope of any such investigation, and to receive a free copy of the report within 60 days of any adverse action decision.</p>
-                    <div class="custom-checkbox">
-                        <input type="checkbox" id="fcraConsent" required aria-required="true">
-                        <label for="fcraConsent" data-i18n="fcraConsentLabel">I have read and understand the above disclosure, and I authorize Choice Properties to obtain a consumer report in connection with my rental application.</label>
-                    </div>
-                    <div class="error-message" id="fcraConsentError" style="display:none;" data-i18n="errFcraRequired">You must authorize the background &amp; credit check to proceed.</div>
                 </div>
 
                 <div class="legal-section">
