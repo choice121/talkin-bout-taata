@@ -20,10 +20,7 @@
   <link rel="stylesheet" href="/css/main.css?v=3">
   <link rel="stylesheet" href="/css/listings.css?v=4">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   <link rel="stylesheet" href="/css/mobile.css?v=2">
-
-  <!-- Styles: /css/main.css + /css/listings.css (inline block extracted Phase 3) -->
 <script src="/config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script type="module" src="/js/cp-api.js"></script>
@@ -53,7 +50,7 @@
     </button>
   </div>
   <div class="nav-drawer-body">
-    <a href="/index.html" class="nav-drawer-link active"><i class="fas fa-home"></i> Browse Listings</a>
+    <a href="/listings.html" class="nav-drawer-link"><i class="fas fa-home"></i> Browse Listings</a>
     <a href="/how-to-apply.html" class="nav-drawer-link"><i class="fas fa-question-circle"></i> How to Apply</a>
     <a href="/faq.html" class="nav-drawer-link"><i class="fas fa-life-ring"></i> FAQ</a>
     <a href="/apply/dashboard.html" target="_blank" rel="noopener noreferrer" class="nav-drawer-link"><i class="fas fa-file-alt"></i> Track My Application</a>
@@ -84,7 +81,7 @@
     </a>
 
     <div class="nav-links">
-      <a href="/index.html" class="nav-link active">Browse Listings</a>
+      <a href="/listings.html" class="nav-link">Browse Listings</a>
       <a href="/how-to-apply.html" class="nav-link">How to Apply</a>
       <a href="/faq.html" class="nav-link">FAQ</a>
       <a href="/apply/dashboard.html" target="_blank" rel="noopener noreferrer" class="nav-link nav-link--track">
@@ -123,7 +120,7 @@
           Browse quality homes across all 50 states and apply in 15 minutes.
         </p>
 
-        <!-- Search Bar -->
+        <!-- Search Bar — submits to /listings.html -->
         <div class="search-bar">
           <div class="search-bar-top">
             <div class="search-field">
@@ -244,172 +241,8 @@
       </div>
     </div>
     <div class="hiw-cta">
-      <a href="#listings" class="btn btn-primary btn-lg">Browse Listings</a>
+      <a href="/listings.html" class="btn btn-primary btn-lg">Browse Listings</a>
       <a href="/how-to-apply.html" class="hiw-cta-link">Learn more about the process <i class="fas fa-arrow-right" style="font-size:11px"></i></a>
-    </div>
-  </div>
-</section>
-
-<!-- ── Filter Bar ── -->
-<div class="filter-bar">
-  <div class="filter-bar-inner">
-    <button class="filter-pill active" data-filter="all"><i class="fas fa-th"></i> All</button>
-    <button class="filter-pill" data-filter="apartment"><i class="fas fa-building"></i> Apartments</button>
-    <button class="filter-pill" data-filter="house"><i class="fas fa-home"></i> Houses</button>
-    <button class="filter-pill" data-filter="condo"><i class="fas fa-city"></i> Condos</button>
-    <button class="filter-pill" data-filter="townhouse"><i class="fas fa-house-user"></i> Townhomes</button>
-    <div class="filter-divider"></div>
-    <button class="filter-pill" data-filter="pets"><i class="fas fa-paw"></i> Pet Friendly</button>
-    <button class="filter-pill" data-filter="available"><i class="fas fa-calendar-check"></i> Move-in Ready</button>
-    <button class="filter-pill" data-filter="parking"><i class="fas fa-car"></i> Parking</button>
-
-    <div class="filter-dropdown-wrap" id="moreFiltersWrap">
-      <button class="filter-pill" id="moreFiltersBtn">
-        <i class="fas fa-sliders-h"></i> More Filters
-        <span class="filter-active-badge" id="filterActiveBadge" style="display:none"></span>
-      </button>
-      <div class="filter-dropdown" id="moreFiltersDropdown">
-        <div class="filter-dropdown-title">Advanced Filters</div>
-        <div class="filter-dropdown-row">
-          <label>Property Type</label>
-          <select id="advTypeFilter">
-            <option value="">Any type</option>
-            <option value="apartment">Apartment</option>
-            <option value="house">House</option>
-            <option value="condo">Condo</option>
-            <option value="townhouse">Townhouse</option>
-          </select>
-        </div>
-        <div class="filter-dropdown-row">
-          <label>Min Bedrooms</label>
-          <select id="advMinBeds">
-            <option value="">Any</option>
-            <option value="0">Studio</option>
-            <option value="1">1+</option>
-            <option value="2">2+</option>
-            <option value="3">3+</option>
-          </select>
-        </div>
-        <div class="filter-dropdown-row">
-          <label>Min Bathrooms</label>
-          <select id="advMinBaths">
-            <option value="">Any</option>
-            <option value="1">1+</option>
-            <option value="1.5">1.5+</option>
-            <option value="2">2+</option>
-          </select>
-        </div>
-        <div class="filter-dropdown-row">
-          <label>Min Price</label>
-          <input type="number" id="advMinRent" placeholder="e.g. 800" min="0" step="50">
-        </div>
-        <div class="filter-dropdown-row">
-          <label>Max Price</label>
-          <input type="number" id="advMaxRent" placeholder="e.g. 1500" min="0" step="50">
-        </div>
-        <div class="filter-dropdown-actions">
-          <button class="filter-btn-clear" id="clearAdvFilters">Clear</button>
-          <button class="filter-btn-apply" id="applyAdvFilters">Apply Filters</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="filter-count" id="filterCount"></div>
-  </div>
-</div>
-
-<!-- ── Listings ── -->
-<section class="listings-section" id="listings">
-  <div class="container">
-    <div class="listings-header">
-      <div class="listings-header-left">
-        <h2 class="listings-heading" id="listingsHeading">Available Rentals</h2>
-        <div class="listings-subheading" id="listingsSubheading">Verified properties nationwide</div>
-      </div>
-      <div class="listings-controls">
-        <div class="view-toggle">
-          <button class="view-toggle-btn active" id="btnListView" aria-label="Grid view">
-            <i class="fas fa-th-large"></i> Grid
-          </button>
-          <button class="view-toggle-btn" id="btnMapView" aria-label="Map view">
-            <i class="fas fa-map"></i> Map
-          </button>
-        </div>
-        <div class="listings-sort">
-          <select id="sortSelect" aria-label="Sort by">
-            <option value="newest">Newest</option>
-            <option value="price_asc">Price ↑</option>
-            <option value="price_desc">Price ↓</option>
-            <option value="beds_desc">Most Beds</option>
-          </select>
-        </div>
-      </div>
-    </div>
-
-    <!-- Grid View -->
-    <div id="listPanel">
-      <div class="property-grid" id="propertyGrid">
-        <!-- Skeleton loaders -->
-        <div class="property-card property-card-skeleton">
-          <div class="property-card-img skeleton-img skeleton"></div>
-          <div class="property-card-body" style="gap:10px;padding:20px">
-            <div class="skeleton skeleton-line" style="height:26px;width:35%"></div>
-            <div class="skeleton skeleton-line" style="width:80%"></div>
-            <div class="skeleton skeleton-line" style="width:55%"></div>
-            <div class="skeleton skeleton-line" style="height:12px;width:40%;margin-top:8px"></div>
-          </div>
-        </div>
-        <div class="property-card property-card-skeleton">
-          <div class="property-card-img skeleton-img skeleton"></div>
-          <div class="property-card-body" style="gap:10px;padding:20px">
-            <div class="skeleton skeleton-line" style="height:26px;width:38%"></div>
-            <div class="skeleton skeleton-line" style="width:75%"></div>
-            <div class="skeleton skeleton-line" style="width:60%"></div>
-            <div class="skeleton skeleton-line" style="height:12px;width:45%;margin-top:8px"></div>
-          </div>
-        </div>
-        <div class="property-card property-card-skeleton">
-          <div class="property-card-img skeleton-img skeleton"></div>
-          <div class="property-card-body" style="gap:10px;padding:20px">
-            <div class="skeleton skeleton-line" style="height:26px;width:32%"></div>
-            <div class="skeleton skeleton-line" style="width:85%"></div>
-            <div class="skeleton skeleton-line" style="width:50%"></div>
-            <div class="skeleton skeleton-line" style="height:12px;width:42%;margin-top:8px"></div>
-          </div>
-        </div>
-        <div class="property-card property-card-skeleton">
-          <div class="property-card-img skeleton-img skeleton"></div>
-          <div class="property-card-body" style="gap:10px;padding:20px">
-            <div class="skeleton skeleton-line" style="height:26px;width:40%"></div>
-            <div class="skeleton skeleton-line" style="width:78%"></div>
-            <div class="skeleton skeleton-line" style="width:58%"></div>
-            <div class="skeleton skeleton-line" style="height:12px;width:38%;margin-top:8px"></div>
-          </div>
-        </div>
-        <div class="property-card property-card-skeleton">
-          <div class="property-card-img skeleton-img skeleton"></div>
-          <div class="property-card-body" style="gap:10px;padding:20px">
-            <div class="skeleton skeleton-line" style="height:26px;width:36%"></div>
-            <div class="skeleton skeleton-line" style="width:82%"></div>
-            <div class="skeleton skeleton-line" style="width:52%"></div>
-            <div class="skeleton skeleton-line" style="height:12px;width:43%;margin-top:8px"></div>
-          </div>
-        </div>
-        <div class="property-card property-card-skeleton">
-          <div class="property-card-img skeleton-img skeleton"></div>
-          <div class="property-card-body" style="gap:10px;padding:20px">
-            <div class="skeleton skeleton-line" style="height:26px;width:34%"></div>
-            <div class="skeleton skeleton-line" style="width:76%"></div>
-            <div class="skeleton skeleton-line" style="width:62%"></div>
-            <div class="skeleton skeleton-line" style="height:12px;width:46%;margin-top:8px"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Map View -->
-    <div id="mapPanel">
-      <div id="listingsMap"></div>
     </div>
   </div>
 </section>
@@ -440,7 +273,7 @@
       </div>
     </div>
     <div style="text-align:center;margin-top:var(--space-12)">
-      <a href="/index.html#propertyGrid" class="btn btn-primary why-cta-btn">Browse Available Listings</a>
+      <a href="/listings.html" class="btn btn-primary why-cta-btn">Browse Available Listings</a>
     </div>
   </div>
 </section>
@@ -466,7 +299,7 @@
       <div>
         <div class="footer-heading">Renters</div>
         <ul class="footer-links">
-          <li><a href="/index.html">Browse Listings</a></li>
+          <li><a href="/listings.html">Browse Listings</a></li>
           <li><a href="/how-to-apply.html">How to Apply</a></li>
           <li><a href="/faq.html">FAQ</a></li>
           <li><a href="/apply/dashboard.html" target="_blank" rel="noopener noreferrer">Track My Application</a></li>
@@ -504,74 +337,55 @@
 <div class="toast-container" id="toastContainer"></div>
 <button class="scroll-top" id="scrollTopBtn" aria-label="Back to top"><i class="fas fa-chevron-up"></i></button>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="" defer></script>
-
 <script type="module">
-// index.html inline script — uses CONFIG from config.js (already loaded above)
 const supabase = CP.sb();
 
-// ── State ─────────────────────────────────────────────────
-let allProperties  = [];
-let activeType     = 'all';
-let activeBeds     = '';
-let activeMaxRent  = '';
-let activeMinRent  = '';
-let activeSearch   = '';
-let activeMinBaths = '';
-let sortBy         = 'newest';
-let currentView    = 'list';
-let mapInstance    = null;
-let mapMarkers     = [];
-const savedIds     = new Set(JSON.parse(localStorage.getItem('cp_saved') || '[]'));
-
-// ── Boot ──────────────────────────────────────────────────
 (async () => {
-  const grid    = document.getElementById('propertyGrid');
-  const counter = document.getElementById('statListings');
-
-  // Wire up nav/menu immediately — must not depend on data fetch succeeding
   setupMobileDrawer();
   setupNavScroll();
   setupScrollTop();
   updateNav();
 
+  // Show live listing count in hero stats
   try {
-    // Fetch active listings only — draft/rented/archived never shown publicly
-    const { data, error } = await supabase
+    const { count } = await supabase
       .from('properties')
-      .select('*, landlords(contact_name, business_name, avatar_url, verified)')
-      .eq('status', 'active')
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-    allProperties = data || [];
-
-    if (counter) counter.textContent = allProperties.length;
-    renderProperties(allProperties);
-    setupFilters();
-  } catch (e) {
-    console.error('Failed to load listings:', e);
-    if (counter) counter.closest('.hero-stat').style.display = 'none';
-    renderError();
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'active');
+    const el = document.getElementById('statListings');
+    if (el) el.textContent = count ?? '—';
+  } catch(e) {
+    const el = document.getElementById('statListings');
+    if (el) el.closest('.hero-stat').style.display = 'none';
   }
 })();
 
-// ── updateNav ─────────────────────────────────────────────
+// Hero search → redirect to listings page with params
+document.getElementById('searchBtn').addEventListener('click', goToListings);
+document.getElementById('searchInput').addEventListener('keydown', e => { if (e.key === 'Enter') goToListings(); });
+
+function goToListings() {
+  const q       = document.getElementById('searchInput').value.trim();
+  const beds    = document.getElementById('bedroomsFilter').value;
+  const maxrent = document.getElementById('maxRentFilter').value;
+  const params  = new URLSearchParams();
+  if (q)       params.set('q', q);
+  if (beds)    params.set('beds', beds);
+  if (maxrent) params.set('maxrent', maxrent);
+  const qs = params.toString();
+  window.location.href = `/listings.html${qs ? '?' + qs : ''}`;
+}
+
 async function updateNav() {
   const session  = await CP.Auth.getSession();
   const authLink = document.getElementById('navAuthLink');
   const drawerLink = document.getElementById('drawerAuthLink');
-  const listLink = document.getElementById('navListPropertyLink');
   const drawerListLink = document.getElementById('drawerListPropertyLink');
-  const dest = session ? '/landlord/dashboard.html' : '/landlord/login.html';
+  const dest  = session ? '/landlord/dashboard.html' : '/landlord/login.html';
   const label = session ? 'My Dashboard' : 'Landlord Login';
   if (authLink)   { authLink.href = dest;   authLink.textContent = label; }
   if (drawerLink) { drawerLink.href = dest; drawerLink.textContent = label; }
-  if (session) {
-    if (listLink) listLink.href = '/landlord/new-listing.html';
-    if (drawerListLink) drawerListLink.href = '/landlord/new-listing.html';
-  }
-  // Populate CONFIG-driven contact info
+  if (session && drawerListLink) drawerListLink.href = '/landlord/new-listing.html';
   if (window.CONFIG) {
     const footerEmail = document.getElementById('drawerFooterEmail');
     if (footerEmail) { footerEmail.href = `mailto:${CONFIG.COMPANY_EMAIL}`; footerEmail.textContent = CONFIG.COMPANY_EMAIL; }
@@ -580,439 +394,27 @@ async function updateNav() {
   }
 }
 
-// ── renderProperties ──────────────────────────────────────
-function renderProperties(props) {
-  const grid = document.getElementById('propertyGrid');
-  if (!props.length) {
-    grid.innerHTML = `
-      <div class="empty-state" style="grid-column:1/-1;text-align:center;padding:var(--s-16) var(--s-6)">
-        <div class="empty-state-icon"><i class="fas fa-search" style="font-size:40px;color:var(--color-text-muted)"></i></div>
-        <h3 style="margin:var(--s-4) 0 var(--s-2)">No listings match your filters</h3>
-        <p style="color:var(--color-text-secondary)">Try adjusting your search or <button onclick="window.clearAllFilters()" style="background:none;border:none;color:var(--color-brand);cursor:pointer;font-size:inherit;padding:0;text-decoration:underline">clearing all filters</button></p>
-      </div>`;
-    return;
-  }
-
-  grid.innerHTML = props.map(p => buildCard(p)).join('');
-
-  grid.querySelectorAll('.property-card-save').forEach(btn => {
-    const id = btn.dataset.id;
-    if (savedIds.has(id)) { btn.classList.add('saved'); btn.innerHTML = '<i class="fas fa-heart"></i>'; }
-    btn.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); toggleSave(id, btn); });
-  });
-
-  grid.querySelectorAll('.property-card').forEach(card => {
-    initCarousel(card);
-    card.addEventListener('click', e => {
-      if (e.target.closest('a, button')) return;
-      window.location.href = `/property.html?id=${card.dataset.id}`;
-    });
-  });
-
-  animateCards();
-}
-
-// ── applyFilters ──────────────────────────────────────────
-function applyFilters(props) {
-  return props.filter(p => {
-    if (activeType === 'pets')      return p.pets_allowed === true;
-    if (activeType === 'parking')   return !!p.parking;
-    if (activeType === 'available') return !p.available_date || new Date(p.available_date) <= new Date();
-    if (activeType && activeType !== 'all' && p.property_type !== activeType) return false;
-    if (activeBeds !== '') {
-      const beds = parseInt(activeBeds);
-      if (beds === 4 ? p.bedrooms < 4 : p.bedrooms !== beds) return false;
-    }
-    if (activeMaxRent  && p.monthly_rent > parseInt(activeMaxRent))  return false;
-    if (activeMinRent  && p.monthly_rent < parseInt(activeMinRent))   return false;
-    if (activeMinBaths && p.bathrooms    < parseFloat(activeMinBaths)) return false;
-    if (activeSearch) {
-      const q = activeSearch.toLowerCase();
-      const hay = `${p.title} ${p.address} ${p.city} ${p.state} ${p.description || ''}`.toLowerCase();
-      if (!hay.includes(q)) return false;
-    }
-    return true;
-  }).sort((a, b) => {
-    if (sortBy === 'price_asc')  return a.monthly_rent - b.monthly_rent;
-    if (sortBy === 'price_desc') return b.monthly_rent - a.monthly_rent;
-    if (sortBy === 'beds_desc')  return (b.bedrooms ?? 0) - (a.bedrooms ?? 0);
-    return new Date(b.created_at) - new Date(a.created_at); // newest
-  });
-}
-
-/* ─── Build card ─── */
-function buildCard(p) {
-  const photos   = p.photo_urls?.length ? p.photo_urls : ['/assets/placeholder-property.jpg'];
-  const avail    = p.available_date ? formatAvail(p.available_date) : 'Available Now';
-  const availNow = !p.available_date || new Date(p.available_date) <= new Date();
-  const applyURL = buildApplyURL(p);
-  const dom      = getDaysOnMarket(p.created_at);
-  const typeLabel = capitalize(p.property_type || 'Property');
-
-  // sizes hint lets the browser pick the right source without downloading CSS
-  // breakpoints mirror grid: <540 = 1col, <900 = 2col, <1320 = 3col, ≥1320 = 4col
-  const imgSizes = '(max-width: 539px) calc(100vw - 32px), (max-width: 899px) calc(50vw - 28px), (max-width: 1319px) calc(33vw - 32px), calc(25vw - 32px)';
-
-  const slidesHtml = photos.map((url, i) =>
-    `<div class="property-card-slide"><img src="${CONFIG.img(url,'card')}" alt="${p.title} photo ${i+1}" sizes="${imgSizes}" loading="${i===0?'eager':'lazy'}" ${i===0?'fetchpriority="high"':''} decoding="async" onload="this.classList.add('cp-img-loaded')" onerror="this.classList.add('cp-img-loaded');this.src='/assets/placeholder-property.jpg'"></div>`
-  ).join('');
-
-  const tags = [];
-  if (p.pets_allowed) tags.push(`<span class="property-card-tag tag-pet"><i class="fas fa-paw"></i> Pets OK</span>`);
-  if (p.parking) tags.push(`<span class="property-card-tag tag-parking"><i class="fas fa-car"></i> Parking</span>`);
-  if (Array.isArray(p.utilities_included) ? p.utilities_included.length > 0 : !!p.utilities_included) tags.push(`<span class="property-card-tag tag-utilities"><i class="fas fa-bolt"></i> Utilities</span>`);
-
-  const badgeClass = dom === 0 ? 'badge-new' : dom <= 3 ? 'badge-green' : dom <= 14 ? 'badge-amber' : 'badge-slate';
-  const badgeText  = dom === 0 ? 'New Today' : dom <= 3 ? 'New' : typeLabel;
-  const addrLine   = [p.address, p.city, p.state].filter(Boolean).join(', ');
-
-  // Landlord / agent attribution
-  const landlord     = p.landlords;
-  const agentName    = landlord ? (landlord.business_name || landlord.contact_name || '') : '';
-  const agentAvatar  = landlord?.avatar_url ? CONFIG.img(landlord.avatar_url, 'avatar') : null;
-  const agentVerified = landlord?.verified === true;
-  const agentHtml    = agentName ? `
-    <div class="property-card-agent">
-      ${agentAvatar
-        ? `<img class="property-card-agent-avatar" src="${agentAvatar}" alt="${agentName}" loading="lazy" onerror="this.style.display='none'">`
-        : `<span class="property-card-agent-avatar" style="background:var(--color-brand-pale);display:inline-flex;align-items:center;justify-content:center;"><i class="fas fa-user" style="font-size:9px;color:var(--color-brand)"></i></span>`
-      }
-      <span class="property-card-agent-name">${agentName}</span>
-      ${agentVerified ? `<i class="fas fa-circle-check property-card-agent-verified" title="Verified landlord"></i>` : ''}
-    </div>` : '';
-
-  return `
-    <article class="property-card" data-id="${p.id}">
-      <a href="/property.html?id=${p.id}" style="display:block;text-decoration:none" tabindex="-1" aria-hidden="true">
-        <div class="property-card-img">
-          <div class="property-card-slides">${slidesHtml}</div>
-          <div class="property-card-img-overlay"></div>
-          ${photos.length > 1 ? `
-            <button class="property-card-nav prev" data-dir="-1" aria-label="Previous photo"><i class="fas fa-chevron-left"></i></button>
-            <button class="property-card-nav next" data-dir="1"  aria-label="Next photo"><i class="fas fa-chevron-right"></i></button>
-            <div class="property-card-dots">${photos.map((_,i) => `<button class="property-card-dot${i===0?' active':''}" data-idx="${i}" aria-label="Photo ${i+1}"></button>`).join('')}</div>
-            <div class="property-card-photo-count"><i class="fas fa-camera"></i>${photos.length}</div>
-          ` : ''}
-          <div class="property-card-dom"><span class="badge ${badgeClass}">${badgeText}</span></div>
-          <div class="property-card-type-label">${typeLabel}</div>
-        </div>
-      </a>
-      <button class="property-card-save" data-id="${p.id}" aria-label="Save property"><i class="far fa-heart"></i></button>
-      <div class="property-card-body">
-        <div class="property-card-price">$${p.monthly_rent.toLocaleString()}<span>/mo</span></div>
-        <a href="/property.html?id=${p.id}" style="text-decoration:none">
-          <div class="property-card-title">${p.title}</div>
-        </a>
-        <div class="property-card-addr"><i class="fas fa-location-dot"></i>${addrLine}</div>
-        <div class="property-card-meta">
-          ${p.bedrooms != null ? `<div class="property-card-meta-item"><i class="fas fa-bed"></i>${p.bedrooms === 0 ? 'Studio' : p.bedrooms + ' Bed'}</div>` : ''}
-          ${p.bathrooms  ? `<div class="property-card-meta-item"><i class="fas fa-bath"></i>${p.bathrooms} Bath</div>` : ''}
-          ${p.square_footage ? `<div class="property-card-meta-item"><i class="fas fa-ruler-combined"></i>${p.square_footage.toLocaleString()} sqft</div>` : ''}
-        </div>
-        ${tags.length ? `<div class="property-card-tags">${tags.join('')}</div>` : ''}
-        <div class="property-card-footer">
-          <div class="property-card-avail">
-            <span class="avail-dot${availNow ? '' : ' soon'}"></span>
-            ${avail}
-          </div>
-          <div class="property-card-footer-actions">
-            <a href="/property.html?id=${p.id}" class="property-card-view">Details</a>
-            <a href="${applyURL}" class="property-card-apply" onclick="window.trackApply('${p.id}')">
-              Apply <i class="fas fa-arrow-right"></i>
-            </a>
-          </div>
-        </div>
-        ${agentHtml}
-      </div>
-    </article>`;
-}
-
-/* ─── Animate Cards (IntersectionObserver stagger) ─── */
-function animateCards() {
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    document.querySelectorAll('.property-card:not(.property-card-skeleton)').forEach(c => c.classList.add('cp-card-visible'));
-    return;
-  }
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.classList.add('cp-card-visible');
-        observer.unobserve(e.target);
-      }
-    });
-  }, { threshold: 0.06 });
-
-  let i = 0;
-  document.querySelectorAll('.property-card:not(.property-card-skeleton)').forEach(card => {
-    const delay = Math.min(i * 55, 320);
-    card.style.setProperty('--cp-delay', delay + 'ms');
-    observer.observe(card);
-    i++;
-  });
-}
-
-/* ─── Carousel ─── */
-function initCarousel(card) {
-  const slides  = card.querySelector('.property-card-slides');
-  const dots    = card.querySelectorAll('.property-card-dot');
-  const navBtns = card.querySelectorAll('.property-card-nav');
-  if (!slides || !navBtns.length) return;
-
-  let idx = 0;
-  const total = card.querySelectorAll('.property-card-slide').length;
-
-  function goTo(n) {
-    idx = (n + total) % total;
-    slides.style.transform = `translateX(-${idx * 100}%)`;
-    dots.forEach((d, i) => d.classList.toggle('active', i === idx));
-  }
-
-  navBtns.forEach(btn => {
-    btn.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); goTo(idx + parseInt(btn.dataset.dir)); });
-  });
-  dots.forEach(dot => {
-    dot.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); goTo(parseInt(dot.dataset.idx)); });
-  });
-
-  let touchX = 0;
-  slides.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; }, { passive: true });
-  slides.addEventListener('touchend', e => {
-    const diff = touchX - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 40) goTo(idx + (diff > 0 ? 1 : -1));
-  }, { passive: true });
-}
-
-/* ─── Map ─── */
-function initMap(props) {
-  if (!mapInstance) {
-    mapInstance = L.map('listingsMap', { zoomControl: false }).setView([39.5, -98.35], 4);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; <a href="https://carto.com/">CARTO</a>', maxZoom: 18
-    }).addTo(mapInstance);
-    L.control.zoom({ position: 'bottomright' }).addTo(mapInstance);
-  }
-  mapMarkers.forEach(m => m.remove()); mapMarkers = [];
-  const bounds = [];
-  props.forEach(p => {
-    if (!p.lat || !p.lng) return;
-    const lat = parseFloat(p.lat), lng = parseFloat(p.lng);
-    if (isNaN(lat) || isNaN(lng)) return;
-    bounds.push([lat, lng]);
-    const applyURL = buildApplyURL(p);
-    const photo = CONFIG.img(p.photo_urls?.[0] || '', 'card') || '/assets/placeholder-property.jpg';
-    const icon = L.divIcon({
-      className: '',
-      html: `<div class="map-marker-price">$${(p.monthly_rent/1000).toFixed(p.monthly_rent >= 1000 ? 1 : 0)}${p.monthly_rent >= 1000 ? 'k' : ''}</div>`,
-      iconAnchor: [30, 16], iconSize: [60, 32],
-    });
-    const marker = L.marker([lat, lng], { icon }).addTo(mapInstance);
-    marker.bindPopup(`
-      <a href="/property.html?id=${p.id}" class="map-popup-card">
-        <img class="map-popup-img" src="${CONFIG.img(photo,'card')}" alt="${p.title}" onerror="this.src='/assets/placeholder-property.jpg'">
-        <div class="map-popup-body">
-          <div class="map-popup-price">$${p.monthly_rent.toLocaleString()}<span>/mo</span></div>
-          <div class="map-popup-title">${p.title}</div>
-          <div class="map-popup-meta">
-            ${p.bedrooms != null ? `<span>${p.bedrooms === 0 ? 'Studio' : p.bedrooms + ' bd'}</span>` : ''}
-            ${p.bathrooms ? `<span>${p.bathrooms} ba</span>` : ''}
-          </div>
-          <a href="/property.html?id=${p.id}" class="map-popup-apply">View Property →</a>
-        </div>
-      </a>`, { maxWidth: 260 });
-    mapMarkers.push(marker);
-  });
-  if (bounds.length) mapInstance.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
-  setTimeout(() => mapInstance.invalidateSize(), 50);
-}
-
-/* ─── View toggle ─── */
-document.getElementById('btnListView').addEventListener('click', () => {
-  currentView = 'list';
-  document.getElementById('listPanel').style.display = '';
-  document.getElementById('mapPanel').style.display = 'none';
-  document.getElementById('btnListView').classList.add('active');
-  document.getElementById('btnMapView').classList.remove('active');
-});
-document.getElementById('btnMapView').addEventListener('click', () => {
-  currentView = 'map';
-  document.getElementById('listPanel').style.display = 'none';
-  document.getElementById('mapPanel').style.display = 'block';
-  document.getElementById('btnMapView').classList.add('active');
-  document.getElementById('btnListView').classList.remove('active');
-  initMap(applyFilters(allProperties));
-});
-
-/* ─── Filters ─── */
-function setupFilters() {
-  document.querySelectorAll('.filter-pill[data-filter]').forEach(pill => {
-    pill.addEventListener('click', () => {
-      document.querySelectorAll('.filter-pill[data-filter]').forEach(p => p.classList.remove('active'));
-      pill.classList.add('active');
-      activeType = pill.dataset.filter;
-      refreshResults();
-    });
-  });
-
-  document.getElementById('searchBtn').addEventListener('click', doSearch);
-  document.getElementById('searchInput').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
-  document.getElementById('bedroomsFilter').addEventListener('change', e => { activeBeds = e.target.value; refreshResults(); });
-  document.getElementById('maxRentFilter').addEventListener('change', e => { activeMaxRent = e.target.value; refreshResults(); });
-  document.getElementById('sortSelect').addEventListener('change', e => { sortBy = e.target.value; refreshResults(); });
-
-  document.getElementById('moreFiltersBtn').addEventListener('click', e => {
-    e.stopPropagation();
-    document.getElementById('moreFiltersDropdown').classList.toggle('open');
-  });
-  document.addEventListener('click', e => {
-    if (!document.getElementById('moreFiltersWrap').contains(e.target))
-      document.getElementById('moreFiltersDropdown').classList.remove('open');
-  });
-
-  document.getElementById('applyAdvFilters').addEventListener('click', () => {
-    activeMinRent  = document.getElementById('advMinRent').value;
-    activeMaxRent  = document.getElementById('advMaxRent').value || activeMaxRent;
-    activeMinBaths = document.getElementById('advMinBaths').value;
-    const advType = document.getElementById('advTypeFilter').value;
-    const advBeds = document.getElementById('advMinBeds').value;
-    if (advType) activeType = advType;
-    if (advBeds !== '') activeBeds = advBeds;
-    document.getElementById('moreFiltersDropdown').classList.remove('open');
-    refreshResults();
-    showToast('Filters applied', 'success');
-  });
-
-  document.getElementById('clearAdvFilters').addEventListener('click', () => {
-    ['advTypeFilter','advMinBeds','advMinBaths','advMinRent','advMaxRent'].forEach(id => {
-      document.getElementById(id).value = '';
-    });
-    window.clearAllFilters();
-    document.getElementById('moreFiltersDropdown').classList.remove('open');
-  });
-}
-
-window.clearAllFilters = function() {
-  activeType = 'all'; activeSearch = ''; activeBeds = '';
-  activeMaxRent = ''; activeMinRent = ''; activeMinBaths = '';
-  document.querySelectorAll('.filter-pill[data-filter]').forEach(p => p.classList.remove('active'));
-  document.querySelector('.filter-pill[data-filter="all"]').classList.add('active');
-  document.getElementById('searchInput').value = '';
-  document.getElementById('bedroomsFilter').value = '';
-  document.getElementById('maxRentFilter').value = '';
-  document.getElementById('sortSelect').value = 'newest';
-  sortBy = 'newest';
-  refreshResults();
-};
-
-function doSearch() {
-  activeSearch = document.getElementById('searchInput').value.trim();
-  refreshResults();
-}
-function refreshResults() {
-  const filtered = applyFilters(allProperties);
-  renderProperties(filtered);
-  if (currentView === 'map') initMap(filtered);
-  updateFilterBadge();
-}
-
-function updateFilterBadge() {
-  const badge = document.getElementById('filterActiveBadge');
-  if (!badge) return;
-  const count = [
-    activeType && activeType !== 'all',
-    !!activeBeds,
-    !!activeMaxRent,
-    !!activeMinRent,
-    !!activeMinBaths,
-    !!activeSearch
-  ].filter(Boolean).length;
-  if (count > 0) {
-    badge.textContent = count;
-    badge.style.display = 'inline-flex';
-  } else {
-    badge.style.display = 'none';
-  }
-}
-
-/* ─── Mobile Drawer ─── */
 function setupMobileDrawer() {
-  const toggle = document.getElementById('mobileToggle');
-  const drawer = document.getElementById('navDrawer');
+  const toggle  = document.getElementById('mobileToggle');
+  const drawer  = document.getElementById('navDrawer');
   const overlay = document.getElementById('drawerOverlay');
-  const close = document.getElementById('drawerClose');
-
-  const openDrawer = () => {
-    overlay.classList.add('visible');
-    setTimeout(() => { overlay.classList.add('open'); drawer.classList.add('open'); }, 10);
-    document.body.style.overflow = 'hidden';
-  };
-  const closeDrawer = () => {
-    overlay.classList.remove('open'); drawer.classList.remove('open');
-    document.body.style.overflow = '';
-    setTimeout(() => { overlay.classList.remove('visible'); }, 360);
-  };
+  const close   = document.getElementById('drawerClose');
+  const openDrawer  = () => { overlay.classList.add('visible'); setTimeout(() => { overlay.classList.add('open'); drawer.classList.add('open'); }, 10); document.body.style.overflow = 'hidden'; };
+  const closeDrawer = () => { overlay.classList.remove('open'); drawer.classList.remove('open'); document.body.style.overflow = ''; setTimeout(() => { overlay.classList.remove('visible'); }, 360); };
   toggle.addEventListener('click', openDrawer);
   close.addEventListener('click', closeDrawer);
   overlay.addEventListener('click', closeDrawer);
 }
 
-/* ─── Nav scroll ─── */
 function setupNavScroll() {
   const nav = document.getElementById('mainNav');
   window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 10), { passive: true });
 }
 
-/* ─── Scroll to top ─── */
 function setupScrollTop() {
   const btn = document.getElementById('scrollTopBtn');
   window.addEventListener('scroll', () => btn.classList.toggle('visible', window.scrollY > 400), { passive: true });
   btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-}
-
-/* ─── Save / favorites ─── */
-function toggleSave(id, btn) {
-  if (savedIds.has(id)) {
-    savedIds.delete(id); btn.classList.remove('saved'); btn.innerHTML = '<i class="far fa-heart"></i>';
-    showToast('Removed from saved', 'info');
-  } else {
-    savedIds.add(id); btn.classList.add('saved'); btn.innerHTML = '<i class="fas fa-heart"></i>';
-    showToast('Property saved ♥', 'success');
-  }
-  localStorage.setItem('cp_saved', JSON.stringify([...savedIds]));
-}
-
-window.trackApply = async id => {
-  try { await incrementCounter('properties', id, 'applications_count'); } catch(e) {}
-};
-
-/* ─── Helpers ─── */
-function getDaysOnMarket(createdAt) { return Math.floor((Date.now() - new Date(createdAt).getTime()) / 86400000); }
-function formatAvail(dateStr) {
-  const d = new Date(dateStr);
-  if (d <= new Date()) return 'Available Now';
-  return 'Avail. ' + d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-}
-function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
-function renderError() {
-  document.getElementById('propertyGrid').innerHTML = `
-    <div class="empty-state" style="grid-column:1/-1">
-      <div class="empty-state-icon"><i class="fas fa-exclamation-circle"></i></div>
-      <h3>Couldn't Load Listings</h3>
-      <p>Please refresh the page. If the problem persists, contact <a href="mailto:${CONFIG.COMPANY_EMAIL}">${CONFIG.COMPANY_EMAIL}</a></p>
-    </div>`;
-}
-function showToast(msg, type = 'info', duration = type === 'error' ? 5000 : 3200) {
-  const c = document.getElementById('toastContainer');
-  const t = document.createElement('div');
-  t.className = `toast ${type}`;
-  const icons = { success: 'check-circle', error: 'exclamation-circle', info: 'info-circle' };
-  t.innerHTML = `<i class="fas fa-${icons[type] || 'info-circle'} toast-icon"></i> ${msg}`;
-  c.appendChild(t);
-  setTimeout(() => {
-    t.style.opacity = '0';
-    t.style.transform = 'translateY(6px) scale(0.97)';
-    t.style.transition = 'all 280ms';
-    setTimeout(() => t.remove(), 280);
-  }, duration);
 }
 </script>
 </body>

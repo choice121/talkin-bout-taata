@@ -11,6 +11,12 @@ Choice Properties is a nationwide rental marketplace — a **static site** serve
 - **Thumbnail strip**: below mosaic, syncs with lightbox; sizes scale across all breakpoints
 - **Accessibility**: `aria-modal`, `aria-live` counter, focus trap (Tab/Shift+Tab), focus restoration on close
 
+## Page Structure
+- **`/` (index.html)**: Marketing landing page — hero with search (redirects to /listings), How It Works, Why Choose Us
+- **`/listings.html`**: Dedicated browse page — search bar, filter pills, advanced filters, property grid, map view
+- **`/property.html`**: Property detail — gallery mosaic, lightbox, apply CTA
+- Hero search on index.html passes `?q=`, `?beds=`, `?maxrent=` params to listings.html which pre-populates filters
+
 ## Architecture
 - **Frontend**: Static HTML/CSS/JS files served from the project root
 - **Server**: `serve.js` — Node.js HTTP server (no Express), port 5000
