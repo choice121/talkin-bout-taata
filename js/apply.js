@@ -362,6 +362,12 @@ class RentalApplication {
                 bathrooms:        prop.bathrooms        || null,
             }));
 
+            // Set select.value BEFORE calling onPropertySelected so that
+            // _updateRatio() (called inside onPropertySelected) can read the
+            // correct property ID from the select element instead of getting ''.
+            const selectEl = document.getElementById('propertySelect');
+            if (selectEl) selectEl.value = prop.id;
+
             this.onPropertySelected(prop.id);
             this._activatePropertyLock(prop.id);
 
@@ -941,14 +947,23 @@ class RentalApplication {
     validateStep(stepNumber) {
         // Step 1: enforce property selection (Option B — must select from dropdown)
         if (stepNumber === 1) {
+            const lockedCard = document.getElementById('propertyLockedCard');
+            const isLocked   = lockedCard && lockedCard.style.display !== 'none';
             const select = document.getElementById('propertySelect');
             const errEl  = document.getElementById('propertySelectError');
-            if (select && !select.value) {
-                if (errEl) errEl.style.display = 'block';
-                select.style.borderColor = '#dc2626';
-                select.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                return false;
+            // Only validate the dropdown when it is visible (not when the locked card is showing)
+            if (!isLocked) {
+                if (select && !select.value) {
+                    if (errEl) errEl.style.display = 'block';
+                    select.style.borderColor = '#dc2626';
+                    select.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return false;
+                } else if (select) {
+                    if (errEl) errEl.style.display = 'none';
+                    select.style.borderColor = '';
+                }
             } else if (select) {
+                // Locked mode — clear any previous error state on the hidden select
                 if (errEl) errEl.style.display = 'none';
                 select.style.borderColor = '';
             }
