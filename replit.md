@@ -3,6 +3,14 @@
 ## Project Overview
 Choice Properties is a nationwide rental marketplace — a **static site** served by a lightweight Node.js file server (`serve.js`). All backend logic runs as **Supabase Edge Functions** hosted on Supabase cloud. There is no local database and no ORM.
 
+## Property Detail Gallery System (css/property.css + property.html)
+- **Mosaic layout**: 3:2 grid (hero + 2×2 side panels) with LQIP blur-up on every cell
+- **Responsive height**: `clamp(300px,48vw,660px)` base → 620px@1440px → 740px@1920px → 860px@2560px
+- **Mobile**: single-column carousel with velocity-aware swipe, dot indicators, nav arrows
+- **Lightbox**: fullscreen with LQIP blur-up, velocity-aware swipe, focus trap, preload ±2, directional slide animation, keyboard nav (arrows + Escape), thumbnail filmstrip
+- **Thumbnail strip**: below mosaic, syncs with lightbox; sizes scale across all breakpoints
+- **Accessibility**: `aria-modal`, `aria-live` counter, focus trap (Tab/Shift+Tab), focus restoration on close
+
 ## Architecture
 - **Frontend**: Static HTML/CSS/JS files served from the project root
 - **Server**: `serve.js` — Node.js HTTP server (no Express), port 5000

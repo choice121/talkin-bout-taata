@@ -1,5 +1,5 @@
 /* ============================================================
-   CHOICE PROPERTIES — property.css v4
+   CHOICE PROPERTIES — property.css v5
    Gallery Mosaic + Lightbox + Detail Page
    TOKEN SOURCE: /css/main.css (loaded before this file on property.html)
    ============================================================ */
@@ -9,12 +9,13 @@
   display: grid;
   grid-template-columns: 3fr 2fr;
   gap: 6px;
-  height: clamp(280px, 44vw, 620px);
+  height: clamp(300px, 48vw, 660px);
   background: #0a0a0a;
   position: relative;
   overflow: hidden;
   border-radius: var(--radius-2xl);
   box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+  contain: layout style;
 }
 
 /* ── GALLERY SKELETON ─── shown while JS/data loads ─────── */
@@ -38,6 +39,7 @@
   overflow: hidden;
   cursor: zoom-in;
   border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+  touch-action: pan-y;
 }
 .mosaic-main::after {
   content: '';
@@ -53,6 +55,8 @@
   width: 100%; height: 100%; object-fit: cover;
   transition: transform 700ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
   display: block;
+  position: relative; z-index: 1;
+  will-change: transform;
 }
 .mosaic-main:hover .mosaic-main-img { transform: scale(1.04); }
 
@@ -86,6 +90,7 @@
   transition: transform 700ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
   display: block;
   position: relative; z-index: 1;
+  will-change: transform;
 }
 .mosaic-cell:hover img { transform: scale(1.07); }
 
@@ -185,9 +190,6 @@
 #galleryExpand { display: none; }
 
 /* ── GALLERY THUMBNAIL STRIP ─────────────────────────────── */
-/* Scrollable horizontal thumbnail row shown below the mosaic.
-   Gives users instant visual navigation across all photos.
-   JS class targets: .gallery-strip, .gallery-strip-thumb     */
 .gallery-strip {
   display: flex;
   gap: 6px;
@@ -294,6 +296,25 @@
   animation: lb-spin 700ms linear infinite;
 }
 
+/* ── LIGHTBOX LQIP BLUR-UP ──────────────────────────────── */
+.lb-lqip-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: blur(28px);
+  transform: scale(1.08);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 200ms ease;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.lb-lqip-bg.visible { opacity: 1; }
+.lb-lqip-bg.faded   { opacity: 0; transition: opacity 500ms ease; }
+
 /* Header bar */
 .lightbox-header {
   display: flex;
@@ -345,6 +366,7 @@
   position: relative;
   min-height: 0;
   padding: 0 clamp(52px, 10vw, 76px);
+  touch-action: pan-y;
 }
 
 .lightbox-img-wrap {
@@ -373,6 +395,8 @@
   display: block;
   will-change: opacity, transform;
   transition: opacity 200ms ease;
+  position: relative;
+  z-index: 3;
 }
 .lightbox-img.loading { opacity: 0; }
 
@@ -628,10 +652,10 @@
   margin-top: var(--space-3);
   display: flex; align-items: center; justify-content: center; gap: 5px; line-height: 1.5;
 }
-.apply-disclaimer i { color: var(--color-success); font-size: 11px; }
 .apply-track-link {
-  display: block; text-align: center; font-size: 12.5px;
-  color: var(--color-brand); margin-top: var(--space-3); font-weight: 600;
+  display: block; text-align: center; margin-top: var(--space-3);
+  font-size: 12.5px; color: var(--color-brand); text-decoration: none;
+  font-weight: 600;
   transition: color var(--dur) var(--ease);
 }
 .apply-track-link:hover { color: var(--color-brand-hover); }
@@ -703,18 +727,15 @@
 
 /* ── RESPONSIVE ───────────────────────────────────────────── */
 
-/* Fluid gallery height — single breakpoint-free formula handles 320px→2560px */
-/* The clamp(280px, 44vw, 620px) on .gallery-mosaic already handles this.
-   Only layout structure (columns) changes at breakpoints below. */
-
 @media (max-width: 900px) {
   .detail-layout { grid-template-columns: 1fr; }
   .detail-sidebar { position: static; }
 }
+
 @media (max-width: 768px) {
   .gallery-mosaic {
     grid-template-columns: 1fr;
-    height: clamp(220px, 56vw, 360px);
+    height: clamp(240px, 58vw, 420px);
     border-radius: var(--radius-xl);
   }
   .mosaic-side { display: none; }
@@ -733,6 +754,7 @@
   /* Gallery strip — smaller on tablets/phones */
   .gallery-strip-thumb { width: 84px; height: 56px; }
 }
+
 @media (max-width: 480px) {
   .detail-price { font-size: 32px; }
   .lightbox-header { padding: 12px 16px; }
@@ -743,9 +765,34 @@
   .gallery-strip { gap: 5px; }
 }
 
-/* Ultra-wide: cap mosaic at a comfortable maximum */
+/* ── LARGE SCREENS (1200px+) ──────────────────────────────── */
+@media (min-width: 1200px) {
+  .gallery-strip-thumb { width: 116px; height: 78px; }
+  .lb-thumb { width: 88px; height: 64px; }
+}
+
+/* ── EXTRA LARGE SCREENS (1440px+) ───────────────────────── */
 @media (min-width: 1440px) {
-  .gallery-mosaic { height: clamp(560px, 38vw, 700px); }
+  .gallery-mosaic { height: clamp(620px, 42vw, 800px); }
+  .gallery-strip-thumb { width: 124px; height: 84px; }
+  .lb-thumb { width: 96px; height: 70px; }
+  .lightbox-nav { width: 60px; height: 60px; font-size: 22px; }
+  .lightbox-stage { padding: 0 clamp(64px, 8vw, 96px); }
+}
+
+/* ── WIDE SCREENS (1920px+) ───────────────────────────────── */
+@media (min-width: 1920px) {
+  .gallery-mosaic { height: clamp(740px, 40vw, 880px); }
+  .gallery-strip-thumb { width: 136px; height: 92px; }
+  .lb-thumb { width: 106px; height: 78px; }
+  .lightbox-nav { width: 68px; height: 68px; font-size: 24px; }
+}
+
+/* ── ULTRA-WIDE SCREENS (2560px+) ────────────────────────── */
+@media (min-width: 2560px) {
+  .gallery-mosaic { height: clamp(860px, 36vw, 1000px); }
+  .gallery-strip-thumb { width: 152px; height: 102px; }
+  .lb-thumb { width: 120px; height: 88px; }
 }
 
 /* ── PROGRESSIVE IMAGE LOADING (LQIP BLUR-UP) ──────────── */

@@ -137,13 +137,14 @@
 <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Property photo gallery">
   <!-- Header: counter + close -->
   <div class="lightbox-header">
-    <div class="lightbox-counter" id="lightboxCounter">1 / 1</div>
+    <div class="lightbox-counter" id="lightboxCounter" aria-live="polite" aria-atomic="true">1 / 1</div>
     <button class="lightbox-close" id="lightboxClose" aria-label="Close gallery"><i class="fas fa-times"></i></button>
   </div>
   <!-- Main image stage -->
   <div class="lightbox-stage">
     <button class="lightbox-nav prev" id="lightboxPrev" aria-label="Previous photo"><i class="fas fa-chevron-left"></i></button>
     <div class="lightbox-img-wrap" id="lightboxImgWrap">
+      <div class="lb-lqip-bg" id="lbLqipBg"></div>
       <img class="lightbox-img" id="lightboxImg" src="" alt="Property photo">
       <div class="lb-spinner" id="lbSpinner"></div>
     </div>
@@ -730,7 +731,10 @@ function renderGallery(photos) {
           <img src="${CONFIG.img(url,'gallery')}"
                srcset="${CONFIG.img(url,'card')} 600w, ${CONFIG.img(url,'gallery')} 1200w"
                sizes="(max-width: 768px) 50vw, 25vw"
-               alt="Property photo ${idx+1}" loading="lazy" decoding="async">
+               alt="Property photo ${idx+1}"
+               loading="${i === 0 ? 'eager' : 'lazy'}"
+               ${i === 0 ? 'fetchpriority="high"' : ''}
+               decoding="async">
           ${isLast ? `
             <div class="mosaic-cell-overlay">
               <span class="mosaic-overlay-icon"><i class="fas fa-images"></i></span>
@@ -762,12 +766,19 @@ function renderGallery(photos) {
   prevBtn.addEventListener('click', () => showPhoto((photoIndex - 1 + photos.length) % photos.length));
   nextBtn.addEventListener('click', () => showPhoto((photoIndex + 1) % photos.length));
 
-  // Touch swipe on mosaic (mobile carousel)
-  let touchX = 0;
-  mosaicMain.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; }, { passive: true });
+  // Touch swipe on mosaic (mobile carousel) — velocity-aware
+  let touchX = 0, touchT = 0;
+  mosaicMain.addEventListener('touchstart', e => {
+    touchX = e.touches[0].clientX;
+    touchT = Date.now();
+  }, { passive: true });
   mosaicMain.addEventListener('touchend', e => {
     const diff = touchX - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 40) showPhoto((photoIndex + (diff > 0 ? 1 : -1) + photos.length) % photos.length);
+    const dt   = Date.now() - touchT;
+    const vel  = Math.abs(diff) / dt; // px/ms
+    if (Math.abs(diff) > 30 || vel > 0.3) {
+      showPhoto((photoIndex + (diff > 0 ? 1 : -1) + photos.length) % photos.length);
+    }
   }, { passive: true });
 
   // Keyboard — lightbox arrows + escape
@@ -865,6 +876,24 @@ function showPhoto(idx) {
 let lightboxThumbsBuilt = false;
 let _lbOpener = null;  // element that opened the lightbox — restored on close
 
+// Focus trap — keep keyboard navigation inside the lightbox while open
+function _lbFocusTrap(e) {
+  const lb = document.getElementById('lightbox');
+  if (!lb.classList.contains('open')) return;
+  const focusable = lb.querySelectorAll(
+    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+  );
+  const first = focusable[0];
+  const last  = focusable[focusable.length - 1];
+  if (e.key === 'Tab') {
+    if (e.shiftKey) {
+      if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+    } else {
+      if (document.activeElement === last)  { e.preventDefault(); first.focus(); }
+    }
+  }
+}
+
 function openLightbox(idx) {
   _lbOpener = document.activeElement;
   const lb = document.getElementById('lightbox');
@@ -875,6 +904,7 @@ function openLightbox(idx) {
     lightboxThumbsBuilt = true;
   }
   lightboxShow(idx);
+  document.addEventListener('keydown', _lbFocusTrap);
   // Move keyboard focus into the lightbox for accessibility
   requestAnimationFrame(() => document.getElementById('lightboxClose').focus());
 }
@@ -882,6 +912,7 @@ function openLightbox(idx) {
 function closeLightbox() {
   document.getElementById('lightbox').classList.remove('open');
   document.body.style.overflow = '';
+  document.removeEventListener('keydown', _lbFocusTrap);
   // Return focus to the element that triggered the lightbox
   if (_lbOpener && typeof _lbOpener.focus === 'function') _lbOpener.focus();
   _lbOpener = null;
@@ -907,6 +938,7 @@ function lightboxShow(idx) {
   const wrap    = document.getElementById('lightboxImgWrap');
   const img     = document.getElementById('lightboxImg');
   const spinner = document.getElementById('lbSpinner');
+  const lqipBg  = document.getElementById('lbLqipBg');
 
   // Directional slide-out animation on previous image
   if (_lbNavDir !== 0) {
@@ -916,6 +948,18 @@ function lightboxShow(idx) {
   }
 
   const slideInClass = _lbNavDir > 0 ? 'slide-in-left' : _lbNavDir < 0 ? 'slide-in-right' : null;
+
+  // Show LQIP blur-up while the full image loads
+  if (lqipBg) {
+    const lqip = lqipUrl(allPhotos[idx]);
+    if (lqip) {
+      lqipBg.style.backgroundImage = `url('${lqip}')`;
+      lqipBg.classList.remove('faded');
+      lqipBg.classList.add('visible');
+    } else {
+      lqipBg.classList.remove('visible');
+    }
+  }
 
   setTimeout(() => {
     // Hide image and show spinner while new src loads
@@ -934,6 +978,8 @@ function lightboxShow(idx) {
     const reveal = () => {
       img.classList.remove('loading');
       spinner.classList.remove('visible');
+      // Fade out the LQIP once the real image has loaded
+      if (lqipBg) { lqipBg.classList.add('faded'); }
       if (slideInClass) {
         wrap.classList.add(slideInClass);
         // Clean up animation class after it completes
@@ -973,14 +1019,19 @@ function lightboxNav(dir) {
   _lbNavDir = 0;
 }
 
-/* Lightbox swipe support */
+/* Lightbox swipe support — velocity-aware */
 (function() {
-  let lbTouchX = 0;
+  let lbTouchX = 0, lbTouchT = 0;
   const lb = document.getElementById('lightbox');
-  lb.addEventListener('touchstart', e => { lbTouchX = e.touches[0].clientX; }, { passive: true });
+  lb.addEventListener('touchstart', e => {
+    lbTouchX = e.touches[0].clientX;
+    lbTouchT = Date.now();
+  }, { passive: true });
   lb.addEventListener('touchend', e => {
     const diff = lbTouchX - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 40) lightboxNav(diff > 0 ? 1 : -1);
+    const dt   = Date.now() - lbTouchT;
+    const vel  = Math.abs(diff) / dt; // px/ms
+    if (Math.abs(diff) > 30 || vel > 0.3) lightboxNav(diff > 0 ? 1 : -1);
   }, { passive: true });
 })();
 
@@ -1100,11 +1151,11 @@ function lqipUrl(url) {
   return base.replace(CONFIG.IMAGEKIT_URL, CONFIG.IMAGEKIT_URL + '/tr:w-30,bl-20,q-20,f-webp');
 }
 
-/* ── Preload adjacent lightbox images for instant prev/next navigation ── */
+/* ── Preload ±2 adjacent lightbox images for instant prev/next navigation ── */
 function preloadLightboxAdjacentImages(idx) {
   const n = allPhotos.length;
   if (n < 2) return;
-  [1, -1].forEach(offset => {
+  [-1, 1, -2, 2].forEach(offset => {
     const i = (idx + offset + n) % n;
     if (i !== idx) {
       const pre = new Image();
