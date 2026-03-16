@@ -626,10 +626,10 @@
 .apply-card-body { padding: var(--space-5) var(--space-6); }
 .apply-cost-row {
   display: flex; align-items: center; justify-content: space-between;
-  padding: var(--space-3) 0; border-bottom: 1px solid var(--color-border-muted);
+  padding: var(--space-3) 0; border-top: 1px solid var(--color-border-muted);
   font-size: 13.5px;
 }
-.apply-cost-row:last-of-type { border-bottom: none; }
+.apply-cost-row:first-child { border-top: none; }
 .apply-cost-label { color: var(--color-text-secondary); font-weight: 500; }
 .apply-cost-value { color: var(--color-text-primary); font-weight: 700; }
 .apply-btn {
@@ -682,13 +682,35 @@
 .landlord-card-name { font-size: 14px; font-weight: 700; color: var(--color-text-primary); letter-spacing: -0.01em; }
 .landlord-card-tagline { font-size: 12px; color: var(--color-text-muted); }
 .landlord-card-verified {
-  width: 20px; height: 20px; border-radius: 50%; background: var(--color-success);
-  color: var(--color-text-inverse); display: flex; align-items: center; justify-content: center;
-  font-size: 9px; flex-shrink: 0; margin-left: auto;
-  box-shadow: 0 0 0 3px rgba(5,150,105,0.15);
+  color: var(--color-brand); font-size: 18px; flex-shrink: 0; margin-left: auto;
+  filter: drop-shadow(0 0 4px rgba(0,106,255,0.25));
 }
 .landlord-card-arrow { color: var(--color-border-strong); font-size: 14px; flex-shrink: 0; transition: color var(--dur) var(--ease), transform var(--dur) var(--ease); }
 .landlord-card:hover .landlord-card-arrow { color: var(--color-brand); transform: translateX(2px); }
+
+/* ── LANDLORD PHONE ROW ───────────────────────────────────── */
+.landlord-phone-row {
+  display: none;
+  align-items: center; gap: var(--space-2);
+  padding: 10px 14px;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  font-size: 13px; color: var(--color-text-secondary);
+}
+.landlord-phone-row i { color: var(--color-text-muted); font-size: 12px; }
+.landlord-phone-row a { color: var(--color-brand); font-weight: 600; text-decoration: none; transition: color var(--dur) var(--ease); }
+.landlord-phone-row a:hover { color: var(--color-brand-hover); }
+
+/* ── LISTED-BY ATTRIBUTION ────────────────────────────────── */
+.detail-listed-by {
+  font-size: 13.5px; color: var(--color-text-muted);
+  margin-top: var(--space-2);
+  display: flex; align-items: center; gap: 6px;
+}
+.detail-listed-by i { color: var(--color-brand); font-size: 11px; }
+.detail-listed-by a { color: var(--color-brand); font-weight: 600; text-decoration: none; transition: color var(--dur) var(--ease); }
+.detail-listed-by a:hover { color: var(--color-brand-hover); }
 
 /* ── CONTACT CARD ─────────────────────────────────────────── */
 .contact-card {

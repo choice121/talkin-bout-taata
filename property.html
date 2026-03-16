@@ -172,8 +172,12 @@
       <div class="detail-price" id="detailPrice">
         <div class="skeleton" style="height:44px;width:200px;border-radius:8px"></div>
       </div>
-      <div class="detail-title" id="detailTitle"></div>
-      <div class="detail-address" id="detailAddress"></div>
+      <div class="detail-title" id="detailTitle">
+        <div class="skeleton" style="height:28px;width:72%;border-radius:6px;margin-bottom:6px"></div>
+      </div>
+      <div class="detail-address" id="detailAddress">
+        <div class="skeleton" style="height:18px;width:52%;border-radius:4px"></div>
+      </div>
     </div>
 
     <div class="detail-meta-row" id="detailMeta"></div>
@@ -198,7 +202,7 @@
       <div class="amenities-grid" id="utilitiesGrid"></div>
     </div>
 
-    <div class="detail-section" id="leaseSection">
+    <div class="detail-section" id="leaseSection" style="display:none">
       <div class="detail-section-title">Lease Information</div>
       <div class="amenities-grid" id="leaseGrid"></div>
     </div>
@@ -269,13 +273,13 @@
         <div class="landlord-card-name" id="landlordName">—</div>
         <div class="landlord-card-tagline" id="landlordTagline"></div>
       </div>
-      <div class="landlord-card-verified" id="landlordVerified" style="display:none"><i class="fas fa-check"></i></div>
+      <i class="fas fa-circle-check landlord-card-verified" id="landlordVerified" style="display:none" title="Verified landlord"></i>
       <div class="landlord-card-arrow"><i class="fas fa-chevron-right"></i></div>
     </a>
     <!-- Landlord phone — shown only when landlord has a phone number on file -->
-    <div id="landlordPhoneRow" style="display:none;align-items:center;gap:8px;padding:10px 14px;background:#f8f9fa;border:1px solid #e4e7ef;border-radius:6px;font-size:13px;color:#374151;margin-top:8px">
-      <i class="fas fa-phone" style="color:#6b7280;font-size:12px"></i>
-      <a id="landlordPhoneLink" href="#" style="color:#1e40af;font-weight:600;text-decoration:none"></a>
+    <div id="landlordPhoneRow" class="landlord-phone-row">
+      <i class="fas fa-phone"></i>
+      <a id="landlordPhoneLink" href="#"></a>
     </div>
 
     <!-- Contact Card -->
@@ -472,7 +476,7 @@ function renderUnavailable(status) {
   document.getElementById('gallery').style.display = 'none';
   document.querySelector('.property-detail').innerHTML = `
     <div class="container" style="padding:80px 16px;text-align:center;max-width:540px;margin:0 auto">
-      <div style="font-size:48px;margin-bottom:16px">🏠</div>
+      <div style="font-size:48px;margin-bottom:16px;color:var(--color-brand)"><i class="fas fa-house-circle-exclamation"></i></div>
       <h1 style="font-size:1.5rem;font-weight:700;color:var(--ink);margin-bottom:12px">
         This listing is not currently available.
       </h1>
@@ -547,8 +551,8 @@ function renderProperty(p) {
     const ll = p.landlords;
     const name = ll.business_name || ll.contact_name;
     const attr = document.createElement('div');
-    attr.style.cssText = 'font-size:13.5px;color:#8892a2;margin-top:var(--s-2);display:flex;align-items:center;gap:6px';
-    attr.innerHTML = `<i class="fas fa-user" style="color:#2563eb;font-size:11px"></i> Listed by <a href="/landlord/profile.html?id=${ll.id}" style="color:#2563eb;font-weight:600">${name}</a>`;
+    attr.className = 'detail-listed-by';
+    attr.innerHTML = `<i class="fas fa-user"></i> Listed by <a href="/landlord/profile.html?id=${ll.id}">${name}</a>`;
     document.getElementById('detailAddress').insertAdjacentElement('afterend', attr);
   }
 
@@ -589,7 +593,10 @@ function renderProperty(p) {
   if (p.lease_terms?.length) leaseItems.push(`<div class="amenity-item"><i class="fas fa-file-contract"></i>${p.lease_terms.join(', ')}</div>`);
   if (p.security_deposit) leaseItems.push(`<div class="amenity-item"><i class="fas fa-shield-alt"></i>Deposit: $${p.security_deposit.toLocaleString()}</div>`);
   if (p.showing_instructions) leaseItems.push(`<div class="amenity-item" style="grid-column:1/-1"><i class="fas fa-key"></i><span><strong>Showings:</strong> ${p.showing_instructions}</span></div>`);
-  document.getElementById('leaseGrid').innerHTML = leaseItems.join('');
+  if (leaseItems.length) {
+    document.getElementById('leaseSection').style.display = '';
+    document.getElementById('leaseGrid').innerHTML = leaseItems.join('');
+  }
 
   // Map — Leaflet if lat/lng, fallback to Google embed
   renderMap(p);
@@ -597,7 +604,7 @@ function renderProperty(p) {
   // Sidebar
   document.getElementById('sidebarPrice').innerHTML = `$${p.monthly_rent.toLocaleString()}<span>/month</span>`;
   const availNow = !p.available_date || new Date(p.available_date) <= new Date();
-  document.getElementById('sidebarAvail').innerHTML = `<i class="fas fa-circle" style="color:${availNow?'#1a7f5a':'var(--gold)'}"></i> ${availNow ? 'Available Now' : 'Available ' + formatDate(p.available_date)}`;
+  document.getElementById('sidebarAvail').innerHTML = `<i class="fas fa-circle" style="color:${availNow?'var(--color-success)':'var(--gold)'}"></i> ${availNow ? 'Available Now' : 'Available ' + formatDate(p.available_date)}`;
   document.getElementById('sidebarRent').textContent    = `$${p.monthly_rent.toLocaleString()}`;
   document.getElementById('sidebarDeposit').textContent = p.security_deposit ? `$${p.security_deposit.toLocaleString()}` : 'Contact landlord';
   document.getElementById('sidebarFee').textContent     = (p.application_fee != null && p.application_fee > 0) ? `$${p.application_fee}` : 'Free';
@@ -619,7 +626,7 @@ function renderProperty(p) {
     const avatarEl = document.getElementById('landlordAvatar');
     if (ll.avatar_url) avatarEl.innerHTML = `<img src="${CONFIG.img(ll.avatar_url,'avatar')}" alt="${name}">`;
     else avatarEl.textContent = name.charAt(0).toUpperCase();
-    if (ll.verified) document.getElementById('landlordVerified').style.display = 'flex';
+    if (ll.verified) document.getElementById('landlordVerified').style.display = 'inline';
     if (ll.phone) {
       const phoneRow  = document.getElementById('landlordPhoneRow');
       const phoneLink = document.getElementById('landlordPhoneLink');
