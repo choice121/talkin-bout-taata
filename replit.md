@@ -24,7 +24,7 @@ The browser then uses the Supabase JS client (loaded from CDN in HTML files) to 
 - **"Start application"** runs `node serve.js` on port 5000 (mapped to external port 80)
 
 ## Environment Secrets Required
-Set these in Replit's Secrets panel. The server reads them at startup and injects public-safe values into `config.js`:
+Set these in Replit's Secrets panel (Tools → Secrets). The server reads them at startup and injects public-safe values into `config.js`:
 
 | Secret | Description |
 |--------|-------------|
@@ -48,7 +48,7 @@ Set these in Replit's Secrets panel. The server reads them at startup and inject
 | `FEATURE_MESSAGING` | Enable messaging (default: true) |
 | `FEATURE_REALTIME_UPDATES` | Enable realtime (default: true) |
 
-**Supabase Edge Function secrets** (set in Supabase Dashboard → Edge Functions → Secrets, NOT here):
+**Supabase Edge Function secrets** (set in Supabase Dashboard → Edge Functions → Secrets, NOT in Replit):
 - `GAS_EMAIL_URL` — Google Apps Script email relay URL
 - `GAS_RELAY_SECRET` — Secret token for GAS relay authentication
 - `IMAGEKIT_PRIVATE_KEY` — ImageKit private key (never expose to browser)
@@ -86,3 +86,10 @@ All deployed to Supabase cloud — not run locally:
 - `mark-paid` — Mark application fee as paid
 - `mark-movein` — Record tenant move-in
 - `imagekit-upload` — Server-side ImageKit upload (keeps private key secure)
+
+## Important Notes
+- Do NOT add a Node.js/Express backend — all API logic lives in Supabase Edge Functions
+- Do NOT add a local database (Neon, SQLite, etc.) — Supabase Postgres is the database
+- Do NOT add Drizzle or any ORM — this is a static site
+- `config.js` is regenerated every time `serve.js` starts — never edit it manually
+- The `supabase/functions/` folder contains Deno code deployed to Supabase cloud, not Node.js
