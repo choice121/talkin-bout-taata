@@ -136,7 +136,7 @@
   position: absolute; bottom: var(--space-4); left: 50%; transform: translateX(-50%);
   background: rgba(0,0,0,0.72); color: #fff;
   border-radius: var(--radius-full); padding: 5px 14px;
-  font-size: 12px; font-weight: 600; backdrop-filter: blur(6px);
+  font-size: 12px; font-weight: 600; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
   z-index: 10; white-space: nowrap;
 }
 

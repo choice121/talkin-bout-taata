@@ -408,9 +408,9 @@
 
 /* Glass badges on dark card images */
 .badge-new   { background: var(--color-ink);              color: var(--color-brand-light); }
-.badge-green { background: rgba(5,150,105,0.88);          color: #fff; backdrop-filter: blur(6px); }
-.badge-amber { background: rgba(20,20,20,0.72);           color: rgba(255,255,255,0.92); backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,0.10); }
-.badge-slate { background: rgba(20,20,20,0.52);           color: rgba(255,255,255,0.82); backdrop-filter: blur(6px); }
+.badge-green { background: rgba(5,150,105,0.88);          color: #fff; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.badge-amber { background: rgba(20,20,20,0.72);           color: rgba(255,255,255,0.92); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,0.10); }
+.badge-slate { background: rgba(20,20,20,0.52);           color: rgba(255,255,255,0.82); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
 
 
 /* ── SKELETON LOADERS ─────────────────────────────────────── */

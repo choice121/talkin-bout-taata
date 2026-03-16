@@ -440,7 +440,7 @@ button { font-family: var(--font-body); }
 .nav-link--cta:hover { background: var(--blue-dark); transform: translateY(-1px); box-shadow: var(--sh-blue-lg); }
 .nav-mobile-toggle { display: none; background: none; border: none; font-size: 20px; color: var(--gray-500); cursor: pointer; padding: var(--s-2); border-radius: var(--r); margin-left: auto; }
 
-.nav-drawer-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: calc(var(--z-nav) - 1); backdrop-filter: blur(2px); opacity: 0; transition: opacity 0.35s ease; }
+.nav-drawer-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: calc(var(--z-nav) - 1); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); opacity: 0; transition: opacity 0.35s ease; }
 .nav-drawer-overlay.visible { display: block; }
 .nav-drawer-overlay.open { opacity: 1; }
 .nav-drawer { position: fixed; top: 0; right: -100%; bottom: 0; width: min(320px,88vw); background: var(--white); z-index: var(--z-nav); display: flex; flex-direction: column; transition: right var(--dur-slow) var(--ease-out); box-shadow: var(--sh-xl); }
