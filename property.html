@@ -6,6 +6,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+  <link rel="preconnect" href="https://ik.imagekit.io" crossorigin>
   <link rel="preconnect" id="sb-preconnect"><!-- set by config.js -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Property — Choice Properties</title>
@@ -131,7 +132,7 @@
 
 <!-- ── Lightbox ── -->
 
-<div class="lightbox" id="lightbox">
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Property photo gallery">
   <!-- Header: counter + close -->
   <div class="lightbox-header">
     <div class="lightbox-counter" id="lightboxCounter">1 / 1</div>
@@ -694,6 +695,19 @@ function renderGallery(photos) {
   mainImg.srcset = `${CONFIG.img(photos[0], 'card')} 600w, ${CONFIG.img(photos[0], 'gallery')} 1200w, ${CONFIG.img(photos[0], 'gallery_2x')} 2400w`;
   mainImg.sizes  = '(max-width: 768px) 100vw, (max-width: 1280px) 65vw, 55vw';
   mainImg.alt    = 'Property photo 1';
+
+  // LQIP blur-up for hero image — tiny blurred placeholder fades out once full image loads
+  const heroLqip = lqipUrl(photos[0]);
+  if (heroLqip) {
+    const lqBg = document.createElement('div');
+    lqBg.className = 'lqip-bg';
+    lqBg.style.backgroundImage = `url('${heroLqip}')`;
+    mosaicMain.insertBefore(lqBg, mainImg);
+    const fadeLqip = () => lqBg.classList.add('faded');
+    mainImg.addEventListener('load', fadeLqip, { once: true });
+    if (mainImg.complete && mainImg.naturalWidth > 0) fadeLqip();
+  }
+
   mosaicMain.addEventListener('click', () => openLightbox(0));
 
   // Side 2×2 grid — use gallery preset for crisp quality, lazy-load each cell
@@ -703,8 +717,10 @@ function renderGallery(photos) {
       const idx = i + 1;
       const isLast = (i === sidePanels.length - 1) && (photos.length > 5);
       const remaining = photos.length - 5;
+      const lqUrl = lqipUrl(url);
       return `
         <div class="mosaic-cell" data-idx="${idx}">
+          ${lqUrl ? `<div class="lqip-bg" style="background-image:url('${lqUrl}')"></div>` : ''}
           <img src="${CONFIG.img(url,'gallery')}"
                srcset="${CONFIG.img(url,'card')} 600w, ${CONFIG.img(url,'gallery')} 1200w"
                sizes="(max-width: 768px) 50vw, 25vw"
@@ -716,8 +732,16 @@ function renderGallery(photos) {
             </div>` : ''}
         </div>`;
     }).join('');
+    // Fade out each cell's LQIP placeholder once its image loads
     mosaicSide.querySelectorAll('.mosaic-cell').forEach(cell => {
       cell.addEventListener('click', () => openLightbox(parseInt(cell.dataset.idx)));
+      const img = cell.querySelector('img');
+      const bg  = cell.querySelector('.lqip-bg');
+      if (img && bg) {
+        const fadeBg = () => bg.classList.add('faded');
+        img.addEventListener('load', fadeBg, { once: true });
+        if (img.complete && img.naturalWidth > 0) fadeBg();
+      }
     });
   } else {
     mosaicSide.style.display = 'none';
@@ -806,8 +830,10 @@ function showPhoto(idx) {
 
 /* ── Lightbox ── */
 let lightboxThumbsBuilt = false;
+let _lbOpener = null;  // element that opened the lightbox — restored on close
 
 function openLightbox(idx) {
+  _lbOpener = document.activeElement;
   const lb = document.getElementById('lightbox');
   lb.classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -816,11 +842,16 @@ function openLightbox(idx) {
     lightboxThumbsBuilt = true;
   }
   lightboxShow(idx);
+  // Move keyboard focus into the lightbox for accessibility
+  requestAnimationFrame(() => document.getElementById('lightboxClose').focus());
 }
 
 function closeLightbox() {
   document.getElementById('lightbox').classList.remove('open');
   document.body.style.overflow = '';
+  // Return focus to the element that triggered the lightbox
+  if (_lbOpener && typeof _lbOpener.focus === 'function') _lbOpener.focus();
+  _lbOpener = null;
 }
 
 function buildLightboxThumbs() {
@@ -848,7 +879,11 @@ function lightboxShow(idx) {
     img.srcset = `${CONFIG.img(allPhotos[idx], 'gallery')} 1200w, ${CONFIG.img(allPhotos[idx], 'gallery_2x')} 2400w, ${CONFIG.img(allPhotos[idx], 'lightbox')} 4000w`;
     img.sizes  = '100vw';
     img.alt    = `Property photo ${idx + 1}`;
+    // Reset slide direction variable so next nav can re-set it
+    wrap.style.removeProperty('--lb-slide-x');
     wrap.classList.remove('transitioning');
+    // Preload prev/next images while current is displaying
+    preloadLightboxAdjacentImages(idx);
   }, 160);
 
   document.getElementById('lightboxCounter').textContent = `${idx + 1} / ${allPhotos.length}`;
@@ -867,6 +902,9 @@ function lightboxShow(idx) {
 }
 
 function lightboxNav(dir) {
+  // Set slide direction before transitioning so CSS uses it
+  const wrap = document.getElementById('lightboxImgWrap');
+  wrap.style.setProperty('--lb-slide-x', dir > 0 ? '-28px' : '28px');
   lightboxShow((photoIndex + dir + allPhotos.length) % allPhotos.length);
 }
 

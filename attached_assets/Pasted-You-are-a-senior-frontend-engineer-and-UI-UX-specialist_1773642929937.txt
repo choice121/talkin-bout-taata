@@ -1,0 +1,165 @@
+You are a senior frontend engineer and UI/UX specialist with experience building premium real estate platforms.
+
+Your task is to analyze and upgrade the property image display and gallery viewer system of this project so that it provides a high-resolution, immersive, and professional viewing experience similar to leading real estate platforms.
+
+Carefully scan the entire codebase and identify all files responsible for:
+
+- property image display
+- property detail page layout
+- gallery and thumbnail components
+- image loading logic
+- image optimization and rendering
+
+Your goal is to transform the property image experience into a high-quality, responsive, fullscreen gallery viewer that works flawlessly across all devices and screen sizes.
+
+Follow these steps:
+
+1. Analyze the Current Image System  
+Scan the existing implementation and explain:
+
+- how property images are currently loaded
+- whether responsive images are used
+- whether thumbnails and galleries are properly implemented
+- any issues affecting image quality, responsiveness, or performance.
+
+2. Implement a Premium Property Gallery Layout  
+
+Upgrade the property detail page to include:
+
+- a large hero image at the top
+- a thumbnail strip of additional property images
+- responsive layout that adapts across screen sizes
+- clean spacing and modern visual hierarchy.
+
+Ensure the gallery works smoothly on phones, tablets, laptops, and large monitors.
+
+3. Fullscreen Image Viewer (Lightbox)
+
+When a user clicks any property image:
+
+Open a fullscreen immersive viewer with:
+
+- large high-resolution image display
+- next and previous navigation arrows
+- swipe navigation on mobile devices
+- keyboard arrow navigation on desktop
+- close button
+- photo counter (example: "3 of 24")
+- smooth transition animations
+- thumbnail navigation strip.
+
+Ensure the viewer is visually clean and modern with a dark overlay background.
+
+4. High-Resolution Image Rendering  
+
+Ensure property images display with very high visual quality.
+
+Implement:
+
+- high-resolution source images
+- proper scaling across devices
+- retina display support
+- prevention of blurry or stretched images.
+
+Use techniques such as responsive images and proper sizing so that large screens receive higher resolution images.
+
+5. Responsive Image Delivery  
+
+Implement responsive image loading using:
+
+- srcset
+- sizes
+- multiple resolution image sources
+
+Ensure that:
+
+- mobile devices load smaller optimized images
+- larger screens receive higher resolution images
+- images remain sharp on retina displays.
+
+6. Image Optimization with CDN
+
+Integrate optimized image delivery using the current image hosting system.
+
+Implement automatic optimization including:
+
+- modern image formats
+- optimized compression
+- efficient delivery for different screen sizes.
+
+Ensure images remain visually sharp while loading quickly.
+
+7. Progressive Image Loading  
+
+Implement progressive loading techniques so that images appear instantly.
+
+Use a blurred or low-resolution preview that loads first, followed by the full high-resolution image.
+
+This should create a smooth transition from preview to sharp image.
+
+8. Gallery Performance Optimization  
+
+Ensure the gallery remains fast even with many images.
+
+Implement:
+
+- lazy loading for off-screen images
+- preloading for the next and previous images
+- efficient rendering logic.
+
+9. Responsive Behavior
+
+Verify that the gallery functions correctly across viewport widths including:
+
+320px  
+375px  
+768px  
+1024px  
+1440px  
+1920px  
+2560px and larger.
+
+Ensure images scale properly and navigation controls remain usable.
+
+10. Cross-Browser Compatibility  
+
+Verify the gallery works correctly across modern browsers including Chrome, Safari, Firefox, and Edge.
+
+Ensure interactions and rendering remain consistent.
+
+11. Visual Quality Improvements  
+
+Enhance the gallery's visual quality by ensuring:
+
+- consistent image aspect ratios
+- stable layout during loading
+- smooth image transitions
+- visually balanced spacing.
+
+12. Final Verification  
+
+After implementing improvements:
+
+Test the gallery across multiple devices and screen sizes.
+
+Confirm that:
+
+- images appear sharp and high quality
+- navigation works smoothly
+- gallery loads efficiently
+- the viewer feels immersive and professional.
+
+13. Final Report  
+
+Provide a detailed report explaining:
+
+- what changes were made to the image system
+- improvements to image quality
+- improvements to responsiveness
+- performance improvements
+- confirmation that the gallery now delivers a high-quality property viewing experience.
+
+Important:
+Do not break existing property data structures or backend integrations.
+Maintain compatibility with the current property listing system and image hosting infrastructure.
+The goal is to create a modern, high-quality property gallery and viewer that provides an excellent visual experience across all devices and screen sizes.
