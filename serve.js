@@ -49,12 +49,14 @@ CONFIG.img = function(url, preset) {
   if (!url) return '/assets/placeholder-property.jpg';
   if (!CONFIG.IMAGEKIT_URL || CONFIG.IMAGEKIT_URL === '') return fallback;
   const transforms = {
-    card:       'tr:w-600,q-80,f-webp',
-    gallery:    'tr:w-1200,q-90,f-webp',
-    gallery_2x: 'tr:w-2400,q-85,f-webp',
-    strip:      'tr:w-240,h-160,c-maintain_ratio,q-80,f-webp',
+    card:       'tr:w-600,q-82,f-webp',
+    gallery:    'tr:w-1200,q-92,f-webp',
+    gallery_2x: 'tr:w-2400,q-88,f-webp',
+    mosaic:     'tr:w-900,q-90,f-webp',
+    mosaic_2x:  'tr:w-1800,q-85,f-webp',
     thumb:      'tr:w-120,h-120,c-maintain_ratio,q-75,f-webp',
-    lightbox:   'tr:q-95,f-webp',
+    lb_thumb:   'tr:w-220,h-144,c-maintain_ratio,q-84,f-webp',
+    lightbox:   'tr:q-97,f-webp',
     og:         'tr:w-1200,h-630,c-force,fo-center,q-85,f-webp',
     avatar:     'tr:w-80,h-80,c-force,fo-face,q-80,f-webp',
     avatar_lg:  'tr:w-160,h-160,c-force,fo-face,q-85,f-webp',

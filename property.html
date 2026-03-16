@@ -129,8 +129,6 @@
   <button id="galleryExpand" style="display:none"></button>
 </div>
 
-<!-- ── Gallery Thumbnail Strip ── -->
-<div class="gallery-strip" id="galleryStrip" role="list" aria-label="Property photos"></div>
 
 <!-- ── Lightbox ── -->
 
@@ -735,9 +733,9 @@ function renderGallery(photos) {
       return `
         <div class="mosaic-cell" data-idx="${idx}">
           ${lqUrl ? `<div class="lqip-bg" style="background-image:url('${lqUrl}')"></div>` : ''}
-          <img src="${CONFIG.img(url,'gallery')}"
-               srcset="${CONFIG.img(url,'card')} 600w, ${CONFIG.img(url,'gallery')} 1200w"
-               sizes="(max-width: 768px) 50vw, 25vw"
+          <img src="${CONFIG.img(url,'mosaic')}"
+               srcset="${CONFIG.img(url,'card')} 600w, ${CONFIG.img(url,'mosaic')} 900w, ${CONFIG.img(url,'gallery')} 1200w, ${CONFIG.img(url,'mosaic_2x')} 1800w, ${CONFIG.img(url,'gallery_2x')} 2400w"
+               sizes="(max-width: 768px) 50vw, 20vw"
                alt="Property photo ${idx+1}"
                loading="${i === 0 ? 'eager' : 'lazy'}"
                ${i === 0 ? 'fetchpriority="high"' : ''}
@@ -799,8 +797,6 @@ function renderGallery(photos) {
 
   document.getElementById('galleryExpand').addEventListener('click', () => openLightbox(photoIndex));
 
-  // Build thumbnail strip
-  buildGalleryStrip(photos);
 }
 
 /* ── Mosaic Dot Indicators ── */
@@ -875,7 +871,6 @@ function showPhoto(idx) {
   }, 150);
   const mobileCount = document.getElementById('mosaicMobileCount');
   if (mobileCount) mobileCount.textContent = `${idx + 1} / ${allPhotos.length}`;
-  syncStripActive(idx);
   syncMosaicDots(idx);
 }
 
@@ -930,7 +925,9 @@ function buildLightboxThumbs() {
   if (!thumbsEl || !allPhotos.length) return;
   thumbsEl.innerHTML = allPhotos.map((url, i) =>
     `<button class="lb-thumb" data-idx="${i}" aria-label="View photo ${i + 1}">
-      <img src="${CONFIG.img(url, 'thumb')}" alt="" loading="lazy" decoding="async">
+      <img src="${CONFIG.img(url, 'lb_thumb')}"
+           srcset="${CONFIG.img(url, 'lb_thumb')} 1x, ${CONFIG.img(url, 'mosaic')} 2x"
+           alt="" loading="lazy" decoding="async">
     </button>`
   ).join('');
   thumbsEl.querySelectorAll('.lb-thumb').forEach(btn => {
@@ -1016,8 +1013,6 @@ function lightboxShow(idx) {
     activeThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
   }
 
-  // Also sync the main page thumbnail strip so it tracks lightbox navigation
-  syncStripActive(idx);
 }
 
 function lightboxNav(dir) {
