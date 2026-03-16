@@ -245,6 +245,7 @@ function buildLeaseText(app) {
 }
 
 function renderLease(app) {
+  currentApp = app; // expose for name validation in doSign()
   const tenantName = `${app.first_name} ${app.last_name}`;
   const today = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
 
@@ -312,7 +313,7 @@ function renderLease(app) {
 
         <button class="btn" id="sign-btn" onclick="doSign()" disabled style="opacity:.4;cursor:not-allowed" title="Please read the full lease agreement above before signing">Sign Lease Agreement</button>
         <div style="text-align:center;font-size:.7rem;color:#999;margin-top:10px" id="scroll-hint">📖 Please scroll through the lease agreement above to enable signing.</div>
-        <div style="text-align:center;font-size:.7rem;color:#999;margin-top:4px" id="sign-note" style="display:none">This action is permanent and legally binding.</div>
+        <div style="text-align:center;font-size:.7rem;color:#999;margin-top:4px;display:none" id="sign-note">This action is permanent and legally binding.</div>
 
         ${app.has_co_applicant ? `
         <div style="margin-top:20px;padding:16px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;font-size:.8rem;color:#0369a1">
@@ -323,6 +324,7 @@ function renderLease(app) {
 }
 
 function renderCoSignPage(app) {
+  currentApp = app; // expose for name validation in doCoSign()
   const coName = app.co_applicant_first_name
     ? `${app.co_applicant_first_name} ${app.co_applicant_last_name || ''}`.trim()
     : 'Co-Applicant';

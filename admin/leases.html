@@ -55,14 +55,13 @@ async function resendLease(appId) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'apikey': CONFIG.SUPABASE_ANON_KEY, 'Authorization': `Bearer ${(await CP.Auth.getSession())?.access_token || CONFIG.SUPABASE_ANON_KEY}` },
     body: JSON.stringify({
-      app_id:           appId,
-      resend:           true,
-      rent:             app.monthly_rent,
-      deposit:          app.security_deposit,
-      move_in:          app.move_in_costs,
-      lease_start_date: app.lease_start_date,
-      late_fee_flat:    app.lease_late_fee_flat,
-      late_fee_daily:   app.lease_late_fee_daily,
+      app_id:            appId,
+      resend:            true,
+      monthly_rent:      app.monthly_rent,
+      security_deposit:  app.security_deposit,
+      lease_start_date:  app.lease_start_date,
+      late_fee_flat:     app.lease_late_fee_flat,
+      late_fee_daily:    app.lease_late_fee_daily,
     })
   }).then(r => r.json()).catch(e => ({ success: false, error: e.message }));
   if (res.success) { CP.UI.toast('Lease resent successfully.', 'success'); await load(); }
