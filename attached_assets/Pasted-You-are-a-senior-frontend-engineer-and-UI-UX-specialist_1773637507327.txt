@@ -1,0 +1,113 @@
+You are a senior frontend engineer and UI/UX specialist.
+
+Your task is to analyze and upgrade the entire website to ensure it works perfectly across all devices, screen sizes, and major web browsers while maintaining a high-quality, professional visual appearance.
+
+Perform a complete responsive design and cross-browser compatibility upgrade of the entire project.
+
+Follow these steps carefully.
+
+1. Full Frontend Scan  
+Scan all HTML, CSS, and JavaScript files in the project.  
+Identify layout issues, fixed widths, overflow problems, broken grids, inconsistent spacing, and any design patterns that could break on different screen sizes.
+
+2. Responsive Layout System  
+Upgrade the layout to a professional responsive system.
+
+Implement:
+- CSS Grid and Flexbox where appropriate
+- fluid containers with max-width
+- responsive spacing
+- scalable typography
+
+Avoid fixed pixel layouts where possible and use responsive units such as:
+- %
+- rem
+- vw
+- vh
+- clamp()
+
+Create a consistent layout container system for all pages.
+
+3. Breakpoint System  
+Implement a consistent responsive breakpoint strategy that supports modern devices.
+
+Minimum breakpoints:
+- 320px (small phones)
+- 375px (modern phones)
+- 768px (tablets)
+- 1024px (laptops)
+- 1440px (desktops)
+- 1920px (large monitors)
+- 2560px+ (ultra-wide screens)
+
+Ensure all layouts adapt smoothly between breakpoints.
+
+4. Image and Media Responsiveness  
+Ensure all images, property galleries, and media scale correctly.
+
+Implement:
+- responsive image sizing
+- max-width: 100%
+- object-fit where appropriate
+- proper image container handling
+
+Ensure images never overflow or distort layouts.
+
+5. Typography Scaling  
+Upgrade typography so text scales properly across devices.
+
+Use techniques such as:
+- clamp() for font sizes
+- responsive line heights
+- consistent spacing system
+
+Ensure readability on both small phones and large monitors.
+
+6. Mobile Optimization  
+Ensure the site works perfectly on mobile devices.
+
+Check:
+- touch-friendly buttons
+- proper form inputs
+- spacing for thumbs
+- navigation usability
+- scrolling behavior
+
+7. Browser Compatibility  
+Ensure the website works correctly in all major browsers.
+
+Support:
+- Chrome
+- Safari
+- Firefox
+- Edge
+
+Add compatibility fixes where needed and ensure modern CSS features have fallbacks if required.
+
+8. Performance and Layout Stability  
+Improve layout performance by:
+- preventing layout shifts
+- optimizing CSS structure
+- reducing unnecessary styles
+- ensuring fast rendering
+
+9. Automated Responsive Testing  
+Simulate multiple device sizes and report if any layout breaks.
+
+Test viewport sizes including:
+320, 375, 768, 1024, 1440, 1920, and 2560 pixels.
+
+10. Final Report  
+After completing the upgrade, produce a report that includes:
+
+- what responsiveness issues were found
+- what layout improvements were implemented
+- any components that were redesigned
+- confirmation that the site works across devices and browsers
+- any remaining recommendations for improving UI quality
+
+Important:
+Do not break existing functionality.  
+Maintain the existing design style while improving responsiveness and layout stability.
+
+The goal is to deliver a high-quality, professional, fully responsive website that displays correctly on any modern device, screen size, or browser.
