@@ -454,9 +454,76 @@
                     </div>
                 </div>
 
+                <div class="form-row">
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="landlordEmail" data-i18n="landlordEmailLabel">Landlord Email <span style="font-weight:400;color:#888;">(Optional)</span></label>
+                            <input type="email" id="landlordEmail" name="Landlord Email" autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="form-col"></div>
+                </div>
+
                 <p class="field-hint" data-i18n="landlordContactNote" data-i18n-html style="margin-bottom:16px;">
                     <i class="fas fa-info-circle"></i> We may contact your current landlord to verify your tenancy as part of the application review process.
                 </p>
+
+                <h3 data-i18n="governmentIdHeader">Government-Issued ID</h3>
+                <div class="form-row">
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label class="required" for="govIdType" data-i18n="govIdTypeLabel">ID Type</label>
+                            <select id="govIdType" name="Government ID Type" required aria-required="true" aria-describedby="govIdTypeError">
+                                <option value="" data-i18n="selectGovIdType">— Select ID type —</option>
+                                <option value="Driver's License" data-i18n="idDriverLicense">Driver's License</option>
+                                <option value="State ID" data-i18n="idStateID">State ID</option>
+                                <option value="Passport" data-i18n="idPassport">Passport</option>
+                                <option value="Military ID" data-i18n="idMilitaryID">Military ID</option>
+                                <option value="ITIN Card" data-i18n="idITIN">ITIN Card</option>
+                                <option value="Other" data-i18n="other">Other</option>
+                            </select>
+                            <div class="error-message" id="govIdTypeError" data-i18n="errRequired">Required</div>
+                        </div>
+                    </div>
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label class="required" for="govIdNumber" data-i18n="govIdNumberLabel">ID Number</label>
+                            <input type="text" id="govIdNumber" name="Government ID Number" required aria-required="true" aria-describedby="govIdNumberError" maxlength="50" placeholder="As shown on your ID" data-i18n="govIdNumberPlaceholder">
+                            <p class="field-hint" style="font-size:12px;" data-i18n="govIdNumberHint">Stored securely and used only for identity verification.</p>
+                            <div class="error-message" id="govIdNumberError" data-i18n="errRequired">Required</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 data-i18n="priorResidenceHeader">Prior Residence <span style="font-weight:400;font-size:14px;color:#888;">(if applicable)</span></h3>
+                <div class="form-row">
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="previousAddress" data-i18n="previousAddressLabel">Previous Address</label>
+                            <input type="text" id="previousAddress" name="Previous Address" placeholder="Street, City, State, Zip" data-i18n="previousAddressPlaceholder">
+                        </div>
+                    </div>
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="previousResidencyDuration" data-i18n="previousDurationLabel">How Long Did You Live There?</label>
+                            <input type="text" id="previousResidencyDuration" name="Previous Residency Duration" placeholder="e.g., 2 years" data-i18n="previousDurationPlaceholder">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="previousLandlordName" data-i18n="previousLandlordNameLabel">Prior Landlord Name</label>
+                            <input type="text" id="previousLandlordName" name="Previous Landlord Name">
+                        </div>
+                    </div>
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="previousLandlordPhone" data-i18n="previousLandlordPhoneLabel">Prior Landlord Phone</label>
+                            <input type="tel" id="previousLandlordPhone" name="Previous Landlord Phone">
+                        </div>
+                    </div>
+                </div>
 
                 <h3 data-i18n="occupantsPets">Occupants & Pets</h3>
                 <div class="form-group">
@@ -607,6 +674,20 @@
                                 <label class="required" for="supervisorPhone" data-i18n="supervisorPhoneLabel">Supervisor Phone</label>
                                 <input type="tel" id="supervisorPhone" name="Supervisor Phone" required aria-required="true" aria-describedby="supervisorPhoneError">
                                 <div class="error-message" id="supervisorPhoneError" data-i18n="errRequired">Required</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="employmentStartDate" data-i18n="employmentStartDateLabel">Employment Start Date</label>
+                                <input type="date" id="employmentStartDate" name="Employment Start Date">
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="employerAddress" data-i18n="employerAddressLabel">Employer Address <span style="font-weight:400;color:#888;">(Optional)</span></label>
+                                <input type="text" id="employerAddress" name="Employer Address" placeholder="Street, City, State" data-i18n="employerAddressPlaceholder">
                             </div>
                         </div>
                     </div>
@@ -764,6 +845,50 @@
                         placeholder="e.g., No-fault eviction during COVID, dispute resolved, etc."
                         data-i18n="evictionExplainPlaceholder"></textarea>
                     <div class="field-hint"><i class="fas fa-info-circle"></i> This information is treated confidentially and reviewed fairly.</div>
+                </div>
+
+                <div class="form-group">
+                    <label data-i18n="bankruptcyLabel">Have you filed for bankruptcy in the past 7 years?</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="radio" id="bankruptcyYes" name="Has Bankruptcy" value="Yes">
+                            <label for="bankruptcyYes" data-i18n="yes">Yes</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="radio" id="bankruptcyNo" name="Has Bankruptcy" value="No" checked>
+                            <label for="bankruptcyNo" data-i18n="no">No</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group" id="bankruptcyExplainGroup" style="display:none;">
+                    <label for="bankruptcyExplain" data-i18n="bankruptcyExplainLabel">Please provide context <span style="font-weight:400;color:#888;">(Optional but helpful)</span></label>
+                    <textarea id="bankruptcyExplain" name="Bankruptcy Explanation" rows="3" maxlength="500"
+                        placeholder="e.g., Chapter 7 discharged 2018, finances now stable"
+                        data-i18n="bankruptcyExplainPlaceholder"></textarea>
+                    <div class="field-hint"><i class="fas fa-info-circle"></i> This information is treated confidentially and reviewed fairly.</div>
+                </div>
+
+                <div class="form-group">
+                    <label data-i18n="criminalLabel">Have you been convicted of a felony in the past 7 years?</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="radio" id="criminalYes" name="Has Criminal History" value="Yes">
+                            <label for="criminalYes" data-i18n="yes">Yes</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="radio" id="criminalNo" name="Has Criminal History" value="No" checked>
+                            <label for="criminalNo" data-i18n="no">No</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group" id="criminalExplainGroup" style="display:none;">
+                    <label for="criminalExplain" data-i18n="criminalExplainLabel">Please provide context <span style="font-weight:400;color:#888;">(Optional but helpful)</span></label>
+                    <textarea id="criminalExplain" name="Criminal History Explanation" rows="3" maxlength="500"
+                        placeholder="e.g., Non-violent offense, sentence completed, rehabilitation program"
+                        data-i18n="criminalExplainPlaceholder"></textarea>
+                    <div class="field-hint"><i class="fas fa-info-circle"></i> Each situation is reviewed on a case-by-case basis in accordance with fair chance housing guidelines.</div>
                 </div>
 
                 <div class="form-group">

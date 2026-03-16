@@ -363,7 +363,30 @@ create table if not exists applications (
   move_in_status        movein_status,
   move_in_date_actual   date,
   move_in_notes         text,
-  move_in_confirmed_by  text
+  move_in_confirmed_by  text,
+
+  -- ── Landlord Contact (Phase 2) ────────────────────────────
+  landlord_email                text,
+
+  -- ── Government ID (Phase 2) ───────────────────────────────
+  government_id_type            text,
+  government_id_number          text,
+
+  -- ── Prior Residence (Phase 2) ─────────────────────────────
+  previous_address              text,
+  previous_residency_duration   text,
+  previous_landlord_name        text,
+  previous_landlord_phone       text,
+
+  -- ── Background (Phase 2) ──────────────────────────────────
+  has_bankruptcy                boolean default false,
+  bankruptcy_explanation        text,
+  has_criminal_history          boolean default false,
+  criminal_history_explanation  text,
+
+  -- ── Extended Employment (Phase 2) ─────────────────────────
+  employer_address              text,
+  employment_start_date         text
 );
 
 
@@ -1004,6 +1027,25 @@ begin
   return v_id;
 end;
 $$;
+
+
+-- ============================================================
+-- 14. MIGRATIONS — Phase 2 new columns (run on existing databases)
+-- Safe to re-run; ADD COLUMN IF NOT EXISTS is idempotent.
+-- ============================================================
+alter table applications add column if not exists landlord_email               text;
+alter table applications add column if not exists government_id_type            text;
+alter table applications add column if not exists government_id_number          text;
+alter table applications add column if not exists previous_address              text;
+alter table applications add column if not exists previous_residency_duration   text;
+alter table applications add column if not exists previous_landlord_name        text;
+alter table applications add column if not exists previous_landlord_phone       text;
+alter table applications add column if not exists has_bankruptcy                boolean default false;
+alter table applications add column if not exists bankruptcy_explanation        text;
+alter table applications add column if not exists has_criminal_history          boolean default false;
+alter table applications add column if not exists criminal_history_explanation  text;
+alter table applications add column if not exists employer_address              text;
+alter table applications add column if not exists employment_start_date         text;
 
 
 -- ============================================================

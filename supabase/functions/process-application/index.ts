@@ -247,6 +247,20 @@ Deno.serve(async (req) => {
       document_url:                     formData.document_url || null,
       // Link to authenticated applicant account (null for anonymous submissions)
       applicant_user_id:                applicantUserId,
+      // ── Phase 2 new fields ────────────────────────────────
+      landlord_email:               formData['Landlord Email']               || formData.landlord_email               || null,
+      government_id_type:           formData['Government ID Type']           || formData.government_id_type           || null,
+      government_id_number:         formData['Government ID Number']         || formData.government_id_number         || null,
+      previous_address:             formData['Previous Address']             || formData.previous_address             || null,
+      previous_residency_duration:  formData['Previous Residency Duration']  || formData.previous_residency_duration  || null,
+      previous_landlord_name:       formData['Previous Landlord Name']       || formData.previous_landlord_name       || null,
+      previous_landlord_phone:      formData['Previous Landlord Phone']      || formData.previous_landlord_phone      || null,
+      has_bankruptcy:               formData['Has Bankruptcy'] === 'Yes'     || formData.has_bankruptcy === true,
+      bankruptcy_explanation:       formData['Bankruptcy Explanation']       || formData.bankruptcy_explanation       || null,
+      has_criminal_history:         formData['Has Criminal History'] === 'Yes' || formData.has_criminal_history === true,
+      criminal_history_explanation: formData['Criminal History Explanation'] || formData.criminal_history_explanation || null,
+      employer_address:             formData['Employer Address']             || formData.employer_address             || null,
+      employment_start_date:        formData['Employment Start Date']        || formData.employment_start_date        || null,
     }
 
     // Resolve landlord_id server-side from the property record (never trust client-supplied value)

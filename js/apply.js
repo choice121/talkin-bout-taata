@@ -170,14 +170,19 @@ class RentalApplication {
         }
     }
 
-    // ---------- Eviction explain box ----------
+    // ---------- Eviction / Bankruptcy / Criminal explain boxes ----------
     setupEvictionExplain() {
-        const radios = document.querySelectorAll('input[name="Ever Evicted"]');
-        const explainGroup = document.getElementById('evictionExplainGroup');
-        if (!explainGroup) return;
-        radios.forEach(r => r.addEventListener('change', (e) => {
-            explainGroup.style.display = e.target.value === 'Yes' ? '' : 'none';
-        }));
+        const makeToggle = (radioName, groupId) => {
+            const radios = document.querySelectorAll(`input[name="${radioName}"]`);
+            const group  = document.getElementById(groupId);
+            if (!group) return;
+            radios.forEach(r => r.addEventListener('change', (e) => {
+                group.style.display = e.target.value === 'Yes' ? '' : 'none';
+            }));
+        };
+        makeToggle('Ever Evicted',       'evictionExplainGroup');
+        makeToggle('Has Bankruptcy',     'bankruptcyExplainGroup');
+        makeToggle('Has Criminal History', 'criminalExplainGroup');
     }
 
     // ---------- Phone auto-formatting ----------
@@ -1225,7 +1230,7 @@ class RentalApplication {
         });
 
         // Restore radio button groups — saved by FormData name, not by element id
-        const radioGroups = ['Has Pets', 'Has Vehicle', 'Ever Evicted', 'Smoker'];
+        const radioGroups = ['Has Pets', 'Has Vehicle', 'Ever Evicted', 'Smoker', 'Has Bankruptcy', 'Has Criminal History'];
         radioGroups.forEach(name => {
             const savedValue = data[name];
             if (!savedValue) return;
@@ -1247,6 +1252,14 @@ class RentalApplication {
         const evictedYes    = document.getElementById('evictedYes');
         const evictGroup    = document.getElementById('evictionExplainGroup');
         if (evictedYes && evictGroup) evictGroup.style.display = evictedYes.checked ? '' : 'none';
+
+        const bankruptcyYes   = document.getElementById('bankruptcyYes');
+        const bankruptcyGroup = document.getElementById('bankruptcyExplainGroup');
+        if (bankruptcyYes && bankruptcyGroup) bankruptcyGroup.style.display = bankruptcyYes.checked ? '' : 'none';
+
+        const criminalYes   = document.getElementById('criminalYes');
+        const criminalGroup = document.getElementById('criminalExplainGroup');
+        if (criminalYes && criminalGroup) criminalGroup.style.display = criminalYes.checked ? '' : 'none';
 
         if (data._language && data._language !== this.state.language) {
             this.state.language = data._language;
@@ -1441,6 +1454,25 @@ class RentalApplication {
                 reasonLeavingLabel: 'Reason for leaving',
                 landlordNameLabel: 'Current Landlord/Property Manager Name',
                 landlordPhoneLabel: 'Landlord/Property Manager Phone',
+                landlordEmailLabel: 'Landlord Email (Optional)',
+                governmentIdHeader: 'Government-Issued ID',
+                govIdTypeLabel: 'ID Type',
+                selectGovIdType: '— Select ID type —',
+                idDriverLicense: "Driver's License",
+                idStateID: 'State ID',
+                idPassport: 'Passport',
+                idMilitaryID: 'Military ID',
+                idITIN: 'ITIN Card',
+                govIdNumberLabel: 'ID Number',
+                govIdNumberPlaceholder: 'As shown on your ID',
+                govIdNumberHint: 'Stored securely and used only for identity verification.',
+                priorResidenceHeader: 'Prior Residence',
+                previousAddressLabel: 'Previous Address',
+                previousAddressPlaceholder: 'Street, City, State, Zip',
+                previousDurationLabel: 'How Long Did You Live There?',
+                previousDurationPlaceholder: 'e.g., 2 years',
+                previousLandlordNameLabel: 'Prior Landlord Name',
+                previousLandlordPhoneLabel: 'Prior Landlord Phone',
                 occupantsPets: 'Occupants & Pets',
                 totalOccupantsLabel: 'Number of total occupants (including children)',
                 occupantNamesLabel: 'Names and ages of all other occupants',
@@ -1516,6 +1548,12 @@ class RentalApplication {
                 evictedLabel: 'Have you ever been evicted?',
                 evictionExplainLabel: 'Please provide context',
                 evictionExplainPlaceholder: 'e.g., No-fault eviction during COVID, dispute resolved, etc. Context helps our team make a fair assessment.',
+                bankruptcyLabel: 'Have you filed for bankruptcy in the past 7 years?',
+                bankruptcyExplainLabel: 'Please provide context',
+                bankruptcyExplainPlaceholder: 'e.g., Chapter 7 discharged 2018, finances now stable',
+                criminalLabel: 'Have you been convicted of a felony in the past 7 years?',
+                criminalExplainLabel: 'Please provide context',
+                criminalExplainPlaceholder: 'e.g., Non-violent offense, sentence completed, rehabilitation program',
                 smokerLabel: 'Do you smoke?',
 
                 // ── Step 5: Payment ──
@@ -1750,6 +1788,25 @@ class RentalApplication {
                 reasonLeavingLabel: 'Razón para mudarse',
                 landlordNameLabel: 'Nombre del Propietario/Administrador Actual',
                 landlordPhoneLabel: 'Teléfono del Propietario/Administrador',
+                landlordEmailLabel: 'Correo del Propietario (Opcional)',
+                governmentIdHeader: 'Identificación Oficial',
+                govIdTypeLabel: 'Tipo de ID',
+                selectGovIdType: '— Seleccione tipo de ID —',
+                idDriverLicense: 'Licencia de Conducir',
+                idStateID: 'Identificación Estatal',
+                idPassport: 'Pasaporte',
+                idMilitaryID: 'ID Militar',
+                idITIN: 'Tarjeta ITIN',
+                govIdNumberLabel: 'Número de ID',
+                govIdNumberPlaceholder: 'Tal como aparece en su ID',
+                govIdNumberHint: 'Almacenado de forma segura y utilizado únicamente para verificación de identidad.',
+                priorResidenceHeader: 'Residencia Anterior',
+                previousAddressLabel: 'Dirección Anterior',
+                previousAddressPlaceholder: 'Calle, Ciudad, Estado, Código Postal',
+                previousDurationLabel: '¿Cuánto Tiempo Vivió Ahí?',
+                previousDurationPlaceholder: 'ej., 2 años',
+                previousLandlordNameLabel: 'Nombre del Propietario Anterior',
+                previousLandlordPhoneLabel: 'Teléfono del Propietario Anterior',
                 occupantsPets: 'Ocupantes y Mascotas',
                 totalOccupantsLabel: 'Número total de ocupantes (incluyendo niños)',
                 occupantNamesLabel: 'Nombres y edades de todos los demás ocupantes',
@@ -1825,6 +1882,12 @@ class RentalApplication {
                 evictedLabel: '¿Ha sido desalojado alguna vez?',
                 evictionExplainLabel: 'Por favor proporcione contexto',
                 evictionExplainPlaceholder: 'ej., Desalojo sin culpa durante COVID, disputa resuelta, etc. El contexto ayuda a nuestro equipo a hacer una evaluación justa.',
+                bankruptcyLabel: '¿Ha presentado quiebra en los últimos 7 años?',
+                bankruptcyExplainLabel: 'Por favor proporcione contexto',
+                bankruptcyExplainPlaceholder: 'ej., Capítulo 7 dado de baja en 2018, finanzas estables ahora',
+                criminalLabel: '¿Ha sido condenado por un delito grave en los últimos 7 años?',
+                criminalExplainLabel: 'Por favor proporcione contexto',
+                criminalExplainPlaceholder: 'ej., Delito no violento, sentencia cumplida, programa de rehabilitación',
                 smokerLabel: '¿Fuma?',
 
                 // ── Step 5 ──
@@ -2475,7 +2538,9 @@ class RentalApplication {
             ]},
             { id: 2, name: 'Residency', fields: [
                 'Current Address', 'Residency Duration', 'Current Rent Amount',
-                'Reason for leaving', 'Current Landlord Name', 'Landlord Phone'
+                'Reason for leaving', 'Current Landlord Name', 'Landlord Phone', 'Landlord Email',
+                'Government ID Type', 'Government ID Number',
+                'Previous Address', 'Previous Residency Duration', 'Previous Landlord Name', 'Previous Landlord Phone'
             ]},
             { id: 2, name: 'Occupancy & Vehicles', fields: [
                 'Total Occupants', 'Additional Occupants', 'Has Pets', 'Pet Details',
@@ -2483,12 +2548,14 @@ class RentalApplication {
             ]},
             { id: 3, name: 'Employment & Income', fields: [
                 'Employment Status', 'Employer', 'Job Title', 'Employment Duration',
-                'Supervisor Name', 'Supervisor Phone', 'Monthly Income', 'Other Income'
+                'Supervisor Name', 'Supervisor Phone', 'Employment Start Date', 'Employer Address',
+                'Monthly Income', 'Other Income'
             ]},
             { id: 4, name: 'Financial & References', fields: [
                 'Emergency Contact Name', 'Emergency Contact Phone', 'Emergency Contact Relationship',
                 'Reference 1 Name', 'Reference 1 Phone', 'Reference 1 Email', 'Reference 1 Relationship',
-                'Reference 2 Name', 'Reference 2 Phone', 'Reference 2 Email', 'Reference 2 Relationship'
+                'Reference 2 Name', 'Reference 2 Phone', 'Reference 2 Email', 'Reference 2 Relationship',
+                'Has Bankruptcy', 'Bankruptcy Explanation', 'Has Criminal History', 'Criminal History Explanation'
             ]},
             { id: 5, name: 'Payment Preferences', fields: [
                 'Primary Payment Method', 'Primary Payment Method Other',
