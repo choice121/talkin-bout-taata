@@ -109,6 +109,15 @@
   <!-- Main large panel -->
   <div class="mosaic-main" id="mosaicMain">
     <img class="mosaic-main-img" id="mosaicMainImg" src="" alt="Property photo" fetchpriority="high" decoding="async">
+    <!-- Gallery hero info overlay — title + price + status (populated by JS) -->
+    <div class="gallery-info-bar" id="galleryInfoBar">
+      <div class="gib-left">
+        <div class="gib-status" id="gibStatus"></div>
+        <div class="gib-title" id="gibTitle"></div>
+        <div class="gib-addr" id="gibAddr"></div>
+      </div>
+      <div class="gib-price" id="gibPrice"></div>
+    </div>
   </div>
   <!-- Right 2×2 side grid -->
   <div class="mosaic-side" id="mosaicSide"></div>
@@ -220,6 +229,9 @@
         <i class="fas fa-info-circle" style="color:var(--gold)"></i>
         <span id="mapNeighborhoodText"></span>
       </p>
+      <a href="#" class="map-open-btn" id="mapOpenBtn" target="_blank" rel="noopener noreferrer" style="display:none">
+        <i class="fas fa-diamond-turn-right"></i> Open in Maps
+      </a>
     </div>
   </div>
 
@@ -491,6 +503,46 @@ function renderUnavailable(status) {
     </div>`;
 }
 
+/* ── Amenity icon helpers ── */
+function amenityIcon(text) {
+  const t = text.toLowerCase();
+  if (/wi.?fi|internet|wireless/.test(t))              return 'fa-wifi';
+  if (/gym|fitness|workout/.test(t))                   return 'fa-dumbbell';
+  if (/pool|swimming/.test(t))                         return 'fa-water-ladder';
+  if (/air.?cond|a\/c|cooling|central air/.test(t))   return 'fa-snowflake';
+  if (/\bheat\b|furnace|radiant/.test(t))              return 'fa-fire';
+  if (/laundry|washer|dryer/.test(t))                  return 'fa-shirt';
+  if (/dishwasher/.test(t))                            return 'fa-sink';
+  if (/parking|garage|driveway/.test(t))               return 'fa-car-side';
+  if (/pet|dog|cat/.test(t))                           return 'fa-paw';
+  if (/balcony|patio|deck|terrace/.test(t))            return 'fa-umbrella-beach';
+  if (/storage|closet/.test(t))                        return 'fa-box';
+  if (/elevator|lift/.test(t))                         return 'fa-elevator';
+  if (/security|camera|doorbell|alarm/.test(t))        return 'fa-shield-halved';
+  if (/hardwood|flooring/.test(t))                     return 'fa-layer-group';
+  if (/microwave|oven|stove|range/.test(t))            return 'fa-utensils';
+  if (/refrigerator|fridge/.test(t))                   return 'fa-temperature-low';
+  if (/smoke|carbon monoxide/.test(t))                 return 'fa-triangle-exclamation';
+  if (/cable|tv|television/.test(t))                   return 'fa-tv';
+  if (/furnish|furniture/.test(t))                     return 'fa-couch';
+  if (/yard|garden|lawn|outdoor/.test(t))              return 'fa-seedling';
+  if (/wheel|accessible|handicap/.test(t))             return 'fa-wheelchair';
+  if (/concierge|doorman/.test(t))                     return 'fa-user-tie';
+  if (/solar|green|eco/.test(t))                       return 'fa-leaf';
+  if (/rooftop|roof/.test(t))                          return 'fa-building';
+  return 'fa-circle-check';
+}
+function amenityIconColor(text) {
+  const t = text.toLowerCase();
+  if (/wi.?fi|internet|wireless|cable|tv/.test(t))     return 'icon-sky';
+  if (/pool|swimming|balcony|patio|deck|yard/.test(t)) return 'icon-teal';
+  if (/gym|fitness|workout/.test(t))                   return 'icon-purple';
+  if (/pet|dog|cat/.test(t))                           return 'icon-rose';
+  if (/solar|green|eco|yard|garden|lawn/.test(t))      return 'icon-green';
+  if (/smoke|carbon|alarm|security/.test(t))           return 'icon-amber';
+  return '';
+}
+
 function renderProperty(p) {
   document.title = `${p.title} — Choice Properties`;
 
@@ -572,17 +624,29 @@ function renderProperty(p) {
       </div>
     </div>`).join('');
 
-  document.getElementById('detailDesc').textContent = p.description || 'No additional description provided.';
+  const descEl = document.getElementById('detailDesc');
+  descEl.textContent = p.description || 'No additional description provided.';
+  if ((p.description || '').length > 300) {
+    descEl.classList.add('truncated');
+    const rmBtn = document.createElement('button');
+    rmBtn.className = 'detail-read-more';
+    rmBtn.innerHTML = '<i class="fas fa-chevron-down" style="font-size:11px"></i> Read more';
+    rmBtn.addEventListener('click', () => {
+      descEl.classList.remove('truncated');
+      rmBtn.remove();
+    });
+    descEl.insertAdjacentElement('afterend', rmBtn);
+  }
 
   if (p.amenities?.length) {
     document.getElementById('amenitiesSection').style.display = '';
     document.getElementById('amenitiesGrid').innerHTML = p.amenities.map(a =>
-      `<div class="amenity-item"><i class="fas fa-check"></i>${a}</div>`).join('');
+      `<div class="amenity-item"><i class="fas ${amenityIcon(a)} ${amenityIconColor(a)}"></i>${a}</div>`).join('');
   }
 
   const utilRows = [];
   if (p.utilities_included?.length) utilRows.push(...p.utilities_included.map(u =>
-    `<div class="amenity-item"><i class="fas fa-bolt"></i>${u} Included</div>`));
+    `<div class="amenity-item"><i class="fas fa-bolt icon-amber"></i>${u} Included</div>`));
   if (p.parking) utilRows.push(`<div class="amenity-item"><i class="fas fa-car"></i>Parking: ${p.parking}</div>`);
   if (utilRows.length) {
     document.getElementById('utilitiesSection').style.display = '';
@@ -601,9 +665,35 @@ function renderProperty(p) {
   // Map — Leaflet if lat/lng, fallback to Google embed
   renderMap(p);
 
+  // Open in Maps button
+  const mapOpenBtn = document.getElementById('mapOpenBtn');
+  if (mapOpenBtn) {
+    const mapAddr = encodeURIComponent(`${p.address}, ${p.city}, ${p.state} ${p.zip || ''}`);
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    mapOpenBtn.href = isIOS
+      ? `maps://maps.apple.com/?q=${mapAddr}`
+      : `https://maps.google.com/maps?q=${mapAddr}`;
+    mapOpenBtn.style.display = '';
+  }
+
+  // Gallery hero info overlay
+  const availNow = !p.available_date || new Date(p.available_date) <= new Date();
+  const gibStatus = document.getElementById('gibStatus');
+  if (gibStatus) {
+    gibStatus.innerHTML = `<i class="fas fa-circle"></i> ${availNow ? 'Available Now' : 'Available ' + formatDate(p.available_date)}`;
+    if (!availNow) gibStatus.classList.add('unavail');
+  }
+  const gibTitle = document.getElementById('gibTitle');
+  if (gibTitle) gibTitle.textContent = p.title;
+  const gibAddr = document.getElementById('gibAddr');
+  if (gibAddr) gibAddr.textContent = `${p.address}, ${p.city}, ${p.state}`;
+  const gibPrice = document.getElementById('gibPrice');
+  if (gibPrice) gibPrice.innerHTML = `$${p.monthly_rent.toLocaleString()}<span>/month</span>`;
+  const gibBar = document.getElementById('galleryInfoBar');
+  if (gibBar) gibBar.classList.add('visible');
+
   // Sidebar
   document.getElementById('sidebarPrice').innerHTML = `$${p.monthly_rent.toLocaleString()}<span>/month</span>`;
-  const availNow = !p.available_date || new Date(p.available_date) <= new Date();
   document.getElementById('sidebarAvail').innerHTML = `<i class="fas fa-circle" style="color:${availNow?'var(--color-success)':'var(--gold)'}"></i> ${availNow ? 'Available Now' : 'Available ' + formatDate(p.available_date)}`;
   document.getElementById('sidebarRent').textContent    = `$${p.monthly_rent.toLocaleString()}`;
   document.getElementById('sidebarDeposit').textContent = p.security_deposit ? `$${p.security_deposit.toLocaleString()}` : 'Contact landlord';
