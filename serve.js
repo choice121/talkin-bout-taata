@@ -155,7 +155,7 @@ const server = http.createServer((req, res) => {
         if (!html.includes('/css/mobile.css')) {
           html = html.replace(
             /<\/head>/i,
-            '  <link rel="stylesheet" href="/css/mobile.css?v=1">\n</head>'
+            '  <link rel="stylesheet" href="/css/mobile.css?v=3">\n</head>'
           );
         }
         const buf = Buffer.from(html, 'utf8');
