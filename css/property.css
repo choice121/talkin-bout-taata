@@ -726,7 +726,7 @@
 @media (max-width: 768px) {
   .gallery-mosaic {
     grid-template-columns: 1fr;
-    height: clamp(240px, 58vw, 420px);
+    height: clamp(280px, 75vw, 420px);
     border-radius: var(--radius-xl);
   }
   .mosaic-side { display: none; }
