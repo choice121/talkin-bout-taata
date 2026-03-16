@@ -1,0 +1,66 @@
+You are a senior frontend engineer and responsive design specialist.
+
+Perform a complete responsive design and cross-device compatibility audit of this entire website.
+
+Carefully scan all HTML, CSS, and JavaScript files in the project and evaluate how the layout behaves across different screen sizes, devices, and browsers.
+
+Your goal is to identify anything that could break or display poorly on phones, tablets, laptops, large monitors, or different browsers, and explain exactly how to improve the system to achieve a professional, high-quality responsive design.
+
+Your audit should include the following areas:
+
+1. Layout & Grid System  
+Analyze all page layouts including containers, grids, cards, sections, and content blocks.  
+Identify any fixed widths, fragile layouts, overflow risks, or non-responsive structures.  
+Recommend improvements such as using CSS Grid, Flexbox, responsive containers, and fluid layouts.
+
+2. Breakpoints & Screen Sizes  
+Check whether the site properly adapts to common viewport widths such as:
+- 320px (small phones)
+- 375px (modern phones)
+- 768px (tablets)
+- 1024px (laptops)
+- 1440px (desktops)
+- 1920px (large monitors)
+- 2560px (ultra-wide displays)
+
+Identify layout issues that may occur at these sizes and explain how to fix them.
+
+3. Listing Grid & Card Layouts  
+Analyze property listing cards, grids, and galleries.  
+Check if the grid adapts correctly across screen sizes.  
+Recommend improvements such as auto-fit or auto-fill responsive grids.
+
+4. Images & Media Responsiveness  
+Verify that images, galleries, and media elements scale correctly.  
+Identify issues such as image stretching, overflow, inconsistent aspect ratios, or layout shifts.  
+Recommend fixes using responsive image techniques.
+
+5. Forms & Mobile Usability  
+Audit all forms, especially the rental application form.  
+Check if inputs, labels, and layout work well on small screens.  
+Recommend improvements for touch usability and mobile layout.
+
+6. Navigation & Menu Behavior  
+Analyze the navigation system across different screen sizes.  
+Check if the navigation breaks, wraps, or becomes unusable on smaller devices.  
+Recommend improvements for mobile navigation if necessary.
+
+7. Typography & Spacing  
+Evaluate whether fonts and spacing scale properly across different screen sizes.  
+Recommend improvements using responsive typography techniques.
+
+8. Browser Compatibility  
+Evaluate whether the code uses CSS or JavaScript features that could cause issues in major browsers.  
+Verify compatibility with modern versions of Chrome, Safari, Firefox, and Edge.
+
+9. Performance & Layout Stability  
+Check for layout shifts, inefficient CSS patterns, and rendering issues that could affect performance.
+
+10. Improvement Plan  
+At the end of the audit, provide a clear improvement plan that includes:
+- the most critical responsive issues
+- recommended layout architecture improvements
+- specific CSS techniques to implement
+- examples of improved code where necessary
+
+The final report should clearly explain how to transform this website into a fully responsive, professional-quality interface that works reliably across all modern devices, screen sizes, and browsers.

@@ -287,6 +287,7 @@ label.field-label {
 .modal-footer { padding: 16px 24px; border-top: 1px solid var(--adm-border); display: flex; justify-content: flex-end; gap: 10px; }
 
 .form-row   { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.dash-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .form-group { margin-bottom: 16px; }
 .form-group input, .form-group select, .form-group textarea { width: 100%; }
 
@@ -334,6 +335,8 @@ label.field-label {
 }
 @media (max-width: 640px) {
   .stats-grid { grid-template-columns: 1fr; }
+  .dash-two-col { grid-template-columns: 1fr; }
+  .form-row { grid-template-columns: 1fr; }
   .filter-bar { flex-direction: column; align-items: stretch; }
   .filter-bar input, .filter-bar select { min-width: unset; width: 100%; }
   .table-wrap { -webkit-overflow-scrolling: touch; }
