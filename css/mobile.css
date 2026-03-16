@@ -232,15 +232,8 @@ input[type="reset"] {
   }
 }
 
-/* Property card photo — 3:2 ratio, slightly tighter on small phones */
-.property-card-img {
-  padding-top: 62%;
-}
-@media (min-width: 480px) {
-  .property-card-img {
-    padding-top: 66.67%;
-  }
-}
+/* Property card photo — use aspect-ratio exclusively (no padding-top hack).
+   aspect-ratio is set in listings.css; no override needed here. */
 
 
 /* ── FILTER BAR ──────────────────────────────────────────── */
@@ -1004,9 +997,9 @@ html {
 
 /* ── PROPERTY CARD IMAGE — landscape phones ──────────────── */
 /* In landscape the card photos can be disproportionately short
-   because the viewport is wide. Keep a minimum ratio. */
+   because the viewport is wide. Use a wider aspect-ratio instead. */
 @media (orientation: landscape) and (max-height: 500px) {
   .property-card-img {
-    padding-top: 45%;
+    aspect-ratio: 16 / 7;
   }
 }
