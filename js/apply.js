@@ -25,6 +25,10 @@ class RentalApplication {
 
         // P1-D: Tracks whether the form has changes not yet persisted to localStorage
         this._hasUnsavedChanges = false;
+
+        // Single source of truth for which property is currently selected.
+        // Set by onPropertySelected(); read by _updateRatio, validateStep(1), and submission.
+        this._selectedPropertyId = null;
         
         // config.js must be loaded before this file
         this.BACKEND_URL = CONFIG.SUPABASE_URL + '/functions/v1/process-application';
@@ -306,20 +310,56 @@ class RentalApplication {
         }
     }
 
-    // ---------- Property load — handles both linked and direct visits ----------
-    // If a propertyId URL param is present, fetches that property and locks the card.
-    // If absent (or property inactive/not found), falls back to the full property dropdown.
-    async loadLockedProperty() {
-        const propertyId = new URLSearchParams(window.location.search).get('propertyId');
+    // ---------- Section 1 Next button helpers ----------
+    // The Next button for step 1 is disabled at page load and only enabled once
+    // a property is confirmed selected (locked or chosen from the dropdown).
+    _getSection1NextBtn() {
+        return document.querySelector('#section1 .btn-next');
+    }
+    _enableSection1Next() {
+        const btn = this._getSection1NextBtn();
+        if (!btn) return;
+        btn.disabled = false;
+        btn.style.opacity = '';
+        btn.style.cursor  = '';
+        btn.title = '';
+    }
+    _disableSection1Next(reason) {
+        const btn = this._getSection1NextBtn();
+        if (!btn) return;
+        btn.disabled = true;
+        btn.style.opacity = '0.55';
+        btn.style.cursor  = 'not-allowed';
+        btn.title = reason || '';
+    }
 
-        if (!propertyId) {
-            // No specific property in URL — show the full dropdown so user can pick one
-            const group = document.getElementById('propertySelectGroup');
-            if (group) group.style.display = '';
-            await this.loadPropertyDropdown();
-            return;
-        }
+    // ---------- Build a property object instantly from URL params ----------
+    // Produces a lightweight prop object so the locked card can render immediately,
+    // before the Supabase round-trip completes. The _formattedAddress field holds
+    // the pre-formatted address string from the URL, avoiding lossy re-parsing.
+    _buildPropertyFromURLParams(id) {
+        const p = new URLSearchParams(window.location.search);
+        return {
+            id,
+            _formattedAddress: p.get('propertyAddress') || '',
+            address:           p.get('propertyAddress') || '',
+            city:              '',
+            state:             '',
+            zip:               '',
+            title:             p.get('title')  || 'Selected Property',
+            monthly_rent:      parseFloat(p.get('rent')) || null,
+            application_fee:   parseFloat(p.get('fee'))  || 0,
+            available_date:    p.get('moveIn') || null,
+            bedrooms:          null,
+            bathrooms:         null,
+        };
+    }
 
+    // ---------- Background Supabase verify + data refresh ----------
+    // Called after the locked card is already showing (built from URL params).
+    // Fetches the live property record to confirm it is still active and to enrich
+    // the stored prop with fields the URL does not carry (beds, baths, lease terms…).
+    async _verifyAndRefreshProperty(propertyId) {
         try {
             const { data: prop, error } = await window.CP.sb()
                 .from('properties')
@@ -336,18 +376,14 @@ class RentalApplication {
                 .single();
 
             if (error || !prop) {
-                // Property not found or inactive — show dropdown as fallback
-                const group = document.getElementById('propertySelectGroup');
-                if (group) group.style.display = '';
-                await this.loadPropertyDropdown();
+                this._showPropertyUnavailableInCard();
                 return;
             }
 
-            // Store in the same map that onPropertySelected and _activatePropertyLock rely on
-            this._properties = { [prop.id]: prop };
+            // Enrich stored record with live data (adds beds/baths, lease terms, etc.)
+            this._properties[propertyId] = prop;
 
-            // Persist full property context to sessionStorage — used by the success page
-            // and any other page in the journey that needs property details without a DB call.
+            // Persist fresh full context to sessionStorage for success page and other views
             sessionStorage.setItem('cp_property_context', JSON.stringify({
                 id:               prop.id,
                 title:            prop.title,
@@ -362,21 +398,66 @@ class RentalApplication {
                 bathrooms:        prop.bathrooms        || null,
             }));
 
-            // Set select.value BEFORE calling onPropertySelected so that
-            // _updateRatio() (called inside onPropertySelected) can read the
-            // correct property ID from the select element instead of getting ''.
-            const selectEl = document.getElementById('propertySelect');
-            if (selectEl) selectEl.value = prop.id;
-
-            this.onPropertySelected(prop.id);
-            this._activatePropertyLock(prop.id);
+            // Refresh locked card meta and banners with the now-complete live data
+            this._activatePropertyLock(propertyId);
+            this.onPropertySelected(propertyId);
 
         } catch (err) {
-            // On error, fall back to the dropdown rather than hiding the form
+            // Silent — URL-param data is sufficient for the form to work offline or
+            // when Supabase is temporarily unreachable.
+        }
+    }
+
+    // ---------- Show unavailable notice inside the locked card ----------
+    _showPropertyUnavailableInCard() {
+        const card    = document.getElementById('propertyLockedCard');
+        const titleEl = document.getElementById('lockedCardTitle');
+        const metaEl  = document.getElementById('lockedCardMeta');
+        if (card) {
+            card.style.background   = '#fef2f2';
+            card.style.borderColor  = '#fca5a5';
+        }
+        if (titleEl) titleEl.textContent = 'This property is no longer available';
+        if (metaEl)  metaEl.textContent  = 'The listing may have been rented or removed. Please choose another property.';
+        this._disableSection1Next('This property is no longer available — please go back and choose another.');
+    }
+
+    // ---------- Property load — handles both linked and direct visits ----------
+    // Two-phase approach:
+    //   Phase 1 (instant) — build the locked card from URL params so there is zero
+    //                        perceived latency for users arriving from a listing page.
+    //   Phase 2 (background) — fetch the live Supabase record to verify the property
+    //                          is still active and to enrich with beds/baths/lease terms.
+    // If there is no propertyId in the URL the full property dropdown is shown instead.
+    async loadLockedProperty() {
+        const propertyId = new URLSearchParams(window.location.search).get('propertyId');
+
+        if (!propertyId) {
+            // No property in URL — open dropdown for free selection
             const group = document.getElementById('propertySelectGroup');
             if (group) group.style.display = '';
             await this.loadPropertyDropdown();
+            return;
         }
+
+        // ── Phase 1: instant locked card from URL params ─────────────────────
+        const urlProp = this._buildPropertyFromURLParams(propertyId);
+        this._properties = { [propertyId]: urlProp };
+
+        // Set select value and remove `required` before calling onPropertySelected
+        // so _updateRatio reads the correct ID and the hidden select never triggers
+        // unwanted browser or custom validation while the locked card is showing.
+        const selectEl = document.getElementById('propertySelect');
+        if (selectEl) {
+            selectEl.value = propertyId;
+            selectEl.removeAttribute('required');
+        }
+
+        this.onPropertySelected(propertyId);   // sets _selectedPropertyId, fills fields, enables Next
+        this._activatePropertyLock(propertyId); // swaps dropdown → locked card
+
+        // ── Phase 2: background verify + data refresh (non-blocking) ─────────
+        this._verifyAndRefreshProperty(propertyId);
     }
 
     // ---------- Invalid property message — shown when the URL carries no valid propertyId ----------
@@ -407,9 +488,26 @@ class RentalApplication {
     onPropertySelected(propertyId) {
         const prop = this._properties && this._properties[propertyId];
 
-        // Update hidden address field used by form submission
+        // Single source of truth — everything that needs the selected property ID
+        // should read this._selectedPropertyId rather than querying the DOM.
+        this._selectedPropertyId = propertyId || null;
+
+        // Reflect selection state in the section 1 Next button
+        if (propertyId) {
+            this._enableSection1Next();
+        } else {
+            this._disableSection1Next();
+        }
+
+        // Update hidden address field used by form submission.
+        // Prefer _formattedAddress (pre-built from URL params) over re-formatting
+        // individual components to avoid trailing ", , " when city/state are blank.
         const addrField = document.getElementById('propertyAddress');
-        if (addrField) addrField.value = prop ? `${prop.address}, ${prop.city}, ${prop.state} ${prop.zip || ''}`.trim() : '';
+        if (addrField) {
+            addrField.value = prop
+                ? (prop._formattedAddress || `${prop.address}, ${prop.city}, ${prop.state} ${prop.zip || ''}`.trim())
+                : '';
+        }
 
         // Update fee hidden field
         const feeField = document.getElementById('selectedPropertyFee');
@@ -444,7 +542,8 @@ class RentalApplication {
         if (banner && prop) {
             document.getElementById('pcbTitle').textContent = prop.title;
             const metaParts = [];
-            metaParts.push(`<i class="fas fa-map-marker-alt" style="margin-right:4px;color:#c9a84c"></i>${prop.address}, ${prop.city}, ${prop.state}`);
+            const displayAddr = prop._formattedAddress || [prop.address, prop.city, prop.state].filter(Boolean).join(', ');
+            metaParts.push(`<i class="fas fa-map-marker-alt" style="margin-right:4px;color:#c9a84c"></i>${displayAddr}`);
             if (prop.monthly_rent) metaParts.push(`<strong>$${parseInt(prop.monthly_rent).toLocaleString()}/mo</strong>`);
             if (prop.bedrooms || prop.bathrooms) metaParts.push(`${prop.bedrooms||'?'}bd / ${prop.bathrooms||'?'}ba`);
             document.getElementById('pcbMeta').innerHTML = metaParts.join(' &nbsp;·&nbsp; ');
@@ -490,11 +589,13 @@ class RentalApplication {
         const card  = document.getElementById('propertyLockedCard');
         if (!prop || !group || !card) return;
 
-        // Build the detail line shown beneath the property title
+        // Build the detail line shown beneath the property title.
+        // Use _formattedAddress (pre-built from URL params) when available so the card
+        // renders correctly even before the Supabase verify fetch returns.
         const rent  = prop.monthly_rent ? `$${parseInt(prop.monthly_rent).toLocaleString()}/mo` : '';
         const beds  = prop.bedrooms     ? `${prop.bedrooms} bed`  : '';
         const baths = prop.bathrooms    ? `${prop.bathrooms} bath` : '';
-        const addr  = [prop.address, prop.city, prop.state].filter(Boolean).join(', ');
+        const addr  = prop._formattedAddress || [prop.address, prop.city, prop.state].filter(Boolean).join(', ');
         const meta  = [addr, rent, [beds, baths].filter(Boolean).join(' · ')].filter(Boolean).join(' · ');
 
         document.getElementById('lockedCardTitle').textContent = prop.title;
@@ -504,20 +605,26 @@ class RentalApplication {
         group.style.display = 'none';
         card.style.display  = 'flex';
 
-        // Keep the hidden select in sync so validateStep(1) doesn't block progression
+        // Keep the hidden select in sync. `required` has already been removed by
+        // loadLockedProperty so it does not trigger browser or custom validation
+        // while the locked card is visible.
         const select = document.getElementById('propertySelect');
         if (select) select.value = propertyId;
 
-        // Escape hatch — clicking "Not this property?" restores the open dropdown
+        // Escape hatch — clicking "Not this property?" restores the open dropdown.
+        // Restore `required` on the select so the open-dropdown flow validates normally.
         const escapeBtn = document.getElementById('propertyLockEscape');
         if (escapeBtn) {
             escapeBtn.style.display = '';
             escapeBtn.onclick = async () => {
                 card.style.display  = 'none';
                 group.style.display = '';
-                const select = document.getElementById('propertySelect');
-                if (select) select.value = '';
-                this.onPropertySelected('');
+                const sel = document.getElementById('propertySelect');
+                if (sel) {
+                    sel.value = '';
+                    sel.setAttribute('required', '');
+                }
+                this.onPropertySelected('');   // clears _selectedPropertyId, disables Next
                 await this.loadPropertyDropdown();
             };
         }
@@ -532,7 +639,8 @@ class RentalApplication {
         if (!prop) { this._hideContextBanner(); return; }
         document.getElementById('pcbContextTitle').textContent = prop.title;
         const metaParts = [];
-        metaParts.push(`<i class="fas fa-map-marker-alt" style="margin-right:4px;color:#c9a84c"></i>${prop.address}, ${prop.city}, ${prop.state}`);
+        const displayAddr = prop._formattedAddress || [prop.address, prop.city, prop.state].filter(Boolean).join(', ');
+        metaParts.push(`<i class="fas fa-map-marker-alt" style="margin-right:4px;color:#c9a84c"></i>${displayAddr}`);
         if (prop.monthly_rent) metaParts.push(`<strong>$${parseInt(prop.monthly_rent).toLocaleString()}/mo</strong>`);
         if (prop.bedrooms || prop.bathrooms) metaParts.push(`${prop.bedrooms||'?'}bd / ${prop.bathrooms||'?'}ba`);
         document.getElementById('pcbContextMeta').innerHTML = metaParts.join(' &nbsp;·&nbsp; ');
@@ -618,6 +726,11 @@ class RentalApplication {
         this.setupPhoneFormatting();
         this.setupIncomeFormatting();
         this.prefillFromURL();
+        // Disable the section 1 Next button until a property is confirmed.
+        // loadLockedProperty (or a dropdown selection) will call onPropertySelected
+        // which re-enables it. This closes the window where a user could click Next
+        // before the property card or dropdown has finished loading.
+        this._disableSection1Next('Loading property details…');
         this.loadLockedProperty();
         this.setupTestFillVisibility();
         
@@ -1162,9 +1275,10 @@ class RentalApplication {
         const ratioDiv   = document.getElementById('incomeRatioResult');
         const ratioEl    = document.getElementById('ratioDisplay');
         const updateRatio = () => {
-            // Get rent from URL param, or fall back to the selected property's monthly rent
+            // Get rent from URL param, or fall back to the selected property's monthly rent.
+            // Use this._selectedPropertyId (single source of truth) before falling back to DOM.
             const urlRent = parseFloat(new URLSearchParams(window.location.search).get('rent')) || 0;
-            const selectedPropId = document.getElementById('propertySelect')?.value;
+            const selectedPropId = this._selectedPropertyId || document.getElementById('propertySelect')?.value;
             const propRent = (selectedPropId && this._properties && this._properties[selectedPropId])
                 ? parseFloat(this._properties[selectedPropId].monthly_rent) || 0
                 : 0;
@@ -1343,6 +1457,17 @@ class RentalApplication {
         if (data._language && data._language !== this.state.language) {
             this.state.language = data._language;
             this.applyTranslations();
+        }
+
+        // If the draft included a property selection (open-dropdown path) sync
+        // _selectedPropertyId and re-enable the section 1 Next button so the user
+        // does not get stuck with a permanently disabled Next after resuming.
+        // In the locked-property path this is a no-op since loadLockedProperty()
+        // will overwrite _selectedPropertyId via onPropertySelected() anyway.
+        const restoredSelect = document.getElementById('propertySelect');
+        if (restoredSelect && restoredSelect.value) {
+            this._selectedPropertyId = restoredSelect.value;
+            this._enableSection1Next();
         }
     }
 
@@ -2444,9 +2569,12 @@ class RentalApplication {
                 if (jsonPayload[k]) jsonPayload[k] = jsonPayload[k].replace(/[^0-9.]/g, '');
             });
 
-            // Pre-fill propertyId / landlordId from selected dropdown (Option B — always from listing)
+            // Pre-fill propertyId / landlordId from selected dropdown (Option B — always from listing).
+            // this._selectedPropertyId is the single source of truth; DOM and URL are fallbacks.
             const urlParams = new URLSearchParams(window.location.search);
-            const selectedPropId = document.getElementById('propertySelect')?.value || urlParams.get('propertyId');
+            const selectedPropId = this._selectedPropertyId
+                || document.getElementById('propertySelect')?.value
+                || urlParams.get('propertyId');
             if (selectedPropId) {
                 jsonPayload['listing_property_id'] = selectedPropId;
                 // Fetch fee from selected property record
