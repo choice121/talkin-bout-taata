@@ -1,155 +1,0 @@
-Implementation Roadmap — Choice Properties Application Form Upgrade
-
-System Impact Reference
-Before the phases, here is the master impact matrix for every type of change. Use this as the reference for every decision below.
-Change Type	DB Schema	Edge Function	Draft Save/Restore	Supabase Storage	Payment Flow	Admin Workflow
-HTML-only label/text fix	✅ None	✅ None	✅ None	✅ None	✅ None	✅ None
-New optional HTML field (no DB column)	✅ None	⚠️ Passes through as extra key (harmless)	⚠️ Minor (new key saved)	✅ None	✅ None	✅ None
-New required HTML field	✅ None	⚠️ Must map new key	⚠️ Minor (new key saved)	✅ None	✅ None	⚠️ New data visible in admin
-New field with DB column	🔴 Schema change	🔴 Must map + insert	⚠️ New key saved	✅ None	✅ None	🔴 Admin must display new column
-Removing existing required field	✅ None	⚠️ Column goes null in new records	✅ None	✅ None	✅ None	⚠️ Historical data stays, new records null
-Form step restructure (reordering)	✅ None	✅ None	🔴 Draft keys move steps — restore nav breaks	✅ None	✅ None	✅ None
-Validation logic change	✅ None	✅ None	✅ None	✅ None	✅ None	✅ None
-Translation addition	✅ None	✅ None	✅ None	✅ None	✅ None	✅ None
-JS conditional field logic	✅ None	✅ None	⚠️ Conditional fields must be covered by restore	✅ None	✅ None	✅ None
-Legal disclosure text/checkbox	✅ None*	⚠️ Should store consent timestamp	⚠️ New checkbox key	✅ None	✅ None	⚠️ Admin should see consent
-*Unless we add a consent timestamp column to the DB (recommended for legal disclosures, flagged below).
-
-Phase 1 — Bug Fixes & Critical Logic Corrections
-Scope: Isolated fixes. Zero DB changes. Zero Edge Function changes. Zero risk to existing submissions.
-These are safe to implement first because every fix is contained entirely within apply.html and js/apply.js, affects no stored data, and does not touch any submission or payment logic.
-
-Fix 1.1 — referencesHint Missing from English Translations
-What: The HTML has data-i18n="referencesHint" on a <p> tag in Step 4, but the English translation object has no referencesHint key. English applicants see an empty element. Spanish applicants correctly see "Please provide two references who are not relatives." Change: Add referencesHint key to the English translation object in apply.js. Impacts: None. Translation addition only.
-
-Fix 1.2 — Radio Button State Not Saved/Restored from Draft
-What: The _doRestoreFromDraft() method restores form state by looking up elements by id. Radio buttons (Has Pets, Has Vehicle, Ever Evicted, Smoker) have no idattributes — only name attributes — so their state is never saved into the draft object and cannot be restored. A user who selected "Yes" for pets, eviction, or vehicle returns to the default "No" state on resume. Change: Extend saveProgress() to also serialize radio group values by name, and extend _doRestoreFromDraft() to restore them by querying input[name="X"][value="Y"] and setting checked = true. Impacts:
-* Draft save/restore: Direct fix to this system only.
-* Conditional fields: The pet details group, vehicle details section, and eviction explain group should also be triggered after restore to match the restored radio state (same toggle logic already used on the initial changeevent).
-* No other impacts.
-
-Fix 1.3 — Payment "Other" Duplicate Logic Bug
-What: validatePaymentSelections() filters 'Other'values out before the uniqueness check. This allows a user to select "Other" for all three payment slots without triggering the duplicate warning. Change: Change the filter to only exclude empty strings, not "Other". Treat "Other" as a real, unique-able value the same as any other option. Impacts: Validation logic only. No UI, DB, or backend effects.
-
-Fix 1.4 — Desired Lease Term Not Required
-What: The "Desired Lease Term" dropdown is a core business field but has no required attribute and no validation. Applications can be submitted with no lease term selected. Change: Add required aria-required="true" to the #desiredLeaseTerm select, add the errRequiredmessage element below it, and ensure validateStep(1)picks it up through the standard required-field loop. Impacts: Validation logic only. The Edge Function already maps desired_lease_term — filling it in just means this column will no longer be null on new records.
-
-Fix 1.5 — propertySelect name Attribute Mislabeled
-What: The property dropdown has name="Property Address" but its value is a UUID property ID. This causes the form payload to contain "Property Address": "some-uuid". The Edge Function handles this correctly via listing_property_idseparately, but the mislabeled attribute is misleading and pollutes the form data object. Change: Change the name attribute to "Property ID" or remove it entirely (a hidden field #propertyAddressalready carries the human-readable address). Impacts: None to the Edge Function — it reads listing_property_id which comes from jsonPayload['listing_property_id'] = selectedPropId, not from the form's name. Only the raw payload key name changes.
-
-Fix 1.6 — Income-to-Rent Ratio Without URL Rent Parameter
-What: The income-to-rent ratio widget is hidden unless ?rent=XXXX is present in the URL. Users who navigate directly, bookmark the page, or arrive without the param never see this helpful indicator. Change: Modify updateRatio() to also read the rent from the selected property data (this._properties[selectedPropId].monthly_rent) if the URL parameter is absent. The property is already loaded into this._properties — extracting rent from it is a 2-line addition. The ratio then becomes visible whenever a property is selected, regardless of how the user arrived. Impacts: JS logic only. No DB, Edge Function, or draft effects.
-
-Phase 2 — Professional Completeness (HTML + JS + Translation)
-Scope: New fields and questions that match professional rental application standards. These changes add columns to the backend payload, but the Edge Function can receive unknown fields without breaking — they pass through harmlessly until a DB column is mapped. We will be explicit about which items need a DB column and which do not.
-Each item is labeled: HTML/JS only (safe immediately) or Requires DB column (coordinate with schema update).
-
-Item 2.1 — Prior Residency Section (Conditional)
-What: If an applicant has been at their current address for less than 2 years, a "Previous Address" section should appear asking for their prior address, prior landlord name, prior landlord phone, prior rent amount, prior residency duration, and reason for leaving. This is one of the largest professional gaps in the form. Trigger logic: Show the section when the "How long at this address?" field value suggests under 2 years (parse the free-text input, or add a structured select for duration). Classification: 🔴 Requires DB columns — previous_address, previous_landlord_name, previous_landlord_phone, prior_rent_amount, prior_residency_duration, prior_reason_for_leaving. Edge Function: 6 new field mappings required. Draft save/restore: New fields will automatically be picked up by the existing saveProgress() → getAllFormData()flow. Admin workflow: Admin view would show the new prior history fields on relevant applications. Payment flow: No impact.
-
-Item 2.2 — Landlord Email Address (Current Landlord)
-What: Add an email field alongside the existing landlord phone in Step 2. Classification: 🔴 Requires DB column — landlord_email. Edge Function: 1 new field mapping. Other impacts: None.
-
-Item 2.3 — Government-Issued ID Fields
-What: Add "ID Type" (dropdown: Driver's License, State ID, Passport, Other) and "ID Number" fields to Step 1 under the primary applicant section. ID Number should be treated as sensitive and stored securely. Classification: 🔴 Requires DB columns — id_type, id_number. Given sensitivity, id_number should be considered for masking in the Edge Function similar to SSN. Edge Function: 2 new mappings + masking logic for id_number. Draft save/restore: ID number should be excluded from draft saves (same treatment as SSN). Other impacts: None.
-
-Item 2.4 — Bankruptcy History Question
-What: Add "Have you ever filed for bankruptcy?" Yes/No radio in Step 4 (Additional Information section), with a conditional "Please provide context" textarea shown when "Yes" is selected, mirroring the existing eviction explain pattern exactly. Classification: ⚠️ HTML/JS only if stored in additional_info JSON blob, or Requires DB columns (ever_filed_bankruptcy, bankruptcy_explanation) if individual columns are preferred. Edge Function: Minimal — map new fields. Other impacts: Follows existing eviction pattern precisely; low implementation risk.
-
-Item 2.5 — Criminal History Disclosure
-What: Add "Have you ever been convicted of a crime?" Yes/No radio in Step 4, with a conditional explanation textarea. Note: Some jurisdictions (California, New York, Illinois, and others) restrict when this question can be asked. For a nationwide platform, the recommended approach is to include it with a note that it is "considered in compliance with applicable local laws." Classification: Same as 2.4 — ⚠️ HTML/JS only initially (stored in additional_info), or Requires DB columns for individual tracking. Other impacts: None to existing logic.
-
-Item 2.6 — Employment Start Date (Primary Applicant)
-What: Replace or supplement the free-text "How long at this job?" field with a structured date field ("Employment Start Date"). This is more verifiable and professional than a free-text duration. Recommendation: Keep the free-text "How long" field (it's user-friendly) and add an optional structured date field below it. Classification: 🔴 Requires DB column — employment_start_date. Other impacts: None.
-
-Item 2.7 — Employer Address
-What: Add employer address (city and state minimum) to Step 3 under current employment. Classification: 🔴 Requires DB column — employer_address. Other impacts: None.
-
-Item 2.8 — Co-Applicant Employment Status
-What: Add an employment status dropdown to the co-applicant section (mirrors primary applicant). Without it, a retired or student co-applicant fills in "employer" nonsensically. Classification: ⚠️ HTML/JS changes only for the dropdown and conditional field toggling. The existing Co-Applicant Employer and Co-Applicant Job Titlefields are already mapped in the Edge Function and DB. No new columns needed unless co-applicant employment status needs its own column. Other impacts: Minor JS work to add the conditional show/hide logic for co-applicant employed fields, mirroring the existing primary applicant employment conditional.
-
-Phase 3 — Legal Disclosures & Trust Signals
-Scope: Legal compliance and trust-building additions. Some require new consent checkbox fields; the most important ones require a DB column to record consent timestamp. Payment flow is entirely unaffected.
-
-Item 3.1 — Equal Housing Opportunity Statement
-What: Add the Equal Housing Opportunity logo (or the text equivalent) and statement to the form footer and/or the header. Required by the Fair Housing Act for housing providers. Proposed text: "We are an Equal Opportunity Housing Provider. We do not discriminate on the basis of race, color, national origin, religion, sex, familial status, or disability." Classification: ✅ HTML only. No logic, no DB, no backend changes. Implementation: Add to footer in apply.html. Optionally add a small Equal Housing Opportunity icon (widely available as a free SVG/PNG). Other impacts: None.
-
-Item 3.2 — Privacy Notice at SSN Entry Point
-What: Add a one-sentence contextual note directly below the SSN input in Step 6: "Your SSN (last 4 digits) is encrypted in transit and stored in masked format (e.g., XXX-XX-1234). It is used solely for identity verification and is never shared with third parties." Classification: ✅ HTML + translation addition only. No logic changes. Other impacts: None.
-
-Item 3.3 — Terms and Conditions Checkbox — Add Working Link
-What: The "I agree to the terms and conditions" label has no hyperlink. The terms document must either exist at /terms.html (already linked in the footer) or the checkbox label must link directly to it. Classification: ✅ HTML change only — wrap the text in <a href="/terms.html" target="_blank"> inside the label. Prerequisite: Verify that /terms.html and /privacy.html actually exist and are accessible. If they do not, they must be created before this change is meaningful. Other impacts: None.
-
-Item 3.4 — FCRA Disclosure (Credit & Background Check Consent)
-What: The Fair Credit Reporting Act requires a standalone, specific disclosure before running any background or credit check. The current blanket "I authorize verification" checkbox is legally insufficient. Proposed approach: Add a dedicated section in Step 6 above the existing legal checkboxes:
-* A clearly labeled box titled "Background & Credit Check Authorization"
-* The FCRA-compliant disclosure text (standard language)
-* A separate checkbox: "I have received and reviewed the required FCRA disclosure, and I authorize [Company] to obtain consumer reports for the purpose of evaluating my rental application." Classification: ⚠️ HTML + JS + minor DB consideration.New checkbox added to Step 6. Recommended: add fcra_consent_at (timestamp) column to the applications table to record when consent was given. Without this, consent is implied from the submission timestamp — legally weaker but functional. Edge Function: If DB column is added, map fcra_consent_at: new Date().toISOString() on submission. Other impacts: The handleFormSubmit() pre-submission check already validates all required checkboxes — the new FCRA checkbox would be included automatically.
-
-Item 3.5 — Data Retention Notice
-What: Add a brief statement near the legal section or privacy hint: "Application data is retained for [X] days/years in accordance with our Privacy Policy. You may request deletion at any time by contacting support." Classification: ✅ HTML + translation addition only. Other impacts: None. (The actual retention policy is a business decision, not a technical one.)
-
-Item 3.6 — Landlord Contact Transparency Notice
-What: When the landlord name/phone is entered in Step 2, add a brief field hint: "We may contact your current landlord to verify your tenancy as part of the review process." Many applicants are sensitive to this and feel more respected when told in advance. Classification: ✅ HTML only — add a field-hint div below the landlord section. Other impacts: None.
-
-Phase 4 — UX Restructuring (Form Flow Improvements)
-Scope: The most impactful but also the most carefully managed changes. Step reordering affects draft save/restore navigation (the draft saves which section number the user was on, and it saves field values by element ID). Reordering steps does not break saved values, but the user will land on a different step number when resuming. This is acceptable since the values are restored regardless of step.
-
-Item 4.1 — Move Contact Preferences Out of Step 1
-What: The "Contact Preferences" section (preferred contact method, availability, notes) currently lives at the bottom of Step 1. It is labeled "For Follow-up After Payment," making it contextually out of place in a step about identity and property selection. Proposed new location: Merge it into Step 5 (Payment Preferences), which is already about the post-submission payment contact process. This creates a unified "Payment & Contact Preferences" step and shortens Step 1 significantly. Classification: ⚠️ HTML restructure + step rebalancing. No DB changes. No Edge Function changes (field names don't change, only their HTML position). Draft key names don't change (the values are restored by element ID regardless of step). Draft save/restore impact: Users with an existing draft from before this change will have the contact preferences data restored correctly because restore is by element ID. The only difference is they land on a step that now has different content than when they saved. Acceptable. Other impacts: Step labels in the progress bar would need updating (Step 5 label changes from "Payment Preferences" to "Payment & Contact Preferences" or similar).
-
-Item 4.2 — Rebalance Step 1 Length
-What: After moving contact preferences to Step 5, Step 1 still contains: property selection + move-in date + lease term + all applicant personal info + optional co-applicant block. The co-applicant section (when expanded) adds 13+ fields. Proposed refined step structure:
-		
-		
-		
-		
-		
-		
-		
-Moving the co-applicant section to Step 4 separates the "who you are" step from the "who else is applying" step, and keeps Step 1 to a manageable length. Classification: ⚠️ HTML restructure. Same draft impact as 4.1 (acceptable). No DB or Edge Function changes.
-
-Item 4.3 — Relocate SSN Field for Visibility in Step 6
-What: The SSN input currently appears below the entire application review summary — essentially at the very bottom of Step 6. Many users scroll through the review, feel done, and miss it or feel confused. Proposed change: Move the SSN section to appear above the review summary, directly below the step heading, with clear heading context: "Before you review, please enter your security identifier." This positions it prominently as an intentional action, not an afterthought. Classification: ✅ HTML reorder only. The SSN field stays in the same step, same element IDs, same validation. No functional changes. Other impacts: None.
-
-Item 4.4 — Display Fee Amount in Step 5
-What: The payment preferences step should clearly display the application fee for the selected property. Currently the fee shows in Step 1 (property banner) and Step 6 (review), but not Step 5 where the user is actively thinking about payment. Classification: ✅ HTML + minor JS only. The fee data is already loaded in this._properties and already displayed elsewhere. This is a display-only addition.
-
-Item 4.5 — Draft Resume Banner Repositioned
-What: The draft resume banner is currently fixed to the bottom of the screen, where it can be hidden by mobile keyboards or simply overlooked. Move it to a top-fixed banner or implement it as a brief, dismissible modal on first load. Classification: ✅ JS-only change in _showDraftResumeBanner(). Other impacts: None.
-
-Item 4.6 — Progress Bar Starts at Meaningful Value
-What: Step 1 currently shows 0% progress. Change the formula to reflect "started" state — either show a minimum of ~8% on Step 1, or switch to step-dot indicators (6 dots, current dot highlighted). Classification: ✅ HTML + JS in updateProgressBar(). Pure display change.
-
-Item 4.7 — Required Field Legend
-What: Add a small "* Required fields" note near the top of each step or once above Step 1. Classification: ✅ HTML only.
-
-Item 4.8 — Payment Timeline Disclosure Before Submission
-What: Add a 3-step visual explainer to Step 5 (or Step 6): "1. You submit → 2. Our team contacts you within 24 hours → 3. Payment collected → 4. Review begins." This sets expectations and removes post-submission anxiety. Classification: ✅ HTML only. The translation system already has step1YouSubmit, step2PaymentArranged, step3ReviewBegins keys in both EN and ES — these exist in the translations but are only used on the success page. Reusing them here requires no new translation keys.
-
-Phase 5 — Optional Enhancements (Future Consideration)
-Scope: These are not required for a polished, professional, production-ready form. They are flagged as future improvements that would add value but carry meaningful complexity or cost.
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-Implementation Sequence Summary
-				
-				
-				
-				
-				
-				
-Recommended implementation order: Phase 1 → Phase 3 → Phase 4 → Phase 2 → Phase 5
-Phase 3 is placed before Phase 2 because legal disclosures are HTML-only and zero-risk, while Phase 2 requires coordinated DB + backend work. Phase 4 can run in parallel with Phase 2 DB work since the HTML restructuring doesn't touch the backend.
-
-Payment Workflow Preservation Guarantee
-Every item in this roadmap has been evaluated against the existing manual payment flow:
-Application submitted → Edge Function saves record with payment_status: 'unpaid' → Team contacts applicant → Manual collection → Status updated to paid → Review begins
-Nothing in Phases 1–4 touches this flow. The payment preferences step enhancements (fee display, timeline explainer, contact preferences relocation) are display-only additions that improve clarity without altering submission logic, backend processing, or the manual collection sequence. No Phase in this roadmap introduces automated payment processing.

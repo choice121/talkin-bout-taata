@@ -906,3 +906,99 @@ html {
 
   .container { max-width: 100% !important; padding: 0 !important; }
 }
+
+
+/* ── LANDSCAPE SHORT-VIEWPORT (phones rotated) ───────────── */
+/* On a rotated phone the viewport height can be 375-430px.
+   The hero has min-height: auto already, but its vertical
+   padding alone can push below the fold before the user sees
+   the search bar. Compress it in landscape orientation. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .hero {
+    padding-top: var(--space-8) !important;
+    padding-bottom: var(--space-8) !important;
+  }
+  .hero-headline,
+  .hero-title {
+    font-size: clamp(24px, 5vw, 40px) !important;
+  }
+  .hero-stats { display: none; }
+}
+
+
+/* ── LANDLORD LISTING-ROW — tiny phones ──────────────────── */
+/* Below 400px the 64px thumb + title + action buttons become
+   cramped in a single flex row. Stack to two rows: thumb+body
+   on top, actions below, aligned right. */
+@media (max-width: 400px) {
+  .listing-row {
+    flex-wrap: wrap;
+  }
+  .listing-row-actions {
+    width: 100%;
+    justify-content: flex-end;
+    padding-top: var(--space-2);
+    border-top: 1px solid var(--color-border-muted);
+    margin-top: var(--space-2);
+  }
+}
+
+
+/* ── ADMIN SEARCH INPUT — prevent overflow on tiny screens ── */
+/* The search input has an inline min-width:220px that can push
+   the filter row wider than the viewport on 360px handsets. */
+@media (max-width: 400px) {
+  #search,
+  input[id="search"] {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+}
+
+
+/* ── PROPERTY CONTACT CARD — full width on mobile ─────────── */
+/* The contact card in the property sidebar stacks below the
+   detail at 900px. Ensure it fills the container width. */
+@media (max-width: 900px) {
+  .contact-card {
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+
+/* ── PHOTO UPLOAD / DROP ZONE — mobile tap area ──────────── */
+/* The file drop zone has a large desktop padding that is
+   unnecessarily tall on mobile. Reduce it. */
+@media (max-width: 640px) {
+  .file-drop-zone,
+  .photo-drop-zone {
+    padding: var(--space-6) var(--space-4) !important;
+  }
+  .photo-preview-grid {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)) !important;
+  }
+}
+
+
+/* ── APPLY FORM — summary grid on tiny phones ─────────────── */
+/* The 2-column summary grid becomes too narrow on ≤360px.
+   Force single column so values aren't truncated. */
+@media (max-width: 360px) {
+  .summary-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .time-categories {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+
+/* ── PROPERTY CARD IMAGE — landscape phones ──────────────── */
+/* In landscape the card photos can be disproportionately short
+   because the viewport is wide. Keep a minimum ratio. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .property-card-img {
+    padding-top: 45%;
+  }
+}
