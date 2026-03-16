@@ -164,7 +164,7 @@
                 <!-- Property selector — hidden by default; applicants always arrive via a listing URL -->
                 <div class="form-group" id="propertySelectGroup" style="display:none">
                   <label class="required" for="propertySelect" data-i18n="propertySelectLabel">Select Property You Are Applying For</label>
-                  <select id="propertySelect" name="Property Select" required aria-required="true" aria-describedby="propertySelectError" style="width:100%;padding:12px 16px;border:1.5px solid #dde1e8;border-radius:8px;font-size:15px;background:#fff;color:#1a2233;appearance:auto">
+                  <select id="propertySelect" required aria-required="true" aria-describedby="propertySelectError" style="width:100%;padding:12px 16px;border:1.5px solid #dde1e8;border-radius:8px;font-size:15px;background:#fff;color:#1a2233;appearance:auto">
                     <option value="">Loading available properties…</option>
                   </select>
                   <div class="error-message" id="propertySelectError">Please select a property to apply for</div>
@@ -726,7 +726,7 @@
                 <h2><i class="fas fa-list-ul"></i> <span data-i18n="financialHeader">References & Emergency Contact</span></h2>
 
                 <h3 data-i18n="personalReferences">Personal References</h3>
-                
+                <p class="field-hint" data-i18n="referencesHint" style="margin-bottom:12px;">Please provide two references who are not relatives</p>
 
                 <div class="form-row">
                     <div class="form-col">

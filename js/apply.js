@@ -422,6 +422,9 @@ class RentalApplication {
         }
 
         this._showContextBanner(prop);
+
+        // Recalculate income-to-rent ratio now that a property is known
+        if (typeof this._updateRatio === 'function') this._updateRatio();
     }
 
     // ---------- Lock property selection when arriving from a listing ----------
@@ -998,7 +1001,7 @@ class RentalApplication {
         const s3 = document.getElementById('thirdPayment').value;
         const warning = document.getElementById('paymentDuplicateWarning');
         let hasDuplicate = false;
-        const values = [s1, s2, s3].filter(v => v && v !== 'Other');
+        const values = [s1, s2, s3].filter(v => v);
         const uniqueValues = new Set(values);
         if (values.length !== uniqueValues.size) hasDuplicate = true;
         if (warning) warning.style.display = hasDuplicate ? 'block' : 'none';
@@ -1094,14 +1097,19 @@ class RentalApplication {
         const ratioDiv   = document.getElementById('incomeRatioResult');
         const ratioEl    = document.getElementById('ratioDisplay');
         const updateRatio = () => {
-            // Get rent from URL param (passed when navigating from a property listing)
+            // Get rent from URL param, or fall back to the selected property's monthly rent
             const urlRent = parseFloat(new URLSearchParams(window.location.search).get('rent')) || 0;
-            const income  = parseFloat((incomeInput?.value || '').replace(/[^0-9.]/g, '')) || 0;
-            const other   = parseFloat((otherIncomeInput?.value || '').replace(/[^0-9.]/g, '')) || 0;
-            const total   = income + other;
+            const selectedPropId = document.getElementById('propertySelect')?.value;
+            const propRent = (selectedPropId && this._properties && this._properties[selectedPropId])
+                ? parseFloat(this._properties[selectedPropId].monthly_rent) || 0
+                : 0;
+            const rent  = urlRent || propRent;
+            const income = parseFloat((incomeInput?.value || '').replace(/[^0-9.]/g, '')) || 0;
+            const other  = parseFloat((otherIncomeInput?.value || '').replace(/[^0-9.]/g, '')) || 0;
+            const total  = income + other;
             if (!ratioDiv || !ratioEl) return;
-            if (total > 0 && urlRent > 0) {
-                const ratio = (total / urlRent).toFixed(1);
+            if (total > 0 && rent > 0) {
+                const ratio = (total / rent).toFixed(1);
                 ratioEl.textContent = ratio + 'x';
                 ratioDiv.style.display = 'flex';
                 // Colour-code: >=3x good, 2-3x ok, <2x warning
@@ -1110,8 +1118,13 @@ class RentalApplication {
                 ratioDiv.style.display = 'none';
             }
         };
+        // Store reference so onPropertySelected() can re-trigger it when property changes
+        this._updateRatio = updateRatio;
         if (incomeInput)      incomeInput.addEventListener('input', updateRatio);
         if (otherIncomeInput) otherIncomeInput.addEventListener('input', updateRatio);
+        // Also recalculate when the property dropdown selection changes
+        const propSelect = document.getElementById('propertySelect');
+        if (propSelect) propSelect.addEventListener('change', updateRatio);
     }
 
     setupFileUploads() {}
@@ -1209,6 +1222,31 @@ class RentalApplication {
                 else el.value = data[key];
             }
         });
+
+        // Restore radio button groups — saved by FormData name, not by element id
+        const radioGroups = ['Has Pets', 'Has Vehicle', 'Ever Evicted', 'Smoker'];
+        radioGroups.forEach(name => {
+            const savedValue = data[name];
+            if (!savedValue) return;
+            const radio = document.querySelector(
+                `input[name="${CSS.escape(name)}"][value="${CSS.escape(savedValue)}"]`
+            );
+            if (radio) radio.checked = true;
+        });
+
+        // Re-trigger conditional field visibility to match restored radio state
+        const petsYes     = document.getElementById('petsYes');
+        const petGroup    = document.getElementById('petDetailsGroup');
+        if (petsYes && petGroup) petGroup.style.display = petsYes.checked ? '' : 'none';
+
+        const vehicleYes    = document.getElementById('vehicleYes');
+        const vehicleSect   = document.getElementById('vehicleDetailsSection');
+        if (vehicleYes && vehicleSect) vehicleSect.style.display = vehicleYes.checked ? 'block' : 'none';
+
+        const evictedYes    = document.getElementById('evictedYes');
+        const evictGroup    = document.getElementById('evictionExplainGroup');
+        if (evictedYes && evictGroup) evictGroup.style.display = evictedYes.checked ? '' : 'none';
+
         if (data._language && data._language !== this.state.language) {
             this.state.language = data._language;
             this.applyTranslations();
@@ -1458,7 +1496,7 @@ class RentalApplication {
                 // ── Step 4: References ──
                 financialHeader: 'References & Emergency Contact',
                 personalReferences: 'Personal References',
-                referencesHint: 'Please provide two references who are not related to you',
+                referencesHint: 'Please provide two references who are not relatives',
                 ref1NameLabel: 'Reference 1 Name',
                 ref1PhoneLabel: 'Reference 1 Phone',
                 ref1EmailLabel: 'Reference 1 Email',
