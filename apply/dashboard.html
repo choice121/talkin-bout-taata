@@ -334,6 +334,8 @@ async function lookup(appId) {
   // Fetch lease financial fields if a lease has been issued.
   // get_lease_financials() is gated by last name — if it returns null,
   // flag it so the UI can show a fallback message instead of blank values.
+  // After P5-3 this also returns tenant_sign_token for building the sign link,
+  // and lease_pdf_url (the storage path) for the download button.
   if (app.lease_status && app.lease_status !== 'none') {
     const { data: fin } = await CP.sb().rpc('get_lease_financials', {
       p_app_id:    appId,
@@ -345,6 +347,20 @@ async function lookup(appId) {
     } else {
       app._financialsUnavailable = true;
     }
+  }
+
+  // Generate a fresh signed URL for the private lease-pdfs bucket.
+  // The stored lease_pdf_url is a storage object PATH (not a URL).
+  // Signed URL generation requires authentication; unauthenticated tenants
+  // are shown a "sign in to download" prompt instead.
+  app._leasePdfSignedUrl = null;
+  if (app.lease_pdf_url && currentUser) {
+    try {
+      const { data: signedData } = await CP.sb().storage
+        .from('lease-pdfs')
+        .createSignedUrl(app.lease_pdf_url, 3600);
+      if (signedData?.signedUrl) app._leasePdfSignedUrl = signedData.signedUrl;
+    } catch(_) {}
   }
 
   // If authenticated and this app isn't linked to the user yet, offer to claim it
@@ -430,7 +446,7 @@ function renderDetailView(app, msgs) {
         ${app.lease_status === 'sent' ? `
           <div class="callout"><h4>📋 Lease Agreement Ready for Signature</h4>
           <p>Your lease agreement has been sent to your email. Please review and sign it <strong>${leaseDeadlineText(app.lease_expiry_date)}</strong>.</p>
-          <a href="lease.html?id=${escapeHTML(app.app_id)}" class="cta-btn">Review &amp; Sign Lease</a></div>` : ''}
+          <a href="lease.html?id=${escapeHTML(app.app_id)}${app.tenant_sign_token ? '&token=' + encodeURIComponent(app.tenant_sign_token) : ''}" class="cta-btn">Review &amp; Sign Lease</a></div>` : ''}
         ${app.lease_status === 'awaiting_co_sign' ? `
           <div class="callout gold"><h4>⏳ Awaiting Co-Applicant Signature</h4>
           <p>Your signature has been recorded. Your co-applicant (<strong>${escapeHTML(app.co_applicant_email || 'co-applicant')}</strong>) has been sent a signing link to their email address. The lease will be fully executed once they sign.</p>
@@ -438,11 +454,11 @@ function renderDetailView(app, msgs) {
         ${app.lease_status === 'co_signed' ? `
           <div class="callout green"><h4>✓ Lease Fully Executed — Tenancy Confirmed</h4>
           <p>All parties have signed. Your tenancy is confirmed. Our team will coordinate move-in payment and key handoff. Rent: ${CP.UI.fmt.currency(app.monthly_rent)}/mo · Start: ${CP.UI.fmt.date(app.lease_start_date)}</p>
-          ${app.lease_pdf_url ? `<a href="${escapeHTML(app.lease_pdf_url)}" target="_blank" class="cta-btn" style="background:#f0fdf4;color:#065f46;border:1px solid #6ee7b7;margin-top:8px">📄 Download Signed Lease</a>` : ''}</div>` : ''}
+          ${app._leasePdfSignedUrl ? `<a href="${escapeHTML(app._leasePdfSignedUrl)}" target="_blank" class="cta-btn" style="background:#f0fdf4;color:#065f46;border:1px solid #6ee7b7;margin-top:8px">📄 Download Signed Lease</a>` : (app.lease_pdf_url ? `<div style="font-size:.78rem;color:var(--muted);margin-top:10px;padding:10px 14px;background:#f8f9fa;border-radius:6px;border:1px solid var(--border)"><a href="/apply/login.html?redirect=${encodeURIComponent('/apply/dashboard.html?id=' + app.app_id)}" style="color:#1e40af;font-weight:600">Sign in to your account</a> to download your signed lease document.</div>` : `<p style="font-size:.78rem;color:var(--muted);margin-top:8px">Your signed lease document is being prepared. Check back shortly or contact our leasing team if it hasn't arrived within 24 hours.</p>`)}</div>` : ''}
         ${app.lease_status === 'signed' && !app.has_co_applicant ? `
           <div class="callout green"><h4>✓ Lease Executed — Tenancy Confirmed</h4>
           <p>Your lease has been signed and your tenancy is confirmed. Our team will coordinate move-in payment and key handoff. Rent: ${CP.UI.fmt.currency(app.monthly_rent)}/mo · Start: ${CP.UI.fmt.date(app.lease_start_date)}</p>
-          ${app.lease_pdf_url ? `<a href="${escapeHTML(app.lease_pdf_url)}" target="_blank" class="cta-btn" style="background:#f0fdf4;color:#065f46;border:1px solid #6ee7b7;margin-top:8px">📄 Download Signed Lease</a>` : ''}</div>` : ''}
+          ${app._leasePdfSignedUrl ? `<a href="${escapeHTML(app._leasePdfSignedUrl)}" target="_blank" class="cta-btn" style="background:#f0fdf4;color:#065f46;border:1px solid #6ee7b7;margin-top:8px">📄 Download Signed Lease</a>` : (app.lease_pdf_url ? `<div style="font-size:.78rem;color:var(--muted);margin-top:10px;padding:10px 14px;background:#f8f9fa;border-radius:6px;border:1px solid var(--border)"><a href="/apply/login.html?redirect=${encodeURIComponent('/apply/dashboard.html?id=' + app.app_id)}" style="color:#1e40af;font-weight:600">Sign in to your account</a> to download your signed lease document.</div>` : `<p style="font-size:.78rem;color:var(--muted);margin-top:8px">Your signed lease document is being prepared. Check back shortly or contact our leasing team if it hasn't arrived within 24 hours.</p>`)}</div>` : ''}
         ${app.status === 'denied' ? `
           <div class="callout" style="border-left-color:#991b1b"><h4>Application Not Approved</h4>
           <p>Thank you for applying. Unfortunately we are unable to offer tenancy at this time. You may apply for any other Choice Properties listing within 30 days at no additional fee.</p>

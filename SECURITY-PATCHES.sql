@@ -596,3 +596,193 @@ GRANT EXECUTE ON FUNCTION get_apps_by_email(text) TO anon, authenticated;
 
 
 SELECT 'Security patches phase 4 applied.' AS result;
+
+
+-- ============================================================
+-- PHASE 5 SECURITY PATCHES
+-- Apply AFTER phase 1–4 above.
+-- Fixes: co-sign void/expiry guard, missing DB columns,
+--        tenant_sign_token exposure in get_lease_financials,
+--        expired lease auto-marking utility.
+-- ============================================================
+
+
+-- ── P5-1. Fix sign_lease_co_applicant — add void & expiry guards ──────────────
+-- The original function lacked void, expiry, and application-not-found checks
+-- that exist on sign_lease() for the primary applicant. This inconsistency
+-- allowed co-applicants to sign voided or expired leases.
+CREATE OR REPLACE FUNCTION sign_lease_co_applicant(
+  p_app_id    text,
+  p_signature text,
+  p_ip        text
+) RETURNS json LANGUAGE plpgsql SECURITY DEFINER AS $$
+DECLARE
+  v_app applications%rowtype;
+BEGIN
+  SELECT * INTO v_app FROM applications WHERE app_id = p_app_id;
+
+  IF NOT FOUND THEN
+    RETURN json_build_object('success', false, 'error', 'Application not found');
+  END IF;
+
+  IF NOT v_app.has_co_applicant THEN
+    RETURN json_build_object('success', false, 'error', 'No co-applicant on this application');
+  END IF;
+
+  IF v_app.lease_status = 'voided' THEN
+    RETURN json_build_object('success', false, 'error', 'This lease has been voided');
+  END IF;
+
+  IF v_app.lease_status = 'expired' OR
+     (v_app.lease_expiry_date IS NOT NULL AND v_app.lease_expiry_date < now()) THEN
+    UPDATE applications SET lease_status = 'expired' WHERE app_id = p_app_id;
+    RETURN json_build_object('success', false, 'error', 'This lease link has expired');
+  END IF;
+
+  IF v_app.co_applicant_signature IS NOT NULL THEN
+    RETURN json_build_object('success', false, 'error', 'Co-applicant lease already signed');
+  END IF;
+
+  UPDATE applications SET
+    co_applicant_signature           = p_signature,
+    co_applicant_signature_timestamp = now(),
+    lease_ip_address                 = COALESCE(NULLIF(p_ip, ''), lease_ip_address),
+    lease_status                     = 'co_signed'
+  WHERE app_id = p_app_id;
+
+  RETURN json_build_object('success', true);
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION sign_lease_co_applicant(text, text, text) TO anon, authenticated;
+
+
+-- ── P5-2. Add missing application columns ────────────────────────────────────
+-- These columns are written by Edge Functions (generate-lease, process-application,
+-- sign-lease) but were never declared in SCHEMA.sql, causing silent column-not-found
+-- errors on fresh Supabase projects.
+DO $$
+BEGIN
+  -- Token for co-applicant signing link (generate-lease sets, sign-lease verifies)
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'applications'
+      AND column_name = 'co_applicant_lease_token'
+  ) THEN
+    ALTER TABLE applications ADD COLUMN co_applicant_lease_token text;
+  END IF;
+
+  -- Supabase Auth user_id of the primary applicant (set by process-application)
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'applications'
+      AND column_name = 'applicant_user_id'
+  ) THEN
+    ALTER TABLE applications ADD COLUMN applicant_user_id text;
+  END IF;
+
+  -- Co-applicant employment status (collected in application form)
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'applications'
+      AND column_name = 'co_applicant_employment_status'
+  ) THEN
+    ALTER TABLE applications ADD COLUMN co_applicant_employment_status text;
+  END IF;
+
+  -- State code snapshot at lease generation time (generate-lease sets this)
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'applications'
+      AND column_name = 'lease_state_code'
+  ) THEN
+    ALTER TABLE applications ADD COLUMN lease_state_code text;
+  END IF;
+
+  -- Signature timestamp (primary applicant; sign-lease sets this)
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'applications'
+      AND column_name = 'signature_timestamp'
+  ) THEN
+    ALTER TABLE applications ADD COLUMN signature_timestamp timestamptz;
+  END IF;
+
+  -- Co-applicant signature timestamp (sign-lease sets this)
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'applications'
+      AND column_name = 'co_applicant_signature_timestamp'
+  ) THEN
+    ALTER TABLE applications ADD COLUMN co_applicant_signature_timestamp timestamptz;
+  END IF;
+END $$;
+
+
+-- ── P5-3. get_lease_financials — expose tenant_sign_token ────────────────────
+-- The dashboard "Sign Lease" button builds the link as
+-- lease.html?id=<app_id>&token=<token>. Without the token the sign-lease Edge
+-- Function returns "Invalid signing link" for all new leases (those with a
+-- non-NULL tenant_sign_token set by generate-lease).
+-- Returning the token here is safe: the caller must supply app_id AND last_name
+-- (same gate as the other financial fields), and the token is useless without
+-- the matching app_id.
+CREATE OR REPLACE FUNCTION get_lease_financials(p_app_id text, p_last_name text)
+RETURNS json LANGUAGE plpgsql SECURITY DEFINER AS $$
+DECLARE
+  v_app applications%rowtype;
+BEGIN
+  SELECT * INTO v_app
+  FROM applications
+  WHERE app_id = p_app_id
+    AND (
+      lower(trim(last_name))                 = lower(trim(p_last_name))
+      OR lower(trim(co_applicant_last_name)) = lower(trim(p_last_name))
+    );
+
+  IF NOT FOUND THEN
+    RETURN NULL;
+  END IF;
+
+  RETURN json_build_object(
+    'monthly_rent',         v_app.monthly_rent,
+    'security_deposit',     v_app.security_deposit,
+    'move_in_costs',        v_app.move_in_costs,
+    'lease_late_fee_flat',  v_app.lease_late_fee_flat,
+    'lease_late_fee_daily', v_app.lease_late_fee_daily,
+    'co_applicant_email',   v_app.co_applicant_email,
+    'lease_pdf_url',        v_app.lease_pdf_url,
+    'tenant_sign_token',    v_app.tenant_sign_token
+  );
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION get_lease_financials(text, text) TO anon, authenticated;
+
+
+-- ── P5-4. mark_expired_leases() — bulk expiry reconciliation ─────────────────
+-- Leases stay in status='sent' in the DB even after their expiry_date passes
+-- because nothing automatically flips the status. This function corrects stale
+-- rows and is called by the admin Leases page on every load so the pipeline
+-- always shows accurate statuses.
+CREATE OR REPLACE FUNCTION mark_expired_leases()
+RETURNS integer LANGUAGE plpgsql SECURITY DEFINER AS $$
+DECLARE
+  v_count integer;
+BEGIN
+  UPDATE applications
+  SET lease_status = 'expired'
+  WHERE lease_status = 'sent'
+    AND lease_expiry_date IS NOT NULL
+    AND lease_expiry_date < now();
+
+  GET DIAGNOSTICS v_count = ROW_COUNT;
+  RETURN v_count;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION mark_expired_leases() TO authenticated;
+
+
+-- ── P5 Done ──────────────────────────────────────────────────────────────────
+SELECT 'Security patches phase 5 applied.' AS result;

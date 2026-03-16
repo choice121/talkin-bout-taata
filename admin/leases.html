@@ -24,7 +24,7 @@
     <button class="mobile-menu-btn" id="menuBtn" aria-label="Open menu"><i class="fas fa-bars"></i></button><div><div class="page-title">Lease Pipeline</div><div class="page-sub" id="count-label">Loading…</div></div></div>
 <div class="content">
 <div class="filter-bar">
-<select id="f-lease" onchange="applyFilter()"><option value="">All Lease Statuses</option><option value="sent">Sent — Awaiting Signature</option><option value="signed">Signed</option><option value="co_signed">Co-Signed</option><option value="voided">Voided</option><option value="expired">Expired</option></select>
+<select id="f-lease" onchange="applyFilter()"><option value="">All Lease Statuses</option><option value="sent">Sent — Awaiting Signature</option><option value="awaiting_co_sign">Awaiting Co-Sign</option><option value="signed">Signed</option><option value="co_signed">Co-Signed</option><option value="voided">Voided</option><option value="expired">Expired</option></select>
 <input type="text" id="search" placeholder="Search name or App ID…" oninput="applyFilter()">
 </div>
 <div class="card"><div class="table-wrap"><table>
@@ -39,11 +39,34 @@ document.addEventListener('DOMContentLoaded', async()=>{
   const user=await CP.Auth.getUser(); document.getElementById('admin-name').textContent=user?.email||'Admin';
   const params=new URLSearchParams(location.search);
   if(params.get('filter')) document.getElementById('f-lease').value=params.get('filter');
+  // Auto-mark leases as expired where expiry_date has passed (DB status may lag behind)
+  await CP.sb().rpc('mark_expired_leases').catch(()=>{});
   await load(); CP.subscribeToApplications(load);
 });
 async function load(){
-  const {data}=await CP.sb().from('applications').select('app_id,first_name,last_name,email,property_address,lease_status,monthly_rent,security_deposit,move_in_costs,lease_sent_date,lease_signed_date,lease_expiry_date,tenant_signature,co_applicant_signature').neq('lease_status','none').order('lease_sent_date',{ascending:false});
+  const {data}=await CP.sb().from('applications').select('app_id,first_name,last_name,email,property_address,lease_status,monthly_rent,security_deposit,move_in_costs,lease_late_fee_flat,lease_late_fee_daily,lease_start_date,lease_end_date,lease_sent_date,lease_signed_date,lease_expiry_date,tenant_signature,co_applicant_signature,desired_lease_term').neq('lease_status','none').order('lease_sent_date',{ascending:false});
   all=data||[]; applyFilter();
+}
+async function resendLease(appId) {
+  const app = all.find(a => a.app_id === appId);
+  if (!app) return;
+  if (!await CP.UI.cpConfirm(`Resend the lease for <strong>${appId}</strong>? This generates a new signing link and emails it to the tenant. Any existing unsigned signatures are cleared.`, { confirmLabel: 'Resend Lease', cancelLabel: 'Cancel' })) return;
+  const res = await fetch(`${CONFIG.SUPABASE_URL}/functions/v1/generate-lease`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'apikey': CONFIG.SUPABASE_ANON_KEY, 'Authorization': `Bearer ${(await CP.Auth.getSession())?.access_token || CONFIG.SUPABASE_ANON_KEY}` },
+    body: JSON.stringify({
+      app_id:           appId,
+      resend:           true,
+      rent:             app.monthly_rent,
+      deposit:          app.security_deposit,
+      move_in:          app.move_in_costs,
+      lease_start_date: app.lease_start_date,
+      late_fee_flat:    app.lease_late_fee_flat,
+      late_fee_daily:   app.lease_late_fee_daily,
+    })
+  }).then(r => r.json()).catch(e => ({ success: false, error: e.message }));
+  if (res.success) { CP.UI.toast('Lease resent successfully.', 'success'); await load(); }
+  else CP.UI.toast('Resend failed: ' + (res.error || 'Unknown error'), 'error');
 }
 async function voidLease(appId) {
   if (!await CP.UI.cpConfirm(`Void the lease for application <strong>${appId}</strong>? This cannot be undone. The tenant will see "Lease Voided" and must be contacted manually.`, { confirmLabel: 'Void Lease', cancelLabel: 'Keep Lease', danger: true })) return;
@@ -84,6 +107,9 @@ function applyFilter(){
     <td class="text-muted">${CP.UI.fmt.date(a.lease_expiry_date)}</td>
     <td style="white-space:nowrap">
       <a href="applications.html?id=${a.app_id}" class="btn btn-ghost btn-sm">View</a>
+      ${(a.lease_status === 'sent' || a.lease_status === 'expired')
+        ? `<button class="btn btn-sm" style="background:#1d4ed8;margin-top:4px;padding:6px 10px;font-size:.7rem" onclick="resendLease('${a.app_id}')">↺ Resend</button>`
+        : ''}
       ${(a.lease_status !== 'voided' && a.lease_status !== 'expired' && a.lease_status !== 'co_signed')
         ? `<button class="btn btn-sm" style="background:#991b1b;margin-top:4px;padding:6px 10px;font-size:.7rem" onclick="voidLease('${a.app_id}')">✕ Void</button>`
         : ''}

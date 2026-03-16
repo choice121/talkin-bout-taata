@@ -73,6 +73,10 @@ const signToken   = params.get('token');     // primary tenant signing token (Fi
 const coToken     = params.get('co_token');  // present only for co-applicant links
 const isCoLink    = !!coToken;               // true = this is a co-applicant signing URL
 
+// Module-level application object — set after loading so doSign/doCoSign
+// can validate the typed signature against the applicant name on record.
+let currentApp = null;
+
 if (!appId) {
   document.getElementById('main').innerHTML = err('Invalid Link', 'This lease link is invalid or missing. Please check your email for the correct link.');
 } else {
