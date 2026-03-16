@@ -1,70 +1,88 @@
-# Choice Properties — Replit Configuration
+# Choice Properties — Replit Environment
 
-## Overview
-Choice Properties is a nationwide rental marketplace static site. It's served by a Node.js static file server (`serve.js`) and connects to a hosted Supabase project for database, authentication, and backend logic (Edge Functions).
+## Project Overview
+Choice Properties is a nationwide rental marketplace — a **static site** served by a lightweight Node.js file server (`serve.js`). All backend logic runs as **Supabase Edge Functions** hosted on Supabase cloud. There is no local database and no ORM.
 
 ## Architecture
-- **Frontend**: Pure HTML/CSS/JS static files, no build step required
-- **Server**: `serve.js` — Node.js HTTP server that:
-  1. Reads environment secrets and generates `config.js` at startup
-  2. Serves all static files with correct MIME types, gzip compression, cache headers, and security headers
-- **Backend**: Supabase (hosted externally)
-  - Database: Supabase Postgres
-  - Auth: Supabase Auth (OTP/magic link for applicants; email/password for landlords and admins)
-  - API: Supabase Edge Functions (in `supabase/functions/`)
-  - Storage: Supabase Storage (lease PDFs in `lease-pdfs` bucket)
+- **Frontend**: Static HTML/CSS/JS files served from the project root
+- **Server**: `serve.js` — Node.js HTTP server (no Express), port 5000
+- **Backend API**: Supabase Edge Functions (Deno, hosted on Supabase cloud)
+- **Database**: Supabase Postgres (hosted on Supabase cloud)
+- **Image CDN**: ImageKit
+- **Email relay**: Google Apps Script (GAS) relay for transactional emails
+- **Address autocomplete**: Geoapify
 
-## Running the Project
-The workflow "Start application" runs `node serve.js` on port 5000.
+## How It Works
+On startup, `serve.js`:
+1. Reads Replit environment secrets
+2. Regenerates `config.js` with those values so the browser has access to public keys
+3. Starts the HTTP server on port 5000
 
-On startup, `serve.js` auto-generates `config.js` from environment secrets, making Supabase credentials available to the browser.
+The browser then uses the Supabase JS client (loaded from CDN in HTML files) to call Supabase Edge Functions and query the database directly with Row-Level Security.
 
-## Required Secrets
-Set these in Replit Secrets:
-- `SUPABASE_URL` — Your Supabase project URL (https://xxxx.supabase.co)
-- `SUPABASE_ANON_KEY` — Your Supabase anon/public key
+## Workflow
+- **"Start application"** runs `node serve.js` on port 5000 (mapped to external port 80)
 
-## Optional Secrets
-- `IMAGEKIT_URL` / `IMAGEKIT_PUBLIC_KEY` — For image CDN/optimization
-- `GEOAPIFY_API_KEY` — For address autocomplete
-- `COMPANY_NAME`, `COMPANY_EMAIL`, `COMPANY_PHONE`, `COMPANY_TAGLINE`, `COMPANY_ADDRESS`
-- `ADMIN_EMAILS` — Comma-separated admin email addresses
-- `LEASE_DEFAULT_LATE_FEE_FLAT`, `LEASE_DEFAULT_LATE_FEE_DAILY`, `LEASE_DEFAULT_EXPIRY_DAYS`
-- `FEATURE_CO_APPLICANT`, `FEATURE_VEHICLE_INFO`, `FEATURE_DOCUMENT_UPLOAD`, `FEATURE_MESSAGING`, `FEATURE_REALTIME_UPDATES` — Set to `false` to disable features
+## Environment Secrets Required
+Set these in Replit's Secrets panel. The server reads them at startup and injects public-safe values into `config.js`:
+
+| Secret | Description |
+|--------|-------------|
+| `SUPABASE_URL` | Your Supabase project URL (e.g. `https://xyz.supabase.co`) |
+| `SUPABASE_ANON_KEY` | Supabase public anon key (safe for browser) |
+| `IMAGEKIT_URL` | ImageKit URL endpoint (e.g. `https://ik.imagekit.io/yourID`) |
+| `IMAGEKIT_PUBLIC_KEY` | ImageKit public key |
+| `GEOAPIFY_API_KEY` | Geoapify address autocomplete key |
+| `COMPANY_NAME` | Display name (default: "Choice Properties") |
+| `COMPANY_EMAIL` | Contact email |
+| `COMPANY_PHONE` | Contact phone |
+| `COMPANY_TAGLINE` | Tagline (default: "Your trust is our standard.") |
+| `COMPANY_ADDRESS` | Business address |
+| `ADMIN_EMAILS` | Comma-separated admin email list |
+| `LEASE_DEFAULT_LATE_FEE_FLAT` | Default flat late fee (default: 50) |
+| `LEASE_DEFAULT_LATE_FEE_DAILY` | Default daily late fee (default: 10) |
+| `LEASE_DEFAULT_EXPIRY_DAYS` | Lease link expiry in days (default: 7) |
+| `FEATURE_CO_APPLICANT` | Enable co-applicant (default: true) |
+| `FEATURE_VEHICLE_INFO` | Enable vehicle info (default: true) |
+| `FEATURE_DOCUMENT_UPLOAD` | Enable document upload (default: true) |
+| `FEATURE_MESSAGING` | Enable messaging (default: true) |
+| `FEATURE_REALTIME_UPDATES` | Enable realtime (default: true) |
+
+**Supabase Edge Function secrets** (set in Supabase Dashboard → Edge Functions → Secrets, NOT here):
+- `GAS_EMAIL_URL` — Google Apps Script email relay URL
+- `GAS_RELAY_SECRET` — Secret token for GAS relay authentication
+- `IMAGEKIT_PRIVATE_KEY` — ImageKit private key (never expose to browser)
+- `DASHBOARD_URL` — Public site root URL (used to build signing links in emails)
+- `ADMIN_EMAIL` — Admin notification email for process-application
 
 ## Key Files
 - `serve.js` — Static file server + config.js generator
-- `config.js` — Auto-generated browser config (do not edit manually)
-- `config.example.js` — Reference template for config values
-- `js/cp-api.js` — Main Supabase API client used across all pages
-- `js/apply.js` — Application form logic
-- `supabase/functions/` — Edge Functions deployed to Supabase cloud
+- `config.js` — Auto-generated at startup from env secrets (do not edit manually)
+- `config.example.js` — Template showing all config fields with placeholder values
+- `generate-config.js` — CI/CD build-time config generator (for Cloudflare Pages etc.)
+- `js/cp-api.js` — Shared Supabase API client used by all pages
+- `js/apply.js` — Rental application form logic
+- `js/imagekit.js` — ImageKit upload helper
+- `supabase/functions/` — Edge Function source (deployed to Supabase cloud)
+
+## Page Structure
+- `/` — Public listings homepage
+- `/property.html` — Individual property detail page
+- `/apply.html` — Rental application form
+- `/apply/dashboard.html` — Applicant status dashboard
+- `/apply/lease.html` — Lease signing page
+- `/admin/` — Admin dashboard (login, applications, listings, leases, messages)
+- `/landlord/` — Landlord portal (dashboard, listings, applications, messages)
 
 ## Supabase Edge Functions
-All backend logic runs as Supabase Edge Functions (Deno). They are deployed to your Supabase project, not to Replit:
-- `process-application` — Handles rental application form submissions
-- `update-status` — Updates application status (admin/landlord only)
-- `mark-paid` — Marks application fee as paid
-- `generate-lease` — Generates lease records and sends signing links
-- `sign-lease` — Handles tenant/co-applicant lease signing and PDF generation
-- `mark-movein` — Records move-in completion
-- `send-message` — Sends messages between admin/landlord and applicants
-- `send-inquiry` — Handles property inquiry emails
-- `get-application-status` — Rate-limited status check for tenants
-- `imagekit-upload` — Secure server-side image upload to ImageKit CDN
-
-## Pages
-- `/` — Public listings homepage
-- `/property.html` — Individual property listing
-- `/apply.html` — Rental application form
-- `/apply/dashboard.html` — Tenant application status dashboard
-- `/apply/lease.html` — Lease signing page
-- `/apply/login.html` — Applicant OTP login
-- `/admin/` — Admin dashboard (requires admin login)
-- `/landlord/` — Landlord portal (requires landlord login)
-
-## Security
-- Supabase anon key and URL are exposed to the browser (this is correct and expected for Supabase)
-- All sensitive secrets (service role key, GAS relay secret, ImageKit private key) live only in Supabase Edge Function secrets — never in the browser
-- SSNs are masked to last-4 digits server-side before storage
-- Admin/landlord actions are gated by server-side auth checks in Edge Functions
+All deployed to Supabase cloud — not run locally:
+- `process-application` — Receives application form submissions, saves to DB, fires emails
+- `get-application-status` — Rate-limited status lookup for applicants
+- `generate-lease` — Admin-triggered lease generation with state compliance
+- `sign-lease` — Tenant/co-applicant signing, PDF generation, void action
+- `update-status` — Admin/landlord application status updates
+- `send-message` — Admin/landlord → tenant messaging
+- `send-inquiry` — Property inquiry emails + app-ID recovery
+- `mark-paid` — Mark application fee as paid
+- `mark-movein` — Record tenant move-in
+- `imagekit-upload` — Server-side ImageKit upload (keeps private key secure)
