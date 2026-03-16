@@ -259,7 +259,16 @@ const redirect = params.get('redirect') || '/apply/dashboard.html';
 let   currentEmail = '';
 let   countdownInterval = null;
 
-// If already signed in, redirect immediately
+// ── Magic link callback + session check ───────────────────
+// Supabase auto-processes magic link tokens from the URL on load.
+// onAuthStateChange fires with SIGNED_IN if a valid token is found,
+// so clicking the email link signs the user in without needing the OTP input.
+CP.sb().auth.onAuthStateChange((event, session) => {
+  if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session) {
+    window.location.replace(redirect);
+  }
+});
+
 async function checkExistingSession() {
   const session = await CP.ApplicantAuth.getSession();
   if (session) window.location.replace(redirect);
