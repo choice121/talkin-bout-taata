@@ -208,36 +208,37 @@ input[type="reset"] {
 
 
 /* ── PROPERTY GRID ───────────────────────────────────────── */
-/* Force single column on small phones */
+/* Mobile-first: single column on small phones, widens at each breakpoint */
 .property-grid {
   grid-template-columns: 1fr !important;
   gap: var(--space-4);
 }
 @media (min-width: 540px) {
   .property-grid {
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: var(--space-4) !important;
   }
 }
-@media (min-width: 1024px) {
+@media (min-width: 900px) {
   .property-grid {
     grid-template-columns: repeat(3, 1fr) !important;
     gap: var(--space-5) !important;
   }
 }
-@media (min-width: 1400px) {
+@media (min-width: 1320px) {
   .property-grid {
     grid-template-columns: repeat(4, 1fr) !important;
     gap: var(--space-6) !important;
   }
 }
 
-/* Property card photo — slightly shorter on small phones */
+/* Property card photo — 3:2 ratio, slightly tighter on small phones */
 .property-card-img {
-  padding-top: 56%;
+  padding-top: 62%;
 }
 @media (min-width: 480px) {
   .property-card-img {
-    padding-top: 62.5%;
+    padding-top: 66.67%;
   }
 }
 

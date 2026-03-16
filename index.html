@@ -642,15 +642,19 @@ function applyFilters(props) {
 
 /* ─── Build card ─── */
 function buildCard(p) {
-  const photos  = p.photo_urls?.length ? p.photo_urls : ['/assets/placeholder-property.jpg'];
-  const avail   = p.available_date ? formatAvail(p.available_date) : 'Available Now';
+  const photos   = p.photo_urls?.length ? p.photo_urls : ['/assets/placeholder-property.jpg'];
+  const avail    = p.available_date ? formatAvail(p.available_date) : 'Available Now';
   const availNow = !p.available_date || new Date(p.available_date) <= new Date();
   const applyURL = buildApplyURL(p);
-  const dom = getDaysOnMarket(p.created_at);
+  const dom      = getDaysOnMarket(p.created_at);
   const typeLabel = capitalize(p.property_type || 'Property');
 
+  // sizes hint lets the browser pick the right source without downloading CSS
+  // breakpoints mirror grid: <540 = 1col, <900 = 2col, <1320 = 3col, ≥1320 = 4col
+  const imgSizes = '(max-width: 539px) calc(100vw - 32px), (max-width: 899px) calc(50vw - 28px), (max-width: 1319px) calc(33vw - 32px), calc(25vw - 32px)';
+
   const slidesHtml = photos.map((url, i) =>
-    `<div class="property-card-slide"><img src="${CONFIG.img(url,'card')}" alt="${p.title} photo ${i+1}" loading="${i===0?'eager':'lazy'}" ${i===0?'fetchpriority="high"':''} decoding="async" onload="this.classList.add('cp-img-loaded')" onerror="this.classList.add('cp-img-loaded');this.src='/assets/placeholder-property.jpg'"></div>`
+    `<div class="property-card-slide"><img src="${CONFIG.img(url,'card')}" alt="${p.title} photo ${i+1}" sizes="${imgSizes}" loading="${i===0?'eager':'lazy'}" ${i===0?'fetchpriority="high"':''} decoding="async" onload="this.classList.add('cp-img-loaded')" onerror="this.classList.add('cp-img-loaded');this.src='/assets/placeholder-property.jpg'"></div>`
   ).join('');
 
   const tags = [];
@@ -661,6 +665,21 @@ function buildCard(p) {
   const badgeClass = dom === 0 ? 'badge-new' : dom <= 3 ? 'badge-green' : dom <= 14 ? 'badge-amber' : 'badge-slate';
   const badgeText  = dom === 0 ? 'New Today' : dom <= 3 ? 'New' : typeLabel;
   const addrLine   = [p.address, p.city, p.state].filter(Boolean).join(', ');
+
+  // Landlord / agent attribution
+  const landlord     = p.landlords;
+  const agentName    = landlord ? (landlord.business_name || landlord.contact_name || '') : '';
+  const agentAvatar  = landlord?.avatar_url ? CONFIG.img(landlord.avatar_url, 'avatar') : null;
+  const agentVerified = landlord?.verified === true;
+  const agentHtml    = agentName ? `
+    <div class="property-card-agent">
+      ${agentAvatar
+        ? `<img class="property-card-agent-avatar" src="${agentAvatar}" alt="${agentName}" loading="lazy" onerror="this.style.display='none'">`
+        : `<span class="property-card-agent-avatar" style="background:var(--color-brand-pale);display:inline-flex;align-items:center;justify-content:center;"><i class="fas fa-user" style="font-size:9px;color:var(--color-brand)"></i></span>`
+      }
+      <span class="property-card-agent-name">${agentName}</span>
+      ${agentVerified ? `<i class="fas fa-circle-check property-card-agent-verified" title="Verified landlord"></i>` : ''}
+    </div>` : '';
 
   return `
     <article class="property-card" data-id="${p.id}">
@@ -684,7 +703,7 @@ function buildCard(p) {
         <a href="/property.html?id=${p.id}" style="text-decoration:none">
           <div class="property-card-title">${p.title}</div>
         </a>
-        <div class="property-card-addr"><i class="fas fa-map-marker-alt"></i>${addrLine}</div>
+        <div class="property-card-addr"><i class="fas fa-location-dot"></i>${addrLine}</div>
         <div class="property-card-meta">
           ${p.bedrooms != null ? `<div class="property-card-meta-item"><i class="fas fa-bed"></i>${p.bedrooms === 0 ? 'Studio' : p.bedrooms + ' Bed'}</div>` : ''}
           ${p.bathrooms  ? `<div class="property-card-meta-item"><i class="fas fa-bath"></i>${p.bathrooms} Bath</div>` : ''}
@@ -697,12 +716,13 @@ function buildCard(p) {
             ${avail}
           </div>
           <div class="property-card-footer-actions">
-            <a href="/property.html?id=${p.id}" class="property-card-view">View</a>
+            <a href="/property.html?id=${p.id}" class="property-card-view">Details</a>
             <a href="${applyURL}" class="property-card-apply" onclick="window.trackApply('${p.id}')">
               Apply <i class="fas fa-arrow-right"></i>
             </a>
           </div>
         </div>
+        ${agentHtml}
       </div>
     </article>`;
 }
