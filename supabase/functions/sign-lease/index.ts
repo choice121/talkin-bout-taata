@@ -25,14 +25,22 @@ function buildLeaseHTML(app: any): string {
 
   let compliance: any = {}
   try { compliance = JSON.parse(app.lease_compliance_snapshot || '{}') } catch(_) {}
-  const eSignLaw    = compliance.eSignLaw    || 'E-SIGN Act (15 U.S.C. §7001)'
+  const eSignLaw      = compliance.eSignLaw    || 'E-SIGN Act (15 U.S.C. §7001)'
   const depositReturn = compliance.depositReturn || 30
-  const noticeDays  = compliance.noticeToVacate  || 30
+  const noticeDays    = compliance.noticeToVacate || 30
+  const gracePeriod   = compliance.gracePeriod ?? 5
   const disclosures: string[] = compliance.disclosures || ['Lead paint disclosure for pre-1978 properties']
-  const today       = new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' })
-  const signedAt    = app.lease_signed_date
+  const today         = new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' })
+  const signedAt      = app.lease_signed_date
     ? new Date(app.lease_signed_date).toLocaleString('en-US', { year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' })
     : today
+  const isMtM         = (app.desired_lease_term || '').toLowerCase().includes('month-to-month')
+    || (app.desired_lease_term || '').toLowerCase() === 'month to month'
+  const termType      = app.desired_lease_term || '12-Month Fixed Term'
+  const endDateDisplay = isMtM ? 'Month-to-Month (no fixed end date)' : fmtDate(app.lease_end_date)
+  const termNarrative = isMtM
+    ? `This tenancy shall commence on <strong>${fmtDate(app.lease_start_date)}</strong> and shall continue on a month-to-month basis, terminable by either party upon <strong>${noticeDays} days</strong> written notice. There is no fixed end date.`
+    : `The tenancy shall commence on <strong>${fmtDate(app.lease_start_date)}</strong> and terminate on <strong>${fmtDate(app.lease_end_date)}</strong>. This Agreement shall not automatically convert to a month-to-month tenancy after the Termination Date without express written agreement by both parties.`
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -75,10 +83,10 @@ function buildLeaseHTML(app: any): string {
 <h2>Article 2 — Lease Term</h2>
 <table class="info">
   <tr><td>Commencement Date</td><td><strong>${fmtDate(app.lease_start_date)}</strong></td></tr>
-  <tr><td>Termination Date</td><td><strong>${fmtDate(app.lease_end_date)}</strong></td></tr>
-  <tr><td>Lease Type</td><td>${app.desired_lease_term || '12-Month Fixed Term'}</td></tr>
+  <tr><td>Termination Date</td><td><strong>${endDateDisplay}</strong></td></tr>
+  <tr><td>Lease Type</td><td>${escHtml(termType)}</td></tr>
 </table>
-<p>The tenancy shall commence on <strong>${fmtDate(app.lease_start_date)}</strong> and terminate on <strong>${fmtDate(app.lease_end_date)}</strong>. This Agreement shall not convert to a month-to-month tenancy after the end date without express written agreement by both parties.</p>
+<p>${termNarrative}</p>
 
 <h2>Article 3 — Rent</h2>
 <div class="fin-row"><span>Monthly Rent</span><span><strong>$${fmt(app.monthly_rent)}</strong></span></div>
@@ -87,43 +95,49 @@ function buildLeaseHTML(app: any): string {
 <p style="margin-top:10px">Rent of <strong>$${fmt(app.monthly_rent)}</strong> is due on the first (1st) day of each calendar month via a payment method agreed with the Landlord's leasing team.</p>
 
 <h2>Article 4 — Late Fees</h2>
-<p>If rent is not received by the applicable grace period under state law, a late fee of <strong>$${lateFeeFlat}</strong> will be assessed immediately, plus <strong>$${lateFeeDaily} per day</strong> for each additional day rent remains unpaid. Time is of the essence with respect to rent payment.</p>
+<p>Rent not received within <strong>${gracePeriod} days</strong> of the due date (as permitted by applicable state law) shall be subject to a flat late fee of <strong>$${lateFeeFlat}</strong>, plus <strong>$${lateFeeDaily} per day</strong> for each additional day rent remains unpaid thereafter. Time is of the essence with respect to rent payment.</p>
 
 <h2>Article 5 — Security Deposit</h2>
-<p>A security deposit of <strong>$${fmt(app.security_deposit)}</strong> is held by Landlord and will be returned within <strong>${depositReturn} days</strong> of lease termination as required by applicable state law, less any deductions itemized in writing for damages or unpaid rent.</p>
+<p>A security deposit of <strong>$${fmt(app.security_deposit)}</strong> is held by Landlord and will be returned within <strong>${depositReturn} days</strong> of lease termination as required by applicable state law, less any deductions itemized in writing for damages beyond normal wear and tear or unpaid rent.</p>
 
 <h2>Article 6 — Move-In Costs</h2>
 <p>Prior to taking possession, Tenant shall pay the total move-in amount of <strong>$${fmt(app.move_in_costs)}</strong> (first month's rent of $${fmt(app.monthly_rent)} + security deposit of $${fmt(app.security_deposit)}). Possession is not delivered until all move-in funds are received and confirmed.</p>
 
-<h2>Article 7 — Use of Premises</h2>
-<p>The Premises shall be used solely as a private residential dwelling by the named Tenant(s) and approved occupants. No commercial activity, subletting, or assignment without prior written consent of Landlord. Tenant shall comply with all applicable laws, ordinances, and community rules.</p>
+<h2>Article 7 — Utilities</h2>
+<p>Unless otherwise specified in a separate written addendum signed by both parties, Tenant shall be solely responsible for establishing service accounts and paying all costs for utilities serving the Premises, including but not limited to electricity, natural gas, water, sewer, trash collection, telephone, internet, and cable or streaming services. Landlord shall not be liable for any interruption, failure, or reduction in utility service not caused by Landlord's direct action.</p>
 
-<h2>Article 8 — Maintenance and Repairs</h2>
-<p>Tenant shall maintain the Premises in a clean, sanitary, and habitable condition. Tenant shall promptly notify Landlord of any damage or required repairs. Tenant is responsible for damage caused by negligence or intentional acts of Tenant, guests, or occupants. No alterations without prior written consent.</p>
+<h2>Article 8 — Use of Premises</h2>
+<p>The Premises shall be used solely as a private residential dwelling by the named Tenant(s) and approved occupants listed in the application. No commercial activity, subletting, or assignment of this Agreement is permitted without the prior written consent of Landlord. Tenant shall comply with all applicable laws, ordinances, homeowner association rules, and community guidelines.</p>
 
-<h2>Article 9 — Entry by Landlord</h2>
-<p>Landlord or Landlord's agents may enter the Premises at reasonable times with advance notice as required by applicable law for inspection, repairs, or showing to prospective tenants or purchasers.</p>
+<h2>Article 9 — Maintenance and Repairs</h2>
+<p>Tenant shall maintain the Premises in a clean, sanitary, and habitable condition. Tenant shall promptly notify Landlord in writing of any damage or required repairs. Tenant is responsible for all damage caused by negligence or intentional acts of Tenant, guests, or occupants. No structural or cosmetic alterations shall be made to the Premises without prior written consent of Landlord.</p>
 
-<h2>Article 10 — Pets and Smoking</h2>
+<h2>Article 10 — Entry by Landlord</h2>
+<p>Landlord or Landlord's authorized agents may enter the Premises at reasonable times with advance notice as required by applicable state law for purposes including inspection, repairs, or showing the Premises to prospective tenants or purchasers. In cases of emergency, Landlord may enter without prior notice.</p>
+
+<h2>Article 11 — Pets and Smoking</h2>
 <p><strong>Pets:</strong> ${petPolicy}</p>
 <p><strong>Smoking:</strong> ${smokingPolicy}</p>
 
-<h2>Article 11 — Default and Termination</h2>
-<p>A material breach of this Agreement, including non-payment of rent, entitles Landlord to terminate upon the notice period required by applicable state law (minimum <strong>${noticeDays} days</strong> written notice for this jurisdiction). Tenant shall vacate upon termination. Holdover tenancy without written consent results in liability for damages.</p>
+<h2>Article 12 — Default and Termination</h2>
+<p>A material breach of this Agreement — including but not limited to non-payment of rent after the <strong>${gracePeriod}-day</strong> grace period, unauthorized subletting, or violation of community rules — entitles Landlord to deliver written notice of termination as required by applicable state law (minimum <strong>${noticeDays} days</strong> written notice for this jurisdiction). Tenant shall vacate the Premises on or before the date specified in such notice. Holdover tenancy without Landlord's written consent shall result in Tenant's liability for double rent and all damages caused thereby.</p>
 
-<h2>Article 12 — Notice to Vacate</h2>
-<p>Either party may terminate at the end of the lease term upon written notice as required by applicable state law. For this jurisdiction, a minimum of <strong>${noticeDays} days</strong> written notice is required.</p>
+<h2>Article 13 — Early Termination</h2>
+<p>If Tenant wishes to terminate this Agreement before the Termination Date specified in Article 2, Tenant shall provide Landlord with written notice as required under Article 14 and shall remain obligated for all rent and charges through the earlier of: (i) the Termination Date, or (ii) the date a qualified replacement tenant, approved by Landlord, takes possession of the Premises. Landlord shall make commercially reasonable efforts to re-let the Premises to mitigate Tenant's continuing liability. Tenant's early termination obligations are governed by applicable state law.</p>
 
-<h2>Article 13 — Governing Law</h2>
-<p>This Agreement is governed by the laws of the state in which the Premises is located. Disputes shall be resolved in the courts of that jurisdiction.</p>
+<h2>Article 14 — Notice to Vacate</h2>
+<p>Either party may terminate this Agreement at the end of the lease term upon written notice delivered to the other party as required by applicable state law. For this jurisdiction, a minimum of <strong>${noticeDays} days</strong> written notice is required prior to the intended move-out date.</p>
 
-<h2>Article 14 — Electronic Signature</h2>
+<h2>Article 15 — Governing Law</h2>
+<p>This Agreement is governed by the laws of the state in which the Premises is located. Any dispute arising under this Agreement shall be resolved in the appropriate courts of that jurisdiction.</p>
+
+<h2>Article 16 — Electronic Signature</h2>
 <p>This Agreement may be executed by electronic signature, which is legally binding to the same extent as a handwritten signature pursuant to the <strong>${eSignLaw}</strong>. Each party's electronic signature constitutes their original signature for all purposes.</p>
 
-<h2>Article 15 — Entire Agreement</h2>
-<p>This Agreement constitutes the entire agreement between the parties and supersedes all prior agreements. It may only be modified by written instrument signed by both parties.</p>
+<h2>Article 17 — Entire Agreement</h2>
+<p>This Agreement, together with any written addenda signed by both parties, constitutes the entire agreement between the parties and supersedes all prior oral or written agreements, understandings, or representations. It may only be modified by a written instrument signed by both Landlord and Tenant.</p>
 
-<h2>Article 16 — Required Disclosures</h2>
+<h2>Article 18 — Required Disclosures</h2>
 ${disclosures.map((d: string) => `<div class="disclosure">⚠️ ${d}</div>`).join('\n')}
 <div class="disclosure">⚠️ Equal Housing Opportunity: This property is offered in compliance with all applicable federal, state, and local fair housing laws. Discrimination on the basis of any protected class is prohibited.</div>
 

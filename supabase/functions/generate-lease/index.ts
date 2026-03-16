@@ -59,11 +59,14 @@ const STATE_COMPLIANCE: Record<string, any> = {
   DC:{ depositReturn:45,noticeToVacate:30,eSignLaw:'DC Uniform Electronic Transactions Act',depositCap:null,lateFeeMax:null,eviNotice:'30 days',disclosures:['Lead paint disclosure for pre-1978 properties','Housing provider registration disclosure'] },
 }
 
-const BASE_COMPLIANCE = { depositReturn:30,noticeToVacate:30,eSignLaw:'federal Electronic Signatures in Global and National Commerce Act (E-SIGN Act, 15 U.S.C. §7001)',depositCap:null,lateFeeMax:null,eviNotice:'3 days',disclosures:['Lead paint disclosure required for pre-1978 properties'] }
+const BASE_COMPLIANCE = { depositReturn:30,noticeToVacate:30,gracePeriod:5,eSignLaw:'federal Electronic Signatures in Global and National Commerce Act (E-SIGN Act, 15 U.S.C. §7001)',depositCap:null,lateFeeMax:null,eviNotice:'3 days',disclosures:['Lead paint disclosure required for pre-1978 properties'] }
 
 function getStateCompliance(stateCode: string) {
   if (!stateCode) return BASE_COMPLIANCE
-  return STATE_COMPLIANCE[stateCode.toUpperCase()] || BASE_COMPLIANCE
+  const state = STATE_COMPLIANCE[stateCode.toUpperCase()]
+  if (!state) return BASE_COMPLIANCE
+  // Merge: state-specific values override base, but base fills in any missing fields
+  return { ...BASE_COMPLIANCE, ...state }
 }
 
 function extractState(address: string): string {
@@ -78,7 +81,8 @@ function extractState(address: string): string {
 function calcLeaseEnd(startDate: string, term: string): string {
   const d = new Date(startDate)
   const t = (term || '').toLowerCase()
-  if (t.includes('month-to-month') || t.includes('month to month')) { d.setMonth(d.getMonth() + 1) }
+  // Month-to-month has no fixed end date — return empty so DB stores null
+  if (t.includes('month-to-month') || t.includes('month to month')) { return '' }
   else if (t.includes('6')) { d.setMonth(d.getMonth() + 6) }
   else { d.setFullYear(d.getFullYear() + 1) }
   d.setDate(d.getDate() - 1)
@@ -188,7 +192,7 @@ Deno.serve(async (req) => {
       lease_status:              'sent',
       lease_sent_date:           new Date().toISOString(),
       lease_start_date:          startDate,
-      lease_end_date:            endDate,
+      lease_end_date:            endDate || null,
       monthly_rent:              rent,
       security_deposit:          deposit,
       move_in_costs:             moveIn,
@@ -225,7 +229,7 @@ Deno.serve(async (req) => {
       property:          app.property_address,
       term:              app.desired_lease_term || '12 Months',
       startDate:         new Date(startDate).toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' }),
-      endDate:           new Date(endDate).toLocaleDateString('en-US',   { year:'numeric', month:'long', day:'numeric' }),
+      endDate:           endDate ? new Date(endDate).toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' }) : 'Month-to-Month',
       rent, deposit, move_in_costs: moveIn,
       start_date: startDate, end_date: endDate,
       lease_link:        leaseLink,
