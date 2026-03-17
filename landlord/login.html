@@ -84,6 +84,7 @@
         <span id="errorMsg"></span>
       </div>
 
+      <form id="loginForm" onsubmit="event.preventDefault(); document.getElementById('loginBtn').click()">
       <div class="form-group">
         <label class="form-label">Email Address</label>
         <input type="email" class="form-input" id="emailInput" placeholder="you@example.com" autocomplete="email">
@@ -101,9 +102,10 @@
         <a href="#" id="forgotLink" style="font-size:13px;color:#2563eb">Forgot password?</a>
       </div>
 
-      <button class="btn btn-dark btn-full btn-lg" id="loginBtn">
+      <button type="submit" class="btn btn-dark btn-full btn-lg" id="loginBtn">
         <i class="fas fa-sign-in-alt"></i> Sign In
       </button>
+      </form>
 
       <div class="auth-divider">or</div>
 
