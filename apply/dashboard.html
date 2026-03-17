@@ -474,6 +474,14 @@ function renderDetailView(app, msgs) {
           <div class="callout green"><h4>✓ Lease Executed — Tenancy Confirmed</h4>
           <p>Your lease has been signed and your tenancy is confirmed. Our team will coordinate move-in payment and key handoff. Rent: ${CP.UI.fmt.currency(app.monthly_rent)}/mo · Start: ${CP.UI.fmt.date(app.lease_start_date)}</p>
           ${app._leasePdfSignedUrl ? `<a href="${escapeHTML(app._leasePdfSignedUrl)}" target="_blank" class="cta-btn" style="background:#f0fdf4;color:#065f46;border:1px solid #6ee7b7;margin-top:8px">📄 Download Signed Lease</a>` : (app.lease_pdf_url ? `<div style="font-size:.78rem;color:var(--muted);margin-top:10px;padding:10px 14px;background:#f8f9fa;border-radius:6px;border:1px solid var(--border)"><a href="/apply/login.html?redirect=${encodeURIComponent('/apply/dashboard.html?id=' + app.app_id)}" style="color:#1e40af;font-weight:600">Sign in to your account</a> to download your signed lease document.</div>` : `<p style="font-size:.78rem;color:var(--muted);margin-top:8px">Your signed lease document is being prepared. Check back shortly or contact our leasing team if it hasn't arrived within 24 hours.</p>`)}</div>` : ''}
+        ${((app.lease_status === 'signed' && !app.has_co_applicant) || app.lease_status === 'co_signed') && app.move_in_status !== 'completed' ? `
+          <div class="callout" style="border-left-color:#0369a1;background:#f0f9ff;border-color:#bae6fd">
+            <h4>🏠 Next Step: Move-In Coordination</h4>
+            <p>Your leasing team will contact you to arrange your move-in payment and key handoff.
+            ${app.move_in_costs ? `Total due at move-in: <strong>${CP.UI.fmt.currency(app.move_in_costs)}</strong>.` : `Move-in total includes your first month's rent and security deposit.`}
+            ${app.lease_start_date ? ` Your lease begins <strong>${CP.UI.fmt.date(app.lease_start_date)}</strong>.` : ''}
+            Please keep your phone accessible and watch for our call or text.</p>
+          </div>` : ''}
         ${app.status === 'denied' ? `
           <div class="callout" style="border-left-color:#991b1b"><h4>Application Not Approved</h4>
           <p>Thank you for applying. Unfortunately we are unable to offer tenancy at this time. You may apply for any other Choice Properties listing within 30 days at no additional fee.</p>
@@ -501,10 +509,16 @@ function renderDetailView(app, msgs) {
                 ${escapeHTML(m.message)}
               </div>`).join('')}
           </div>
-          <div class="reply-area">
-            <textarea id="reply-input" placeholder="Reply to your leasing team…"></textarea>
-            <button class="btn" id="reply-btn" data-appid="${escapeHTML(app.app_id)}" data-name="${escapeHTML(app.first_name + ' ' + app.last_name)}">Send</button>
-          </div>
+          ${currentUser
+            ? `<div class="reply-area">
+                <textarea id="reply-input" placeholder="Reply to your leasing team…" oninput="document.getElementById('reply-btn').disabled=!this.value.trim()"></textarea>
+                <button class="btn" id="reply-btn" disabled data-appid="${escapeHTML(app.app_id)}" data-name="${escapeHTML(app.first_name + ' ' + app.last_name)}">Send</button>
+              </div>`
+            : `<div class="signin-prompt" style="margin-top:12px">
+                <i class="fas fa-lock" style="margin-right:5px"></i>
+                <a href="/apply/login.html?redirect=${encodeURIComponent('/apply/dashboard.html?id=' + app.app_id)}">Sign in</a>
+                to send a message to your leasing team.
+              </div>`}
         </div>` : ''}
 
       </div>

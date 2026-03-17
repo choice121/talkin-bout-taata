@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 Every task, fix, or update must add an entry. Most recent changes appear first.
 
+## [2026-03-17] — Tenant Dashboard: Auth Gate, Move-In Callout, Empty Reply Guard
+
+- **Auth gate on reply area (`apply/dashboard.html`):** Unauthenticated users who look up an application by App ID now see a "Sign in to send a message" prompt instead of the reply textarea. Previously, anyone knowing an App ID could call `submit_tenant_reply` as that tenant without being signed in. The compose area only renders when `currentUser` is set.
+- **Move-in coordination callout (`apply/dashboard.html`):** When a lease is fully signed (`signed` or `co_signed`) and `move_in_status` is not yet `completed`, a new blue "Next Step: Move-In Coordination" callout appears below the tenancy confirmation. It shows the total move-in amount (from `move_in_costs` if available, or a generic description) and the lease start date, so tenants know what to expect before the team reaches out.
+- **Empty reply guard (`apply/dashboard.html`):** The Send button now starts disabled and only enables when the textarea contains non-whitespace content (`oninput` event). The existing early-return guard in the click handler remains as a second layer of defence.
+
 ## [2026-03-15] — Admin Dashboard Polish (6 Small Fixes)
 
 - **Favicon** added to all 9 admin pages — `assets/favicon.svg` is now linked in every `<head>`, eliminating the 404 console error and showing the correct browser tab icon.
