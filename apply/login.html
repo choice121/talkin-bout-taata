@@ -194,7 +194,7 @@ input[type=email]:focus,input[type=text]:focus{border-color:var(--brand);box-sha
         <svg viewBox="0 0 24 24" fill="none" width="28" height="28"><path d="M3 9.5L12 3L21 9.5V20C21 20.55 20.55 21 20 21H15V15H9V21H4C3.45 21 3 20.55 3 20V9.5Z" fill="white" opacity="0.9"/><circle cx="12" cy="11" r="2.5" fill="rgba(37,99,235,0.9)"/></svg>
       </div>
       <div class="card-title">Track Your Application</div>
-      <div class="card-sub">Enter the email you applied with and we'll send you a secure 6-digit code — no password needed. Code is valid for 60 minutes.</div>
+      <div class="card-sub">Enter the email you applied with and we'll send you a secure 8-digit code — no password needed. Code is valid for 60 minutes.</div>
     </div>
 
     <!-- Step 1: Email entry -->
@@ -224,12 +224,12 @@ input[type=email]:focus,input[type=text]:focus{border-color:var(--brand);box-sha
     <!-- Step 2: OTP code entry -->
     <div class="step" id="step-otp">
       <div class="otp-hint">
-        A 6-digit code was sent to<br><strong id="otp-email-display"></strong>
+        An 8-digit code was sent to<br><strong id="otp-email-display"></strong>
       </div>
 
       <label for="otp-input">Enter your code</label>
       <div class="otp-input-wrap">
-        <input type="text" id="otp-input" placeholder="000000" maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code">
+        <input type="text" id="otp-input" placeholder="00000000" maxlength="8" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code">
       </div>
       <div class="otp-timer" id="otp-timer">Code expires in <span id="otp-countdown">60:00</span></div>
       <div class="err" id="otp-err"></div>
@@ -359,7 +359,7 @@ window.sendOTP = async function() {
 document.getElementById('otp-input').addEventListener('input', function() {
   const digitsOnly = this.value.replace(/\D/g, '');
   if (this.value !== digitsOnly) this.value = digitsOnly;
-  if (digitsOnly.length === 6) verifyOTP();
+  if (digitsOnly.length === 8) verifyOTP();
 });
 document.getElementById('otp-input').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') verifyOTP();
@@ -385,8 +385,8 @@ window.verifyOTP = async function() {
   errEl.style.display = 'none';
   if (okEl) okEl.style.display = 'none';
 
-  if (code.length !== 6) {
-    errEl.textContent = 'Please enter the 6-digit code from your email.';
+  if (code.length !== 8) {
+    errEl.textContent = 'Please enter the 8-digit code from your email.';
     errEl.style.display = 'block';
     return;
   }
