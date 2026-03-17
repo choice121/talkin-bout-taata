@@ -36,7 +36,7 @@ Any AI that sees this project for the first time and feels the urge to "set it u
 - ❌ Add any backend packages to `package.json`
 - ❌ Set, request, or configure `SUPABASE_URL` / `SUPABASE_ANON_KEY` as Replit secrets unless the user explicitly asks for Replit preview connectivity
 - ❌ Attempt to "complete the setup" or "configure the environment" — there is nothing to configure
-- ❌ Modify `serve.js`, `.replit`, `generate-config.js`, `SCHEMA.sql`, or `SECURITY-PATCHES.sql` unless the user explicitly asks
+- ❌ Modify `serve.js`, `.replit`, `generate-config.js`, or `SETUP.sql` unless the user explicitly asks
 - ❌ Touch any file in `supabase/functions/` unless the user explicitly asks
 - ❌ Propose, plan, or discuss any form of database migration
 

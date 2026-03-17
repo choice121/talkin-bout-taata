@@ -9,8 +9,5 @@
   },
   "engines": {
     "node": ">=18"
-  },
-  "devDependencies": {
-    "pg": "^8.20.0"
   }
 }

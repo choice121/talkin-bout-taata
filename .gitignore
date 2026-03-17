@@ -11,6 +11,7 @@ config.js
 
 # Supabase local dev artifacts
 .supabase/
+supabase/.temp/
 
 # Node (if you ever run anything locally)
 node_modules/

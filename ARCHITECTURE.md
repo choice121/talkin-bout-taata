@@ -89,7 +89,7 @@ These functions are NOT part of this repository's local runtime. They run on Den
 | `admin_roles` | Admin user registry |
 | `saved_properties` | Tenant saved listings |
 
-Row Level Security (RLS) is enabled on all tables. Schema is in `SCHEMA.sql`; security patches are in `SECURITY-PATCHES.sql`.
+Row Level Security (RLS) is enabled on all tables. The complete schema, all security patches, and all migrations are in `SETUP.sql` — the single source of truth for database setup.
 
 ---
 
@@ -182,7 +182,7 @@ Browser → POST /functions/v1/process-application
 
 ## Deployment Checklist
 
-- [ ] Supabase project created, `SCHEMA.sql` and `SECURITY-PATCHES.sql` run
+- [ ] Supabase project created, `SETUP.sql` run in SQL Editor (single file — covers everything)
 - [ ] Supabase Edge Function secrets set (7 secrets — see SETUP.md)
 - [ ] Google Apps Script deployed, URL added as `GAS_EMAIL_URL` secret
 - [ ] Supabase Auth redirect URLs configured

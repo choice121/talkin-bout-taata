@@ -194,15 +194,15 @@ async function checkDatabase() {
     const tables = ['applications','properties','landlords','messages','email_logs','admin_roles'];
     const results = await Promise.all(tables.map(t => sb.from(t).select('*', {count:'exact',head:true})));
     const failed = tables.filter((t,i) => results[i].error && results[i].error.code !== 'PGRST116');
-    if (failed.length) fail('schema', 'Incomplete', 'Missing tables: ' + failed.join(', ') + ' — re-run SCHEMA.sql');
+    if (failed.length) fail('schema', 'Incomplete', 'Missing tables: ' + failed.join(', ') + ' — re-run SETUP.sql');
     else ok('schema', 'All tables exist', tables.join(', '));
   } catch(e) { fail('schema', 'Error', e.message); }
 
   running('security');
   try {
     const { data, error } = await sb.storage.getBucket('lease-pdfs');
-    if (error) warn('security', 'Cannot verify', 'Run SECURITY-PATCHES.sql if not done yet');
-    else if (data && data.public === true) fail('security', 'Bucket is PUBLIC', 'SECURITY-PATCHES.sql not run — lease PDFs are publicly accessible! Run it now.');
+    if (error) warn('security', 'Cannot verify', 'Run SETUP.sql if not done yet');
+    else if (data && data.public === true) fail('security', 'Bucket is PUBLIC', 'SETUP.sql not run — lease PDFs are publicly accessible! Run it now.');
     else ok('security', 'Bucket is private', 'lease-pdfs bucket correctly set to private');
   } catch(e) { warn('security', 'Cannot verify', 'Needs admin access to confirm'); }
 

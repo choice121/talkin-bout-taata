@@ -1,75 +1,74 @@
-# Choice Properties
+# Choice Properties — Replit Context
 
-A nationwide rental marketplace and property management platform built as a static site with a Node.js file server.
+## Role of Replit
 
-## Architecture
+Replit is used as a **code editor and development preview only**.
 
-**Frontend:** Pure HTML/CSS/JS static site — no build step required.
-
-**Backend:** All API logic runs as [Supabase Edge Functions](https://supabase.com/docs/guides/functions) hosted externally on Supabase. There is no local backend or database — do NOT add one.
-
-**File server:** `serve.js` — a lightweight Node.js HTTP server that:
-- Regenerates `config.js` from environment secrets on startup
-- Serves all static files with correct MIME types, caching headers, and gzip compression
-- Injects `mobile.css` into HTML pages automatically
-
-## Key Files
-
-| File | Purpose |
+| Component | Platform |
 |---|---|
-| `serve.js` | Entry point — static file server + config generation |
-| `config.js` | Auto-generated at startup from env secrets (do not edit manually) |
-| `generate-config.js` | Build-time config generator (for CI/CD deployments) |
-| `js/cp-api.js` | Shared browser API client — wraps Supabase calls and Edge Function calls |
-| `js/apply.js` | Rental application form logic |
-| `js/imagekit.js` | ImageKit CDN upload helper |
-| `supabase/functions/` | Supabase Edge Functions (deployed to Supabase cloud, not run here) |
+| Frontend hosting | **Cloudflare Pages** (not Replit) |
+| Database | **Supabase PostgreSQL** (not Replit) |
+| API / backend logic | **Supabase Edge Functions** (not Replit) |
+| Email relay | **Google Apps Script** (not Replit) |
+| Image CDN | **ImageKit.io** (not Replit) |
+| Replit's role | Code editor + live preview via `serve.js` |
 
-## Pages
+There is no migration to perform, no local database to connect, and no backend to build inside Replit.
 
-- `/` — Homepage with property search
-- `/listings.html` — Property listings
-- `/apply.html` — Rental application form
-- `/apply/dashboard.html` — Applicant status dashboard
-- `/apply/lease.html` — Electronic lease signing
-- `/admin/` — Admin portal (dashboard, applications, leases, messages, landlords, listings)
-- `/landlord/` — Landlord portal (dashboard, listings, applications, inquiries)
+---
 
-## Environment Secrets Required
+## Live Preview in Replit
 
-Set these in the Replit Secrets panel:
+`serve.js` is a lightweight static file server (port 5000) that:
+- Regenerates `config.js` from Replit secrets on every startup
+- Serves all static HTML/CSS/JS files with correct headers and gzip
 
-| Secret | Description |
+The workflow runs `node serve.js` automatically. No manual steps needed.
+
+If `SUPABASE_URL` and `SUPABASE_ANON_KEY` are set in Replit Secrets, the preview is fully connected to your live Supabase project.
+
+---
+
+## Project Structure
+
+```
+/                    Static HTML pages (homepage, listings, apply, etc.)
+/admin/              Admin portal pages
+/landlord/           Landlord portal pages
+/apply/              Applicant dashboard, lease signing
+/css/                All stylesheets
+/js/                 cp-api.js (Supabase/API client), apply.js, imagekit.js
+/assets/             Favicon, og image, placeholders
+/supabase/functions/ Edge Function source (Deno TypeScript — deployed to Supabase cloud)
+serve.js             Replit dev server
+generate-config.js   Cloudflare Pages build script (generates config.js from env vars)
+config.example.js    Config template — copy to config.js for local dev
+SETUP.sql            Complete database setup — run once in Supabase SQL Editor
+SETUP.md             Step-by-step deployment guide
+GAS-EMAIL-RELAY.gs   Google Apps Script email relay source
+```
+
+---
+
+## Key Rules for AI Agents
+
+Read `.agents/instructions.md` before taking any action. Short version:
+
+- ✅ Edit HTML, CSS, vanilla JS, or Edge Function TypeScript source files
+- ❌ Do not connect, create, or migrate any Replit/Neon/local database
+- ❌ Do not install ORM packages (Drizzle, Prisma, Sequelize, etc.)
+- ❌ Do not create server-side route files or API handlers
+- ❌ Do not modify `serve.js`, `.replit`, `generate-config.js`, or `SETUP.sql` unless explicitly asked
+
+---
+
+## Full Documentation
+
+| File | Contents |
 |---|---|
-| `SUPABASE_URL` | Your Supabase project URL (e.g. `https://xxxx.supabase.co`) |
-| `SUPABASE_ANON_KEY` | Your Supabase project anon/public key |
-| `IMAGEKIT_URL` | ImageKit CDN URL endpoint (optional — for image delivery) |
-| `IMAGEKIT_PUBLIC_KEY` | ImageKit public key (optional — for uploads) |
-| `GEOAPIFY_API_KEY` | Geoapify key for address autocomplete (optional) |
-
-### Optional company config (env vars, not secrets)
-`COMPANY_NAME`, `COMPANY_EMAIL`, `COMPANY_PHONE`, `COMPANY_TAGLINE`, `COMPANY_ADDRESS`, `ADMIN_EMAILS`
-
-## Running
-
-```
-node serve.js
-```
-
-Starts on port 5000 (or `$PORT`). The workflow runs this automatically.
-
-## Supabase Edge Functions
-
-All backend logic (application processing, lease generation, email notifications, status updates) lives in `supabase/functions/`. These are deployed to your Supabase project — they are **not** run locally by this server.
-
-To deploy edge functions:
-```
-supabase functions deploy --project-ref <your-project-ref>
-```
-
-Required secrets in Supabase dashboard (Edge Functions → Secrets):
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `GAS_EMAIL_URL` + `GAS_RELAY_SECRET` (Google Apps Script email relay)
-- `DASHBOARD_URL` (public URL of this app)
-- `IMAGEKIT_PRIVATE_KEY` + `IMAGEKIT_URL_ENDPOINT` (for imagekit-upload function)
-- `ADMIN_EMAIL` / `ADMIN_EMAILS`
+| `README.md` | Project overview |
+| `ARCHITECTURE.md` | Full system architecture, all components, data flow, security model |
+| `SETUP.md` | Step-by-step deployment guide (Supabase, GAS, Cloudflare Pages) |
+| `SETUP.sql` | Complete database schema + all patches — single file, run once |
+| `CHANGELOG.md` | Full history of all changes |
+| `.agents/instructions.md` | Rules for AI agents working in this repo |
