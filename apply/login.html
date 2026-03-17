@@ -241,6 +241,7 @@ input[type=email]:focus,input[type=text]:focus{border-color:var(--brand);box-sha
       <button class="btn-resend" id="resend-btn" onclick="resendOTP(event)">
         <i class="fas fa-rotate-right"></i> Resend Code
       </button>
+      <div class="ok" id="otp-ok"></div>
 
       <button class="btn-ghost" onclick="goBack()">← Use a different email</button>
 
@@ -268,9 +269,13 @@ input[type=email]:focus,input[type=text]:focus{border-color:var(--brand);box-sha
 <script type="module" src="/js/cp-api.js"></script>
 <script type="module">
 const params   = new URLSearchParams(location.search);
-const redirect = params.get('redirect') || '/apply/dashboard.html';
+// Fix 1: Only allow same-origin relative redirects — reject anything that
+// starts with '//' or a protocol, which would send users to an external site.
+const rawRedirect = params.get('redirect') || '';
+const redirect = (rawRedirect.startsWith('/') && !rawRedirect.startsWith('//')) ? rawRedirect : '/apply/dashboard.html';
 let   currentEmail = '';
 let   countdownInterval = null;
+let   resendCooldownInterval = null;
 
 // ── Magic link callback + session check ───────────────────
 // Supabase auto-processes magic link tokens from the URL on load.
@@ -289,25 +294,24 @@ async function checkExistingSession() {
 checkExistingSession();
 
 // ── OTP countdown timer ────────────────────────────────────
+// Fix 7: Merged the duplicate timerEl2 / timerEl variables into one.
 function startCountdown(seconds = 3600) {
   clearInterval(countdownInterval);
-  const btn = document.getElementById('resend-btn');
-  if (btn) { btn.style.borderColor = ''; btn.style.color = ''; }
-  const timerEl2 = document.getElementById('otp-timer');
-  if (timerEl2) timerEl2.classList.remove('urgent');
+  const resendBtn = document.getElementById('resend-btn');
+  if (resendBtn) { resendBtn.style.borderColor = ''; resendBtn.style.color = ''; }
   const timerEl     = document.getElementById('otp-timer');
   const countdownEl = document.getElementById('otp-countdown');
+  if (timerEl) timerEl.classList.remove('urgent');
 
   function tick() {
     const m = String(Math.floor(seconds / 60)).padStart(2, '0');
     const s = String(seconds % 60).padStart(2, '0');
-    countdownEl.textContent = `${m}:${s}`;
-    if (seconds <= 60) timerEl.classList.add('urgent');
+    if (countdownEl) countdownEl.textContent = `${m}:${s}`;
+    if (seconds <= 60 && timerEl) timerEl.classList.add('urgent');
     if (seconds <= 0) {
       clearInterval(countdownInterval);
-      timerEl.innerHTML = 'Code expired — click <strong>Resend Code</strong> below to get a new one.';
-      const btn = document.getElementById('resend-btn');
-      if (btn) { btn.style.borderColor = '#dc2626'; btn.style.color = '#dc2626'; }
+      if (timerEl) timerEl.innerHTML = 'Code expired — click <strong>Resend Code</strong> below to get a new one.';
+      if (resendBtn) { resendBtn.style.borderColor = '#dc2626'; resendBtn.style.color = '#dc2626'; }
     }
     seconds--;
   }
@@ -349,19 +353,37 @@ window.sendOTP = async function() {
   }
 };
 
-// Auto-submit when 6 digits entered
+// Fix 6: Strip non-numeric characters visually as the user types so the
+// field always shows only digits — no confusion between typed and submitted value.
+// Fix 4: Trigger verifyOTP on Enter key (mirrors the email field behaviour).
 document.getElementById('otp-input').addEventListener('input', function() {
-  if (this.value.replace(/\D/g, '').length === 6) verifyOTP();
+  const digitsOnly = this.value.replace(/\D/g, '');
+  if (this.value !== digitsOnly) this.value = digitsOnly;
+  if (digitsOnly.length === 6) verifyOTP();
+});
+document.getElementById('otp-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') verifyOTP();
 });
 
 // ── Step 2: Verify OTP ────────────────────────────────────
 window.verifyOTP = async function() {
+  // Fix 3: Guard against lost state (e.g. page refresh on Step 2).
+  // If currentEmail is empty, the user cannot be verified — send them back.
+  if (!currentEmail) {
+    showStep('step-email');
+    const emailErr = document.getElementById('email-err');
+    if (emailErr) { emailErr.textContent = 'Session expired — please enter your email again.'; emailErr.style.display = 'block'; }
+    return;
+  }
+
   const otpEl  = document.getElementById('otp-input');
   const errEl  = document.getElementById('otp-err');
+  const okEl   = document.getElementById('otp-ok');
   const btn    = document.getElementById('verify-btn');
   const code   = otpEl.value.replace(/\D/g, '');
 
   errEl.style.display = 'none';
+  if (okEl) okEl.style.display = 'none';
 
   if (code.length !== 6) {
     errEl.textContent = 'Please enter the 6-digit code from your email.';
@@ -392,26 +414,46 @@ window.verifyOTP = async function() {
 // ── Helpers ───────────────────────────────────────────────
 window.goBack = function() {
   clearInterval(countdownInterval);
+  clearInterval(resendCooldownInterval);
   showStep('step-email');
   document.getElementById('otp-input').value = '';
   document.getElementById('otp-err').style.display = 'none';
+  const okEl = document.getElementById('otp-ok');
+  if (okEl) okEl.style.display = 'none';
 };
 
 window.resendOTP = async function(e) {
   if (e) e.preventDefault();
   if (!currentEmail) { goBack(); return; }
-  const btn = document.getElementById('resend-btn');
+  const btn  = document.getElementById('resend-btn');
+  const okEl = document.getElementById('otp-ok');
+  const errEl = document.getElementById('otp-err');
   if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Sending…'; }
   try {
     await CP.ApplicantAuth.sendOTP(currentEmail);
     startCountdown(3600);
     document.getElementById('otp-input').value = '';
-    document.getElementById('otp-err').style.cssText = 'display:block;background:#d1fae5;border-color:#6ee7b7;color:#065f46';
-    document.getElementById('otp-err').textContent = '✓ New code sent — check your inbox.';
-    if (btn) { btn.innerHTML = '<i class="fas fa-check"></i> Code sent!'; }
-    setTimeout(() => {
-      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-rotate-right"></i> Resend Code'; }
-    }, 30000);
+
+    // Fix 2: Show the success message in the dedicated #otp-ok element, not
+    // the error element. This prevents the error box from inheriting green styles.
+    if (errEl) errEl.style.display = 'none';
+    if (okEl) { okEl.textContent = '✓ New code sent — check your inbox.'; okEl.style.display = 'block'; }
+
+    // Fix 5: Show a live countdown in the resend button so users know
+    // exactly when they can request another code.
+    clearInterval(resendCooldownInterval);
+    let cooldown = 30;
+    if (btn) btn.innerHTML = `<i class="fas fa-check"></i> Resend in ${cooldown}s`;
+    resendCooldownInterval = setInterval(() => {
+      cooldown--;
+      if (cooldown <= 0) {
+        clearInterval(resendCooldownInterval);
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-rotate-right"></i> Resend Code'; }
+        if (okEl) okEl.style.display = 'none';
+      } else {
+        if (btn) btn.innerHTML = `<i class="fas fa-check"></i> Resend in ${cooldown}s`;
+      }
+    }, 1000);
   } catch (_) {
     if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-rotate-right"></i> Resend Code'; }
   }
