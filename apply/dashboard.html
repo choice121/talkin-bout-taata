@@ -625,7 +625,7 @@ window.recoverById = async function() {
   try {
     await CP.sb().functions.invoke('send-inquiry', {
       body: {
-        type: 'app_id_recovery_by_email',
+        type: 'app_id_recovery',
         email,
         dashboard_url: window.location.origin + '/apply/dashboard.html',
       },

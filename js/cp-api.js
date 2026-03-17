@@ -53,7 +53,7 @@ const ApplicantAuth = {
   async sendOTP(email) {
     const { error } = await sb().auth.signInWithOtp({
       email,
-      options: { shouldCreateUser: true },
+      options: { shouldCreateUser: false },
     });
     if (error) throw error;
   },
