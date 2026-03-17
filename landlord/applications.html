@@ -21,6 +21,8 @@
     .app-card.status-denied{border-left-color:#ef4444}
     .app-card.status-waitlisted{border-left-color:#8b5cf6}
     .app-card.status-withdrawn{border-left-color:#94a3b8}
+    .app-card.highlighted{outline:3px solid #2563eb;outline-offset:2px;animation:highlight-fade 3s ease forwards}
+    @keyframes highlight-fade{0%{outline-color:#2563eb}100%{outline-color:transparent}}
     .app-card.status-signed{border-left-color:#3b82f6}
     .app-meta{display:flex;flex-wrap:wrap;gap:var(--space-4);font-size:13px;color:var(--slate);margin:var(--space-2) 0 var(--space-4)}
     .app-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
@@ -113,6 +115,9 @@
           <option value="waitlisted">Waitlisted</option>
           <option value="withdrawn">Withdrawn</option>
         </select>
+        <select class="form-select" id="propertyFilter" style="width:220px" onchange="applyFilters()">
+          <option value="">All Properties</option>
+        </select>
       </div>
     </div>
 
@@ -194,10 +199,13 @@
   let curAppId = null;
   let curAction = null;
 
+  // Check for deep-link highlight from dashboard
+  const highlightId = new URLSearchParams(location.search).get('highlight');
+
   // Load applications for this landlord
   const { data, error } = await CP.sb()
     .from('applications')
-    .select('app_id,created_at,status,payment_status,lease_status,first_name,last_name,email,phone,property_address,admin_notes,monthly_rent')
+    .select('app_id,created_at,status,payment_status,lease_status,first_name,last_name,email,phone,property_address,property_id,admin_notes,monthly_rent')
     .eq('landlord_id', profile.id)
     .order('created_at', { ascending: false });
 
@@ -207,15 +215,37 @@
   } else {
     allApps = data || [];
     renderStats(allApps);
+    populatePropertyFilter(allApps);
     applyFilters();
+    if (highlightId) scrollToHighlight(highlightId);
+  }
+
+  // Populate property filter from distinct properties in the data
+  function populatePropertyFilter(apps) {
+    const seen = new Map();
+    apps.forEach(a => {
+      if (a.property_id && a.property_address && !seen.has(a.property_id)) {
+        seen.set(a.property_id, a.property_address);
+      }
+    });
+    const sel = document.getElementById('propertyFilter');
+    seen.forEach((address, id) => {
+      const opt = document.createElement('option');
+      opt.value = id;
+      opt.textContent = address.length > 40 ? address.slice(0, 38) + '…' : address;
+      sel.appendChild(opt);
+    });
+    if (seen.size <= 1) sel.style.display = 'none'; // hide if only one property
   }
 
   window.applyFilters = function() {
-    const q  = document.getElementById('searchInput').value.toLowerCase();
-    const st = document.getElementById('statusFilter').value;
+    const q    = document.getElementById('searchInput').value.toLowerCase();
+    const st   = document.getElementById('statusFilter').value;
+    const prop = document.getElementById('propertyFilter').value;
     let f = [...allApps];
-    if (st) f = f.filter(a => a.status === st);
-    if (q)  f = f.filter(a => `${a.first_name} ${a.last_name} ${a.email} ${a.app_id} ${a.property_address||''}`.toLowerCase().includes(q));
+    if (st)   f = f.filter(a => a.status === st);
+    if (prop) f = f.filter(a => a.property_id === prop);
+    if (q)    f = f.filter(a => `${a.first_name} ${a.last_name} ${a.email} ${a.app_id} ${a.property_address||''}`.toLowerCase().includes(q));
     renderApps(f);
   };
 
@@ -240,11 +270,12 @@
     c.innerHTML = apps.map(a => {
       const statusClass = `status-${a.status}`;
       const canApprove  = a.status === 'pending' || a.status === 'under_review' || a.status === 'waitlisted';
-      const canDeny     = a.status !== 'denied' && a.status !== 'approved';
+      const canDeny     = a.status !== 'denied' && a.status !== 'withdrawn';
       const canWaitlist = a.status === 'pending' || a.status === 'under_review';
+      const canMarkPaid = a.payment_status === 'unpaid' && a.status !== 'denied' && a.status !== 'withdrawn';
       const d = new Date(a.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
 
-      return `<div class="app-card ${statusClass}">
+      return `<div class="app-card ${statusClass}" id="card-${a.app_id}">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">
           <div>
             <div style="font-weight:700;font-size:16px">${CP_esc(a.first_name)} ${CP_esc(a.last_name)}</div>
@@ -266,6 +297,7 @@
           ${canApprove  ? `<button class="btn btn-sm btn-success" onclick="openStatusModal('${a.app_id}','approve','${a.first_name} ${a.last_name}')"><i class="fas fa-check"></i> Approve</button>` : ''}
           ${canWaitlist ? `<button class="btn btn-sm btn-ghost"   onclick="openStatusModal('${a.app_id}','waitlist','${a.first_name} ${a.last_name}')"><i class="fas fa-clock"></i> Waitlist</button>` : ''}
           ${canDeny     ? `<button class="btn btn-sm btn-danger"  onclick="openStatusModal('${a.app_id}','deny','${a.first_name} ${a.last_name}')"><i class="fas fa-times"></i> Deny</button>` : ''}
+          ${canMarkPaid ? `<button class="btn btn-sm btn-ghost" style="color:#059669;border-color:#059669" onclick="markPaid('${a.app_id}','${a.first_name} ${a.last_name}',this)"><i class="fas fa-dollar-sign"></i> Mark Paid</button>` : ''}
           <button class="btn btn-sm btn-ghost" onclick="openMsgModal('${a.app_id}','${a.first_name} ${a.last_name}')"><i class="fas fa-comment"></i> Message</button>
           <button class="btn btn-sm btn-outline" onclick="openDetailModal('${a.app_id}','${a.first_name} ${a.last_name}')"><i class="fas fa-folder-open"></i> Full Application</button>
           <a href="/apply/dashboard.html?id=${a.app_id}" target="_blank" class="btn btn-sm btn-outline"><i class="fas fa-external-link-alt"></i> View Status</a>
@@ -274,6 +306,32 @@
       </div>`;
     }).join('');
   }
+
+  // Scroll to and highlight a specific card (used by deep-link from dashboard)
+  function scrollToHighlight(appId) {
+    const el = document.getElementById(`card-${appId}`);
+    if (!el) return;
+    el.classList.add('highlighted');
+    setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
+  }
+
+  // Mark an application as paid (landlord-initiated)
+  window.markPaid = async function(appId, name, btn) {
+    if (!confirm(`Mark ${name}'s application fee as paid?`)) return;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Saving…';
+    const res = await CP.Applications.markPaid(appId);
+    if (res.success) {
+      CP.UI.toast('Payment marked as paid.', 'success');
+      const app = allApps.find(a => a.app_id === appId);
+      if (app) app.payment_status = 'paid';
+      applyFilters();
+    } else {
+      CP.UI.toast('Error: ' + (res.error || 'Could not mark as paid'), 'error');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-dollar-sign"></i> Mark Paid';
+    }
+  };
 
   // Status actions
   window.openStatusModal = function(appId, action, name) {
