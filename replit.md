@@ -1,5 +1,33 @@
 # Choice Properties — Replit Environment
 
+---
+
+## ⚠️ CRITICAL — READ THIS FIRST BEFORE TAKING ANY ACTION
+
+**This project is a static website deployed on Cloudflare Pages. Replit is used as a code editor only.**
+
+| Fact | What it means for you |
+|------|-----------------------|
+| Deployment target | **Cloudflare Pages** — not Replit |
+| Backend | **Supabase cloud** — not Replit, not Neon, not any local DB |
+| Database | **Supabase PostgreSQL** (hosted) — no migration, no ORM, no schema push |
+| Replit's role | Code editor + live preview only |
+| Migration status | **NONE NEEDED — app is already production-ready** |
+
+### YOU MUST NEVER:
+- Connect, configure, or use the Replit PostgreSQL / Neon database
+- Run `db:push`, `db:migrate`, or any database command
+- Install Drizzle, Prisma, Sequelize, or any ORM
+- Create backend files (server routes, schema files, db config, api/ directories)
+- Add backend packages to `package.json`
+- Attempt to "set up the environment" or "complete the migration" — there is nothing to migrate
+- Modify `serve.js`, `.replit`, `generate-config.js`, `SCHEMA.sql`, or `SECURITY-PATCHES.sql` unless explicitly asked
+- Touch any file in `supabase/functions/` unless the user explicitly asks
+
+### `supabase/functions/` contains Deno code that runs on Supabase's cloud — NOT on Replit. Do not run, deploy, or migrate them from here.
+
+---
+
 ## Project Overview
 Choice Properties is a nationwide rental marketplace — a **static site** served by a lightweight Node.js file server (`serve.js`). All backend logic runs as **Supabase Edge Functions** hosted on Supabase cloud. There is no local database and no ORM.
 
@@ -19,32 +47,32 @@ Choice Properties is a nationwide rental marketplace — a **static site** serve
 
 ## Architecture
 - **Frontend**: Static HTML/CSS/JS files served from the project root
-- **Server**: `serve.js` — Node.js HTTP server (no Express), port 5000
+- **Server**: `serve.js` — Node.js HTTP server (no Express), port 5000 — for Replit preview only
 - **Backend API**: Supabase Edge Functions (Deno, hosted on Supabase cloud)
 - **Database**: Supabase Postgres (hosted on Supabase cloud)
 - **Image CDN**: ImageKit
 - **Email relay**: Google Apps Script (GAS) relay for transactional emails
 - **Address autocomplete**: Geoapify
 
-## How It Works
+## How serve.js Works (Replit Preview Only)
 On startup, `serve.js`:
 1. Reads Replit environment secrets
 2. Regenerates `config.js` with those values so the browser has access to public keys
 3. Starts the HTTP server on port 5000
 
-The browser then uses the Supabase JS client (loaded from CDN in HTML files) to call Supabase Edge Functions and query the database directly with Row-Level Security.
+This is purely for local preview in Replit. In production, Cloudflare Pages runs `generate-config.js` as a build step and serves the static files globally.
 
 ## Workflow
 - **"Start application"** runs `node serve.js` on port 5000 (mapped to external port 80)
 
-## Environment Secrets Required
-Set these in Replit's Secrets panel (Tools → Secrets). The server reads them at startup and injects public-safe values into `config.js`:
+## Environment Secrets (Replit Preview Only)
+Set these in Replit's Secrets panel only if you want the live preview to connect to Supabase:
 
 | Secret | Description |
 |--------|-------------|
 | `SUPABASE_URL` | Your Supabase project URL (e.g. `https://xyz.supabase.co`) |
 | `SUPABASE_ANON_KEY` | Supabase public anon key (safe for browser) |
-| `IMAGEKIT_URL` | ImageKit URL endpoint (e.g. `https://ik.imagekit.io/yourID`) |
+| `IMAGEKIT_URL` | ImageKit URL endpoint |
 | `IMAGEKIT_PUBLIC_KEY` | ImageKit public key |
 | `GEOAPIFY_API_KEY` | Geoapify address autocomplete key |
 | `COMPANY_NAME` | Display name (default: "Choice Properties") |
@@ -70,16 +98,16 @@ Set these in Replit's Secrets panel (Tools → Secrets). The server reads them a
 - `ADMIN_EMAIL` — Admin notification email for process-application
 
 ## Key Files
-- `serve.js` — Static file server + config.js generator
+- `serve.js` — Static file server + config.js generator (Replit preview only)
 - `config.js` — Auto-generated at startup from env secrets (do not edit manually)
 - `config.example.js` — Template showing all config fields with placeholder values
-- `generate-config.js` — CI/CD build-time config generator (for Cloudflare Pages etc.)
+- `generate-config.js` — Cloudflare Pages build-time config generator
 - `js/cp-api.js` — Shared Supabase API client used by all pages
 - `js/apply.js` — Rental application form logic
 - `js/imagekit.js` — ImageKit upload helper
-- `supabase/functions/` — Edge Function source (deployed to Supabase cloud)
+- `supabase/functions/` — Edge Function source (deployed to Supabase cloud, version-controlled here)
 
-## Page Structure
+## Pages
 - `/` — Public listings homepage
 - `/property.html` — Individual property detail page
 - `/apply.html` — Rental application form
@@ -110,11 +138,3 @@ All styles are split by concern and loaded in order on each page:
 - `css/apply.css` — Multi-step application form wizard
 - `css/admin.css` — Dark-themed admin dashboard
 - `css/landlord.css` — Landlord portal (auth, dashboard, listings wizard)
-
-## Important Notes
-- Do NOT add a Node.js/Express backend — all API logic lives in Supabase Edge Functions
-- Do NOT add a local database (Neon, SQLite, etc.) — Supabase Postgres is the database
-- Do NOT add Drizzle or any ORM — this is a static site
-- `config.js` is regenerated every time `serve.js` starts — never edit it manually
-- The `supabase/functions/` folder contains Deno code deployed to Supabase cloud, not Node.js
-- Gallery mosaic height is fluid via `clamp(280px, 44vw, 620px)` — do not use a fixed `height` value

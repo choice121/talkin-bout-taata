@@ -1,5 +1,15 @@
 # Choice Properties — System Architecture
 
+---
+
+## ⚠️ Note for AI Agents Working in Replit
+
+This project is deployed on **Cloudflare Pages**. Replit is used as a **code editor only**.
+There is no migration to do, no database to connect, and no backend to create.
+Read `.agents/instructions.md` before taking any action.
+
+---
+
 ## Overview
 
 Choice Properties is a **pure static frontend** connected to fully hosted backend services. There is no application server in this repository. Every component runs either in the browser or on a third-party hosted platform.
