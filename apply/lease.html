@@ -441,7 +441,8 @@ async function doSign() {
           <div class="alert alert-success">
             ✓ Your lease has been signed and your tenancy is confirmed. A confirmation email is on its way to your inbox.
             <br><br>
-            <a href="${res.pdf_url}" target="_blank" style="color:#065f46;font-weight:700;display:inline-block;margin-top:4px">📄 Download Signed Lease</a>
+            <a href="${res.pdf_url}" target="_blank" style="color:#065f46;font-weight:700;display:inline-block;margin-top:4px">📄 View Signed Lease Document</a>
+            <span style="display:block;font-size:.72rem;color:#555;margin-top:4px">To save as PDF, use your browser's <strong>Print → Save as PDF</strong> option.</span>
             <br><br>
             <a href="dashboard.html?id=${appId}" style="color:#065f46;font-weight:700">← View your dashboard</a>
           </div>
@@ -489,7 +490,7 @@ async function doCoSign() {
     document.getElementById('co-sign-section').innerHTML = `<div class="card-body"><div class="alert alert-success">
       ✓ Co-applicant signature recorded. The lease is now fully executed. A confirmation email has been sent to your inbox.
       <br><br><a href="dashboard.html?id=${appId}" style="color:#065f46;font-weight:700">View your dashboard →</a>
-      ${res.pdf_url ? `<br><br><a href="${res.pdf_url}" target="_blank" style="color:#065f46;font-weight:700">📄 Download Signed Lease</a>` : ''}
+      ${res.pdf_url ? `<br><br><a href="${res.pdf_url}" target="_blank" style="color:#065f46;font-weight:700">📄 View Signed Lease Document</a>` : ''}
     </div></div>`;
   } else {
     showCoAlert(res.error || 'An error occurred. Please try again.');
