@@ -547,10 +547,11 @@ CREATE POLICY "admin_roles_self_read" ON admin_roles
   FOR SELECT USING (user_id = auth.uid());
 
 -- landlords
-CREATE POLICY "landlords_admin_all"   ON landlords FOR ALL USING (is_admin());
+-- landlords_public_read covers all SELECT access (marketplace requires public profiles).
+-- landlords_own_write scopes INSERT/UPDATE/DELETE to the owner's own row.
+CREATE POLICY "landlords_admin_all"   ON landlords FOR ALL   USING (is_admin());
 CREATE POLICY "landlords_public_read" ON landlords FOR SELECT USING (true);
-CREATE POLICY "landlords_own_read"    ON landlords FOR SELECT USING (user_id = auth.uid());
-CREATE POLICY "landlords_own_write"   ON landlords FOR ALL USING (user_id = auth.uid());
+CREATE POLICY "landlords_own_write"   ON landlords FOR ALL   USING (user_id = auth.uid());
 
 -- properties
 CREATE POLICY "properties_admin_all" ON properties FOR ALL USING (is_admin());
@@ -1192,24 +1193,94 @@ CREATE POLICY "profile_photos_read"    ON storage.objects FOR SELECT USING (buck
 CREATE POLICY "profile_photos_insert"  ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'profile-photos');
 CREATE POLICY "profile_photos_update"  ON storage.objects FOR UPDATE TO authenticated USING (bucket_id = 'profile-photos');
 
--- application-docs: authenticated upload only (NOT anon), authenticated read
-CREATE POLICY "application_docs_upload_auth" ON storage.objects
-  FOR INSERT TO authenticated WITH CHECK (bucket_id = 'application-docs');
-CREATE POLICY "app_docs_read_auth" ON storage.objects
-  FOR SELECT TO authenticated USING (bucket_id = 'application-docs');
+-- application-docs (private bucket)
+--
+-- INSERT: authenticated users may only upload into their own UID-prefixed folder.
+--   Storage path convention: application-docs/{user_id}/{filename}
+--   storage.foldername(name) returns an array of path segments; [1] is the first folder.
+--   This prevents one authenticated user from writing into another user's folder.
+CREATE POLICY "application_docs_upload_own" ON storage.objects
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    bucket_id = 'application-docs'
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  );
 
--- lease-pdfs: private bucket — authenticated read + Edge Function upload
-CREATE POLICY "lease_pdfs_read_auth"   ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'lease-pdfs');
-CREATE POLICY "lease_pdfs_insert_auth" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'lease-pdfs');
+-- SELECT: users may only read files in their own UID-prefixed folder.
+--   Admins bypass via is_admin() and can read all docs.
+--   Landlords needing doc access should go through a service-role Edge Function.
+CREATE POLICY "application_docs_read_own" ON storage.objects
+  FOR SELECT TO authenticated
+  USING (
+    bucket_id = 'application-docs'
+    AND (
+      (storage.foldername(name))[1] = auth.uid()::text
+      OR is_admin()
+    )
+  );
+
+-- DELETE: users may only remove files they own (same folder-prefix rule as INSERT).
+CREATE POLICY "application_docs_delete_own" ON storage.objects
+  FOR DELETE TO authenticated
+  USING (
+    bucket_id = 'application-docs'
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+-- lease-pdfs (private bucket)
+--
+-- SELECT: applicants may read their own lease file; admins may read all.
+--   File naming convention (enforced by sign-lease Edge Function):
+--   lease-{app_id}-signed.html
+--   The correlated sub-query matches the storage object's path against
+--   the computed filename for every application owned by the caller.
+CREATE POLICY "lease_pdfs_read_own" ON storage.objects
+  FOR SELECT TO authenticated
+  USING (
+    bucket_id = 'lease-pdfs'
+    AND (
+      is_admin()
+      OR EXISTS (
+        SELECT 1
+        FROM   public.applications a
+        WHERE  a.applicant_user_id = auth.uid()
+          AND  objects.name = 'lease-' || a.app_id || '-signed.html'
+      )
+    )
+  );
+
+-- INSERT: no policy needed. The sign-lease Edge Function uses the service-role
+-- key, which bypasses RLS entirely. No direct browser client should ever write
+-- to this bucket, so leaving the INSERT unguarded by a permissive policy is
+-- intentional — any unauthenticated or authenticated direct upload is blocked
+-- by the absence of a matching INSERT policy.
 
 
 -- ============================================================
 -- 16. REALTIME
 -- ============================================================
-ALTER PUBLICATION supabase_realtime ADD TABLE applications;
-ALTER PUBLICATION supabase_realtime ADD TABLE messages;
-ALTER PUBLICATION supabase_realtime ADD TABLE inquiries;
-ALTER PUBLICATION supabase_realtime ADD TABLE properties;
+-- Adds tables to the supabase_realtime publication only if they
+-- are not already members. pg_publication_tables is the system
+-- catalog view for this check. Using a DO block makes this
+-- section safe to re-run (plain ALTER PUBLICATION ... ADD TABLE
+-- throws "relation already member of publication" on re-runs).
+DO $$
+DECLARE
+  v_pub TEXT := 'supabase_realtime';
+  v_tables TEXT[] := ARRAY['applications','messages','inquiries','properties'];
+  v_tbl TEXT;
+BEGIN
+  FOREACH v_tbl IN ARRAY v_tables LOOP
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_publication_tables
+      WHERE pubname    = v_pub
+        AND schemaname = 'public'
+        AND tablename  = v_tbl
+    ) THEN
+      EXECUTE format('ALTER PUBLICATION %I ADD TABLE public.%I', v_pub, v_tbl);
+    END IF;
+  END LOOP;
+END $$;
 
 
 -- ============================================================
@@ -1236,6 +1307,40 @@ DO $$ BEGIN
     ALTER TABLE applications ADD CONSTRAINT applications_app_id_unique UNIQUE (app_id);
   END IF;
 END $$;
+
+
+-- ============================================================
+-- 18. SCHEDULED JOBS (pg_cron)
+-- ============================================================
+-- Requires the pg_cron extension. Enable it first:
+--   Supabase → Database → Extensions → search "pg_cron" → Enable
+-- Then run this block as a separate query in the SQL Editor.
+--
+-- DO NOT include this block in the same execution as the rest of
+-- SETUP.sql unless pg_cron is already enabled — the extension
+-- must exist before cron.schedule() can be called.
+--
+-- The DO block is idempotent: it unschedules the job if it exists
+-- before (re)creating it, so this block is safe to re-run after
+-- schedule changes.
+-- ============================================================
+
+DO $pgcron$
+BEGIN
+  -- Remove existing job if present so the schedule can be updated on re-run.
+  IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'mark-expired-leases-nightly') THEN
+    PERFORM cron.unschedule('mark-expired-leases-nightly');
+  END IF;
+
+  -- Run mark_expired_leases() every night at 01:00 UTC.
+  -- The function bulk-updates applications where lease_status = 'sent'
+  -- and lease_expiry_date < now() → sets lease_status = 'expired'.
+  PERFORM cron.schedule(
+    'mark-expired-leases-nightly',
+    '0 1 * * *',
+    'SELECT mark_expired_leases()'
+  );
+END $pgcron$;
 
 
 -- ============================================================
