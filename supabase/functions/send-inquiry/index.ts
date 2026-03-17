@@ -66,10 +66,11 @@ Deno.serve(async (req) => {
   const { type } = body
 
   // ── Rate-limit check ──────────────────────────────────────────────────
-  // 'tenant_reply' and 'app_id_recovery' are internal notification callbacks,
-  // not user-initiated cold inquiries — exempt them from IP rate limiting.
+  // 'tenant_reply' is an internal notification callback after a DB RPC — exempt
+  // from IP rate limiting. All other types including app_id_recovery are user-initiated
+  // and must be rate-limited to prevent email spam to applicants.
   const clientIp = getClientIp(req)
-  const rateLimitExempt = type === 'tenant_reply' || type === 'app_id_recovery'
+  const rateLimitExempt = type === 'tenant_reply'
   if (!rateLimitExempt && isRateLimited(clientIp)) {
     return new Response(
       JSON.stringify({ success: false, error: 'Too many requests. Please wait a few minutes before trying again.' }),

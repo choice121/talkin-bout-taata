@@ -83,7 +83,8 @@ function calcLeaseEnd(startDate: string, term: string): string {
   const t = (term || '').toLowerCase()
   // Month-to-month has no fixed end date — return empty so DB stores null
   if (t.includes('month-to-month') || t.includes('month to month')) { return '' }
-  else if (t.includes('6')) { d.setMonth(d.getMonth() + 6) }
+  // Match explicit "6 month" or "6-month" patterns only — avoid matching "16", "6 years", etc.
+  else if (/\b6[\s-]month/i.test(term || '')) { d.setMonth(d.getMonth() + 6) }
   else { d.setFullYear(d.getFullYear() + 1) }
   d.setDate(d.getDate() - 1)
   return d.toISOString().split('T')[0]

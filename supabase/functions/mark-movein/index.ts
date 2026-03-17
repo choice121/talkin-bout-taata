@@ -18,11 +18,20 @@ Deno.serve(async (req) => {
   // ── End auth check ────────────────────────────────────────
   try {
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
-    const { app_id, move_in_date, notes, confirmed_by } = await req.json()
+    const { app_id, move_in_date, notes, confirmed_by, force } = await req.json()
     if (!app_id) throw new Error('app_id required')
 
     const { data: app, error: fetchErr } = await supabase.from('applications').select('*').eq('app_id', app_id).single()
     if (fetchErr) throw new Error(fetchErr.message)
+
+    // Require the lease to be fully executed before confirming move-in.
+    // Pass force:true in the request body to override (e.g., paper-signed lease).
+    if (!force && !['signed', 'co_signed'].includes(app.lease_status || '')) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: `Cannot confirm move-in — lease has not been signed (current lease_status: "${app.lease_status || 'none'}"). Pass force:true to override.`,
+      }), { status: 409, headers: { ...cors, 'Content-Type': 'application/json' } })
+    }
 
     const { error } = await supabase.from('applications').update({
       move_in_status:     'completed',
@@ -32,19 +41,24 @@ Deno.serve(async (req) => {
     }).eq('app_id', app_id)
     if (error) throw new Error(error.message)
 
-    const gasUrl = Deno.env.get('GAS_EMAIL_URL')!
-    fetch(gasUrl, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ secret: Deno.env.get('GAS_RELAY_SECRET'), template: 'move_in_confirmation', to: app.email,
-        data: { app_id, first_name: app.first_name, property: app.property_address, rent: app.monthly_rent,
-                move_in_date: new Date(move_in_date || Date.now()).toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'}), notes: notes || '', preferred_language: app.preferred_language || 'en' } })
-    }).then(async (r) => {
-      const json = await r.json().catch(() => ({}))
-      const ok = r.ok && json.success !== false
-      await supabase.from('email_logs').insert({ type: 'move_in_confirmation', recipient: app.email, status: ok ? 'sent' : 'failed', app_id, error_msg: ok ? null : (json.error || `HTTP ${r.status}`) })
-    }).catch(async (e) => {
-      await supabase.from('email_logs').insert({ type: 'move_in_confirmation', recipient: app.email, status: 'failed', app_id, error_msg: e?.message || 'Network error' })
-    })
+    const gasUrl    = Deno.env.get('GAS_EMAIL_URL')
+    const gasSecret = Deno.env.get('GAS_RELAY_SECRET')
+    if (!gasUrl || !gasSecret) {
+      console.warn('GAS_EMAIL_URL or GAS_RELAY_SECRET not configured — move-in confirmation email skipped')
+    } else {
+      fetch(gasUrl, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ secret: gasSecret, template: 'move_in_confirmation', to: app.email,
+          data: { app_id, first_name: app.first_name, property: app.property_address, rent: app.monthly_rent,
+                  move_in_date: new Date(move_in_date || Date.now()).toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'}), notes: notes || '', preferred_language: app.preferred_language || 'en' } })
+      }).then(async (r) => {
+        const json = await r.json().catch(() => ({}))
+        const ok = r.ok && json.success !== false
+        await supabase.from('email_logs').insert({ type: 'move_in_confirmation', recipient: app.email, status: ok ? 'sent' : 'failed', app_id, error_msg: ok ? null : (json.error || `HTTP ${r.status}`) })
+      }).catch(async (e) => {
+        await supabase.from('email_logs').insert({ type: 'move_in_confirmation', recipient: app.email, status: 'failed', app_id, error_msg: e?.message || 'Network error' })
+      })
+    }
 
     return new Response(JSON.stringify({ success: true }), { headers: { ...cors, 'Content-Type': 'application/json' } })
   } catch (err) {

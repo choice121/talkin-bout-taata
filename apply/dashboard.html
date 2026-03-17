@@ -359,18 +359,23 @@ async function lookup(appId) {
     }
   }
 
-  // Generate a fresh signed URL for the private lease-pdfs bucket.
-  // The stored lease_pdf_url is a storage object PATH (not a URL).
-  // Signed URL generation requires authentication; unauthenticated tenants
-  // are shown a "sign in to download" prompt instead.
+  // Resolve a usable signed URL for the private lease-pdfs bucket.
+  // get-application-status already converts the storage path to a 7-day signed
+  // URL before returning it. If the value is already an HTTPS URL we use it
+  // directly — attempting createSignedUrl() on an existing signed URL would fail.
+  // For any remaining path-style values (legacy), we generate a fresh 1-hour URL.
   app._leasePdfSignedUrl = null;
-  if (app.lease_pdf_url && currentUser) {
-    try {
-      const { data: signedData } = await CP.sb().storage
-        .from('lease-pdfs')
-        .createSignedUrl(app.lease_pdf_url, 3600);
-      if (signedData?.signedUrl) app._leasePdfSignedUrl = signedData.signedUrl;
-    } catch(_) {}
+  if (app.lease_pdf_url) {
+    if (app.lease_pdf_url.startsWith('https://')) {
+      app._leasePdfSignedUrl = app.lease_pdf_url;
+    } else if (currentUser) {
+      try {
+        const { data: signedData } = await CP.sb().storage
+          .from('lease-pdfs')
+          .createSignedUrl(app.lease_pdf_url, 3600);
+        if (signedData?.signedUrl) app._leasePdfSignedUrl = signedData.signedUrl;
+      } catch(_) {}
+    }
   }
 
   // If authenticated and this app isn't linked to the user yet, offer to claim it
@@ -625,7 +630,7 @@ window.recoverById = async function() {
   try {
     await CP.sb().functions.invoke('send-inquiry', {
       body: {
-        type: 'app_id_recovery',
+        type: 'app_id_recovery_by_email',
         email,
         dashboard_url: window.location.origin + '/apply/dashboard.html',
       },

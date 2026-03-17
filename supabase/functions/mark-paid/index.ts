@@ -44,17 +44,22 @@ Deno.serve(async (req) => {
     const { error } = await supabase.from('applications').update(updatePayload).eq('app_id', app_id)
     if (error) throw new Error(error.message)
 
-    const gasUrl = Deno.env.get('GAS_EMAIL_URL')!
-    fetch(gasUrl, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ secret: Deno.env.get('GAS_RELAY_SECRET'), template: 'payment_confirmation', to: app.email, data: { app_id, applicant_name: `${app.first_name} ${app.last_name}`, phone: app.phone, preferred_language: app.preferred_language || 'en' } })
-    }).then(async (r) => {
-      const json = await r.json().catch(() => ({}))
-      const ok = r.ok && json.success !== false
-      await supabase.from('email_logs').insert({ type: 'payment_confirmation', recipient: app.email, status: ok ? 'sent' : 'failed', app_id, error_msg: ok ? null : (json.error || `HTTP ${r.status}`) })
-    }).catch(async (e) => {
-      await supabase.from('email_logs').insert({ type: 'payment_confirmation', recipient: app.email, status: 'failed', app_id, error_msg: e?.message || 'Network error' })
-    })
+    const gasUrl    = Deno.env.get('GAS_EMAIL_URL')
+    const gasSecret = Deno.env.get('GAS_RELAY_SECRET')
+    if (!gasUrl || !gasSecret) {
+      console.warn('GAS_EMAIL_URL or GAS_RELAY_SECRET not configured — payment confirmation email skipped')
+    } else {
+      fetch(gasUrl, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ secret: gasSecret, template: 'payment_confirmation', to: app.email, data: { app_id, applicant_name: `${app.first_name} ${app.last_name}`, phone: app.phone, preferred_language: app.preferred_language || 'en' } })
+      }).then(async (r) => {
+        const json = await r.json().catch(() => ({}))
+        const ok = r.ok && json.success !== false
+        await supabase.from('email_logs').insert({ type: 'payment_confirmation', recipient: app.email, status: ok ? 'sent' : 'failed', app_id, error_msg: ok ? null : (json.error || `HTTP ${r.status}`) })
+      }).catch(async (e) => {
+        await supabase.from('email_logs').insert({ type: 'payment_confirmation', recipient: app.email, status: 'failed', app_id, error_msg: e?.message || 'Network error' })
+      })
+    }
 
     return new Response(JSON.stringify({ success: true }), { headers: { ...cors, 'Content-Type': 'application/json' } })
   } catch (err) {
