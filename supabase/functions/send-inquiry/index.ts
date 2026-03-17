@@ -2,15 +2,17 @@
 // Handles all inquiry-related emails server-side.
 //
 // Handles:
-//   type: 'inquiry_reply'   → confirmation to tenant
-//   type: 'new_inquiry'     → notification to landlord
-//   type: 'app_id_recovery' → sends applicant their app_id link
+//   type: 'inquiry_submit'            → server-side validated insert + emails
+//   type: 'tenant_reply'              → landlord notification after tenant reply
+//   type: 'app_id_recovery_by_email'  → multi-result recovery by email address
+//   type: 'app_id_recovery'           → single app-id recovery link
+//   (default)                         → legacy inquiry email path (kept for compatibility)
 //
 // Called from: cp-api.js Inquiries.submit() and Applications.sendRecoveryEmail()
 // No auth required — these are public-facing actions.
 //
 // Rate limiting: max 5 requests per IP per 5 minutes.
-// app_id_recovery requests are counted separately from inquiry requests.
+// tenant_reply and app_id_recovery requests are exempt (internal callbacks).
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0'
 
@@ -20,36 +22,24 @@ const cors = {
 }
 
 // ── In-memory rate-limit store ────────────────────────────────
-// Structure: Map<ip, { count: number, windowStart: number }>
-// Persists for the lifetime of the function instance (one Deno isolate).
-// Provides meaningful protection against automated abuse without
-// requiring an external store.
-
-const RATE_LIMIT_MAX      = 5;    // requests per window
-const RATE_LIMIT_WINDOW   = 5 * 60 * 1000;  // 5 minutes in ms
+const RATE_LIMIT_MAX    = 5;
+const RATE_LIMIT_WINDOW = 5 * 60 * 1000;
 
 const ipStore = new Map<string, { count: number; windowStart: number }>();
 
 function isRateLimited(ip: string): boolean {
-  const now  = Date.now();
-  const rec  = ipStore.get(ip);
-
+  const now = Date.now();
+  const rec = ipStore.get(ip);
   if (!rec || now - rec.windowStart > RATE_LIMIT_WINDOW) {
-    // New window — reset counter
     ipStore.set(ip, { count: 1, windowStart: now });
     return false;
   }
-
-  if (rec.count >= RATE_LIMIT_MAX) {
-    return true;
-  }
-
+  if (rec.count >= RATE_LIMIT_MAX) return true;
   rec.count++;
   return false;
 }
 
 function getClientIp(req: Request): string {
-  // Supabase Edge Functions receive the real client IP in x-forwarded-for
   return (
     req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
     req.headers.get('x-real-ip') ||
@@ -66,8 +56,7 @@ Deno.serve(async (req) => {
   const { type } = body
 
   // ── Rate-limit check ──────────────────────────────────────────────────
-  // 'tenant_reply' and 'app_id_recovery' are internal notification callbacks,
-  // not user-initiated cold inquiries — exempt them from IP rate limiting.
+  // tenant_reply and app_id_recovery are internal callbacks — exempt from IP rate limit.
   const clientIp = getClientIp(req)
   const rateLimitExempt = type === 'tenant_reply' || type === 'app_id_recovery'
   if (!rateLimitExempt && isRateLimited(clientIp)) {
@@ -76,7 +65,6 @@ Deno.serve(async (req) => {
       { status: 429, headers: { ...cors, 'Content-Type': 'application/json', 'Retry-After': '300' } }
     )
   }
-  // ── End rate-limit check ──────────────────────────────────────────────
 
   try {
     const supabase = createClient(
@@ -87,6 +75,107 @@ Deno.serve(async (req) => {
     const gasUrl    = Deno.env.get('GAS_EMAIL_URL')
     const gasSecret = Deno.env.get('GAS_RELAY_SECRET')
 
+    // ── Inquiry Submit: validated insert + email (P7) ─────────────────────
+    // This branch runs even when GAS is not configured — the DB insert always
+    // succeeds; emails are silently skipped if the relay is unavailable.
+    // This replaces the former direct-from-browser DB insert in cp-api.js.
+    if (type === 'inquiry_submit') {
+      const { tenant_name, tenant_email, tenant_phone, tenant_language, message, property_id } = body
+
+      // ── Server-side validation ─────────────────────────────────────────
+      const nameClean  = typeof tenant_name  === 'string' ? tenant_name.trim()  : ''
+      const emailClean = typeof tenant_email === 'string' ? tenant_email.trim().toLowerCase() : ''
+      const msgClean   = typeof message      === 'string' ? message.trim()      : ''
+      const phoneClean = typeof tenant_phone === 'string' ? tenant_phone.trim().substring(0, 30) : null
+
+      if (!nameClean)                                           throw new Error('Name is required.')
+      if (!emailClean || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailClean)) throw new Error('A valid email address is required.')
+      if (!msgClean)                                            throw new Error('Message is required.')
+      if (msgClean.length > 2000)                              throw new Error('Message must be 2000 characters or fewer.')
+      if (!property_id)                                        throw new Error('property_id is required.')
+
+      const lang = (typeof tenant_language === 'string' && tenant_language) ? tenant_language : 'en'
+
+      // ── Verify property is active ──────────────────────────────────────
+      const { data: prop, error: propErr } = await supabase
+        .from('properties')
+        .select('id, title, address, city, status, landlords(email, contact_name, business_name)')
+        .eq('id', property_id)
+        .maybeSingle()
+
+      if (propErr || !prop) throw new Error('Property not found.')
+      if ((prop as any).status !== 'active') throw new Error('This property is no longer accepting inquiries.')
+
+      // ── Insert inquiry (service role — bypasses RLS) ───────────────────
+      const { data: inquiry, error: insertErr } = await supabase
+        .from('inquiries')
+        .insert({
+          property_id,
+          tenant_name:  nameClean.substring(0, 120),
+          tenant_email: emailClean,
+          tenant_phone: phoneClean,
+          message:      msgClean,
+          read:         false,
+        })
+        .select()
+        .single()
+
+      if (insertErr) throw new Error('Failed to save inquiry: ' + insertErr.message)
+
+      // ── Emails: fire-and-forget after successful insert ────────────────
+      // Skip silently if GAS is not configured (inquiry is already saved).
+      if (gasUrl && gasSecret) {
+        // Tenant confirmation
+        fetch(gasUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            secret: gasSecret,
+            template: 'inquiry_reply',
+            to: emailClean,
+            data: { name: nameClean, message: msgClean, property: property_id, preferred_language: lang },
+          }),
+        }).then(async (r) => {
+          const json = await r.json().catch(() => ({}))
+          const ok = r.ok && json.success !== false
+          await supabase.from('email_logs').insert({ type: 'inquiry_reply', recipient: emailClean, status: ok ? 'sent' : 'failed', error_msg: ok ? null : (json.error || `HTTP ${r.status}`) })
+        }).catch(async (e) => {
+          await supabase.from('email_logs').insert({ type: 'inquiry_reply', recipient: emailClean, status: 'failed', error_msg: e?.message || 'Network error' })
+        })
+
+        // Landlord notification
+        const landlordEmail = (prop as any)?.landlords?.email
+        if (landlordEmail) {
+          const landlordName =
+            (prop as any)?.landlords?.business_name ||
+            (prop as any)?.landlords?.contact_name  ||
+            'Landlord'
+          const propertyLabel = `${(prop as any).title} — ${(prop as any).address}, ${(prop as any).city}`
+          fetch(gasUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              secret: gasSecret,
+              template: 'new_message_landlord',
+              to: landlordEmail,
+              data: { landlordName, tenantName: nameClean, tenantEmail: emailClean, message: msgClean, property: propertyLabel, propertyId: property_id },
+            }),
+          }).then(async (r) => {
+            const json = await r.json().catch(() => ({}))
+            const ok = r.ok && json.success !== false
+            await supabase.from('email_logs').insert({ type: 'new_message_landlord', recipient: landlordEmail, status: ok ? 'sent' : 'failed', error_msg: ok ? null : (json.error || `HTTP ${r.status}`) })
+          }).catch(async (e) => {
+            await supabase.from('email_logs').insert({ type: 'new_message_landlord', recipient: landlordEmail, status: 'failed', error_msg: e?.message || 'Network error' })
+          })
+        }
+      }
+
+      return new Response(JSON.stringify({ success: true, data: inquiry }), {
+        headers: { ...cors, 'Content-Type': 'application/json' },
+      })
+    }
+
+    // ── For all remaining branches, GAS relay is required ─────────────────
     if (!gasUrl || !gasSecret) {
       console.warn('GAS_EMAIL_URL or GAS_RELAY_SECRET not configured — email skipped')
       return new Response(JSON.stringify({ success: true, warning: 'Email relay not configured' }), {
@@ -94,15 +183,11 @@ Deno.serve(async (req) => {
       })
     }
 
-    // ── Tenant Reply → Landlord Notification (P1-B, rate-limit exempt) ────
-    // submit_tenant_reply() is a DB RPC with no HTTP capability, so cp-api.js
-    // calls this endpoint after a successful tenant reply to notify the landlord.
-    // Rate-limit is intentionally bypassed for authenticated tenant reply notifications.
+    // ── Tenant Reply → Landlord Notification (rate-limit exempt) ──────────
     if (type === 'tenant_reply') {
       const { app_id, tenant_name, message } = body
       if (!app_id || !message) throw new Error('app_id and message required')
 
-      // Look up the application to get the landlord's email
       const { data: appRow } = await supabase
         .from('applications')
         .select('landlord_id, first_name, last_name')
@@ -117,7 +202,7 @@ Deno.serve(async (req) => {
           .maybeSingle()
 
         if (landlordRow?.email) {
-          const landlordName = landlordRow.business_name || landlordRow.contact_name || 'Landlord'
+          const landlordName  = landlordRow.business_name || landlordRow.contact_name || 'Landlord'
           const applicantName = tenant_name || `${appRow.first_name || ''} ${appRow.last_name || ''}`.trim() || 'Tenant'
           fetch(gasUrl, {
             method: 'POST',
@@ -141,10 +226,7 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ success: true }), { headers: { ...cors, 'Content-Type': 'application/json' } })
     }
 
-    // ── App-ID Recovery by Email (server-side lookup) ──────
-    // Accepts only an email address. Looks up all matching applications
-    // server-side, sends recovery emails for each, and NEVER returns
-    // app IDs back to the browser — preventing information disclosure.
+    // ── App-ID Recovery by Email ───────────────────────────────────────────
     if (type === 'app_id_recovery_by_email') {
       const { email, dashboard_url } = body
       if (!email) throw new Error('email required')
@@ -187,12 +269,11 @@ Deno.serve(async (req) => {
       })
     }
 
-    // ── App-ID Recovery ────────────────────────────────────
+    // ── App-ID Recovery (single) ───────────────────────────────────────────
     if (type === 'app_id_recovery') {
       const { email, app_id, dashboard_url } = body
       if (!email || !app_id) throw new Error('email and app_id required')
 
-      // Look up preferred_language from the application record
       const { data: appRow } = await supabase
         .from('applications')
         .select('preferred_language')
@@ -223,11 +304,13 @@ Deno.serve(async (req) => {
       })
     }
 
-    // ── Inquiry Emails (tenant confirmation + landlord alert) ──
+    // ── Legacy: Direct Inquiry Email (kept for compatibility) ──────────────
+    // This path is no longer reached by cp-api.js (which now uses inquiry_submit).
+    // Kept so any existing integrations sending just tenant_email + message + property_id
+    // continue to work during the transition period.
     const { tenant_name, tenant_email, tenant_language, message, property_id } = body
     if (!tenant_email) throw new Error('tenant_email required')
 
-    // Tenant confirmation
     fetch(gasUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -245,7 +328,6 @@ Deno.serve(async (req) => {
       await supabase.from('email_logs').insert({ type: 'inquiry_reply', recipient: tenant_email, status: 'failed', error_msg: e?.message || 'Network error' })
     })
 
-    // Landlord notification
     if (property_id) {
       const { data: prop } = await supabase
         .from('properties')
@@ -257,10 +339,8 @@ Deno.serve(async (req) => {
       if (landlordEmail) {
         const landlordName =
           (prop as any)?.landlords?.business_name ||
-          (prop as any)?.landlords?.contact_name ||
+          (prop as any)?.landlords?.contact_name  ||
           'Landlord'
-
-        // P1-B: new_message_landlord — notify landlord of a new inquiry from a prospective tenant
         fetch(gasUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -270,12 +350,10 @@ Deno.serve(async (req) => {
             to: landlordEmail,
             data: {
               landlordName,
-              tenantName: tenant_name,
+              tenantName:  tenant_name,
               tenantEmail: tenant_email,
               message,
-              property: prop
-                ? `${(prop as any).title} — ${(prop as any).address}, ${(prop as any).city}`
-                : property_id,
+              property: prop ? `${(prop as any).title} — ${(prop as any).address}, ${(prop as any).city}` : property_id,
               propertyId: property_id,
             },
           }),

@@ -179,21 +179,23 @@ const Properties = {
 
 // ── Inquiries API ─────────────────────────────────────────
 const Inquiries = {
-  async submit(payload)       {
-    const { data, error } = await sb().from('inquiries').insert(payload).select().single();
-    // Email notification is now handled server-side by the send-inquiry Edge Function.
-    // The GAS relay secret is never exposed to the browser.
-    if (!error && data) {
-      callEdgeFunction('send-inquiry', {
-        inquiry_id: data.id,
-        tenant_name: payload.tenant_name,
-        tenant_email: payload.tenant_email,
-        tenant_language: payload.tenant_language || (typeof localStorage !== 'undefined' ? localStorage.getItem('cp_lang') : null) || 'en',
-        message: payload.message,
-        property_id: payload.property_id,
-      }).catch(() => {});
-    }
-    return { data, error };
+  async submit(payload) {
+    // Routes through the send-inquiry Edge Function (type: inquiry_submit).
+    // The Edge Function validates all fields server-side, verifies the property
+    // is active, inserts using the service role, and fires the confirmation +
+    // landlord notification emails — all in one atomic server-side call.
+    // The open anon INSERT policy on the inquiries table has been removed.
+    const result = await callEdgeFunction('send-inquiry', {
+      type:            'inquiry_submit',
+      tenant_name:     payload.tenant_name,
+      tenant_email:    payload.tenant_email,
+      tenant_phone:    payload.tenant_phone    || null,
+      tenant_language: payload.tenant_language || (typeof localStorage !== 'undefined' ? localStorage.getItem('cp_lang') : null) || 'en',
+      message:         payload.message,
+      property_id:     payload.property_id,
+    });
+    if (!result.success) return { data: null, error: { message: result.error || 'Failed to submit inquiry.' } };
+    return { data: result.data || null, error: null };
   },
   async getForLandlord(landlordId) {
     // Fetch landlord's property IDs first so errors surface properly

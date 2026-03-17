@@ -74,6 +74,32 @@ ORDER  BY p.proname, r.rolname;
 
 
 -- ============================================================
+-- 4. DROP OPEN INSERT POLICY ON INQUIRIES (Audit finding P7)
+-- ============================================================
+-- The 'inquiries_public_insert' policy used WITH CHECK (true) —
+-- any anonymous visitor could insert arbitrary data into the
+-- inquiries table with no server-side validation.
+--
+-- Inquiries.submit() in cp-api.js now routes through the
+-- send-inquiry Edge Function (type: 'inquiry_submit'), which:
+--   • validates all fields server-side (name, email format, message length)
+--   • verifies the target property is active
+--   • inserts using the service role (bypasses RLS entirely)
+--   • fires tenant confirmation + landlord notification emails atomically
+--
+-- The anon INSERT policy is no longer needed and is removed here.
+-- DROP IF EXISTS makes this safe to re-run.
+DROP POLICY IF EXISTS "inquiries_public_insert" ON inquiries;
+
+-- Confirm the policy is gone
+SELECT policyname, cmd, roles
+FROM   pg_policies
+WHERE  schemaname = 'public'
+  AND  tablename  = 'inquiries'
+ORDER  BY policyname;
+
+
+-- ============================================================
 -- DONE.
 -- ============================================================
-SELECT 'Phase 3-B security patch applied — anon grants revoked.' AS result;
+SELECT 'Phase 3-B security patch applied — anon grants revoked + inquiries insert policy removed.' AS result;
