@@ -128,7 +128,7 @@ const Applications = {
   async markPaid(appId, notes)              { return callEdgeFunction('mark-paid', { app_id: appId, notes }); },
   async generateLease(payload)              { return callEdgeFunction('generate-lease', payload); },
   async signLease(appId, sig, ip, token)    { return callEdgeFunction('sign-lease', { app_id: appId, signature: sig, ip_address: ip, token: token || undefined }); },
-  async signLeaseCoApplicant(appId, sig, ip){ return callEdgeFunction('sign-lease', { app_id: appId, signature: sig, ip_address: ip, is_co_applicant: true }); },
+  async signLeaseCoApplicant(appId, sig, ip, coToken){ return callEdgeFunction('sign-lease', { app_id: appId, signature: sig, ip_address: ip, is_co_applicant: true, co_token: coToken || undefined }); },
   async markMoveIn(appId, date, notes)      { return callEdgeFunction('mark-movein', { app_id: appId, move_in_date: date, notes }); },
   async sendMessage(appId, message, sender, senderName) { return callEdgeFunction('send-message', { app_id: appId, message, sender, sender_name: senderName }); },
   async sendRecoveryEmail(email, appId, origin) { return callEdgeFunction('send-inquiry', { type: 'app_id_recovery', email, app_id: appId, dashboard_url: origin + '/apply/dashboard.html?id=' + appId }); },

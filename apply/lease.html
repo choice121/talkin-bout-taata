@@ -416,8 +416,12 @@ async function doSign() {
   if (!sig || sig.length < 3) { showAlert('Please enter your full legal name as your signature.','err'); return; }
 
   // Soft name match — warn but do not block (allows legal name variations)
+  // Fix 2: Use the custom in-page modal instead of the native browser confirm() dialog.
   if (currentApp && !nameMatchesApplicant(sig, currentApp)) {
-    const proceed = confirm(`The name you entered ("${sig}") does not appear to match the name on the application ("${currentApp.first_name} ${currentApp.last_name}").\n\nIf this is your legal name, click OK to continue. Otherwise click Cancel to correct it.`);
+    const proceed = await CP.UI.cpConfirm(
+      `The name you entered ("<strong>${sig}</strong>") does not appear to match the name on the application ("<strong>${currentApp.first_name} ${currentApp.last_name}</strong>").<br><br>If this is your legal name, click Confirm to continue. Otherwise click Cancel to correct it.`,
+      { confirmLabel: 'Yes, Continue', cancelLabel: 'Cancel', danger: false }
+    );
     if (!proceed) return;
   }
 
@@ -428,8 +432,25 @@ async function doSign() {
   const res = await CP.Applications.signLease(appId, sig, '', signToken);
 
   if (res.success) {
-    // Reload to show the correct post-sign state (awaiting_co_sign or fully signed)
-    loadLease();
+    // Fix 8: If the lease is fully executed (solo applicant), show an immediate
+    // download link on the confirmation page rather than forcing a dashboard visit.
+    if (res.pdf_url) {
+      const section = document.getElementById('sign-section');
+      if (section) {
+        section.innerHTML = `<div class="card-body">
+          <div class="alert alert-success">
+            ✓ Your lease has been signed and your tenancy is confirmed. A confirmation email is on its way to your inbox.
+            <br><br>
+            <a href="${res.pdf_url}" target="_blank" style="color:#065f46;font-weight:700;display:inline-block;margin-top:4px">📄 Download Signed Lease</a>
+            <br><br>
+            <a href="dashboard.html?id=${appId}" style="color:#065f46;font-weight:700">← View your dashboard</a>
+          </div>
+        </div>`;
+      }
+    } else {
+      // Has co-applicant — reload to show the "awaiting co-applicant" state
+      loadLease();
+    }
   } else {
     showAlert(res.error || 'An error occurred. Please try again.', 'err');
     btn.disabled = false; btn.textContent = 'Sign Lease Agreement';
@@ -446,21 +467,23 @@ async function doCoSign() {
   if (!sig || sig.length < 3) { showCoAlert('Please enter your full legal name as your signature.'); return; }
 
   // Soft name match for co-applicant
+  // Fix 2: Use the custom in-page modal instead of the native browser confirm() dialog.
   if (currentApp && currentApp.co_applicant_last_name && !nameMatchesApplicant(sig, { first_name: currentApp.co_applicant_first_name, last_name: currentApp.co_applicant_last_name })) {
-    const proceed = confirm(`The name you entered ("${sig}") does not appear to match the co-applicant name on the application ("${currentApp.co_applicant_first_name || ''} ${currentApp.co_applicant_last_name || ''}".trim()).\n\nIf this is your legal name, click OK to continue. Otherwise click Cancel to correct it.`);
+    const coFullName = `${currentApp.co_applicant_first_name || ''} ${currentApp.co_applicant_last_name || ''}`.trim();
+    const proceed = await CP.UI.cpConfirm(
+      `The name you entered ("<strong>${sig}</strong>") does not appear to match the co-applicant name on the application ("<strong>${coFullName}</strong>").<br><br>If this is your legal name, click Confirm to continue. Otherwise click Cancel to correct it.`,
+      { confirmLabel: 'Yes, Continue', cancelLabel: 'Cancel', danger: false }
+    );
     if (!proceed) return;
   }
 
   const btn = document.getElementById('co-sign-btn');
   btn.disabled = true; btn.textContent = 'Processing…';
 
-  // IP is recorded server-side from the request — no client-side IP lookup needed
-  // Pass co_token so edge function can validate this is the real co-applicant
-  const res = await fetch(`${CONFIG.SUPABASE_URL}/functions/v1/sign-lease`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'apikey': CONFIG.SUPABASE_ANON_KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}` },
-    body: JSON.stringify({ app_id: appId, signature: sig, is_co_applicant: true, co_token: coToken })
-  }).then(r => r.json());
+  // Fix 5: Use CP.Applications.signLeaseCoApplicant() which picks up the session JWT
+  // (via callEdgeFunction) instead of hardcoding the anon key in the Authorization header.
+  // co_token is passed for server-side co-applicant identity validation.
+  const res = await CP.Applications.signLeaseCoApplicant(appId, sig, '', coToken);
 
   if (res.success) {
     document.getElementById('co-sign-section').innerHTML = `<div class="card-body"><div class="alert alert-success">
@@ -474,13 +497,25 @@ async function doCoSign() {
   }
 }
 
+// Fix 7: Use textContent for server-provided error messages to prevent XSS.
+// The alert wrapper is set via innerHTML for structure; the message is inserted safely.
 function showAlert(msg, type) {
   const el = document.getElementById('alert-area');
-  if (el) el.innerHTML = `<div class="alert alert-${type === 'err' ? 'err' : 'info'}">${msg}</div>`;
+  if (!el) return;
+  const div = document.createElement('div');
+  div.className = `alert alert-${type === 'err' ? 'err' : 'info'}`;
+  div.textContent = msg;
+  el.innerHTML = '';
+  el.appendChild(div);
 }
 function showCoAlert(msg) {
   const el = document.getElementById('co-alert');
-  if (el) el.innerHTML = `<div class="alert alert-err">${msg}</div>`;
+  if (!el) return;
+  const div = document.createElement('div');
+  div.className = 'alert alert-err';
+  div.textContent = msg;
+  el.innerHTML = '';
+  el.appendChild(div);
 }
 
 function attachScrollGate(leaseTextEl, btnId, hintId, noteId) {

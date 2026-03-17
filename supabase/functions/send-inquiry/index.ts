@@ -141,6 +141,52 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ success: true }), { headers: { ...cors, 'Content-Type': 'application/json' } })
     }
 
+    // ── App-ID Recovery by Email (server-side lookup) ──────
+    // Accepts only an email address. Looks up all matching applications
+    // server-side, sends recovery emails for each, and NEVER returns
+    // app IDs back to the browser — preventing information disclosure.
+    if (type === 'app_id_recovery_by_email') {
+      const { email, dashboard_url } = body
+      if (!email) throw new Error('email required')
+
+      const dashBase = (dashboard_url || '').replace(/\/+$/, '')
+
+      const { data: appRows } = await supabase
+        .from('applications')
+        .select('app_id, preferred_language, property_address, created_at')
+        .ilike('email', email)
+        .order('created_at', { ascending: false })
+        .limit(5)
+
+      // Always return success to prevent email enumeration
+      if (appRows && appRows.length > 0) {
+        for (const row of appRows) {
+          const link = `${dashBase}?id=${row.app_id}`
+          const preferred_language = row.preferred_language || 'en'
+          fetch(gasUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              secret: gasSecret,
+              template: 'app_id_recovery',
+              to: email,
+              data: { app_id: row.app_id, email, dashboard_url: link, preferred_language },
+            }),
+          }).catch(() => {})
+          await supabase.from('email_logs').insert({
+            type: 'app_id_recovery',
+            recipient: email,
+            status: 'sent',
+            app_id: row.app_id,
+          }).catch(() => {})
+        }
+      }
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...cors, 'Content-Type': 'application/json' },
+      })
+    }
+
     // ── App-ID Recovery ────────────────────────────────────
     if (type === 'app_id_recovery') {
       const { email, app_id, dashboard_url } = body

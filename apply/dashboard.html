@@ -168,6 +168,7 @@ const params = new URLSearchParams(location.search);
 const urlId  = params.get('id') || params.get('app_id');
 let   currentUser   = null;
 let   currentAppId  = null;
+let   _rtChannels   = [];   // active realtime subscriptions — cleaned up on navigation
 
 /* ── Debounce for realtime callbacks (fixes #5) ─────────── */
 // Realtime events can fire in rapid bursts (e.g. admin approves + marks paid
@@ -183,6 +184,14 @@ function debouncedLookup(appId) {
 async function boot() {
   currentUser = await CP.ApplicantAuth.getUser();
   renderTopbarAuth();
+
+  // Fix 6: Detect session expiry while the page is open and redirect to login.
+  // TOKEN_REFRESHED keeps the user logged in; SIGNED_OUT means the session ended.
+  CP.sb().auth.onAuthStateChange((event) => {
+    if (event === 'SIGNED_OUT') {
+      window.location.href = '/apply/login.html?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
+    }
+  });
 
   const root = document.getElementById('page-root');
 
@@ -378,10 +387,15 @@ async function lookup(appId) {
 
   renderDetailView(app, result.messages || []);
 
+  // Fix 4: Clean up any previous realtime subscriptions before creating new ones.
+  // Without this, navigating between applications accumulates open websocket channels.
+  _rtChannels.forEach(ch => { try { CP.sb().removeChannel(ch); } catch(_) {} });
+  _rtChannels = [];
+
   // Realtime — use debounced lookup to avoid exhausting the rate limit on bursts
   if (CONFIG.FEATURES.REALTIME_UPDATES) {
-    CP.subscribeToApplication(appId, () => debouncedLookup(appId));
-    CP.subscribeToMessages(appId,    () => debouncedLookup(appId));
+    _rtChannels.push(CP.subscribeToApplication(appId, () => debouncedLookup(appId)));
+    _rtChannels.push(CP.subscribeToMessages(appId,    () => debouncedLookup(appId)));
   }
 }
 
@@ -505,6 +519,11 @@ function renderDetailView(app, msgs) {
 
 /* ── Go back to "My Applications" list ──────────────────── */
 window.goBackToList = async function() {
+  // Fix 4: Unsubscribe all active realtime channels before leaving the detail view.
+  _rtChannels.forEach(ch => { try { CP.sb().removeChannel(ch); } catch(_) {} });
+  _rtChannels = [];
+  clearTimeout(_realtimeTimer);
+
   history.replaceState({}, '', '/apply/dashboard.html');
   document.getElementById('ref-label').textContent = '';
   const root = document.getElementById('page-root');
@@ -572,7 +591,16 @@ function buildRecoveryHTML() {
 window._doLookup = async function() {
   const appId = (document.getElementById('app-id-input')?.value || '').trim().toUpperCase();
   if (!appId) return;
-  await lookup(appId);
+
+  // Fix 3: Disable the Track button and show a loading state during the lookup
+  // so users know a request is in flight and can't accidentally double-submit.
+  const btn = document.querySelector('[onclick="window._doLookup()"]');
+  if (btn) { btn.disabled = true; btn.textContent = 'Loading…'; }
+  try {
+    await lookup(appId);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Track'; }
+  }
 };
 window.lookup = window._doLookup;
 
@@ -580,7 +608,10 @@ window.signOutApplicant = async function() {
   await CP.ApplicantAuth.signOut();
 };
 
-/* ── Recovery: look up app by email ─────────────────────── */
+/* ── Recovery: look up app by email (server-side) ────────── */
+// Fix 1: Application IDs are looked up and emailed entirely server-side.
+// The browser never receives any app IDs — only a success/fail response.
+// This prevents disclosure of application IDs to anyone who knows an email address.
 window.recoverById = async function() {
   const email = document.getElementById('recovery-email').value.trim().toLowerCase();
   const msgEl = document.getElementById('recovery-msg');
@@ -588,48 +619,22 @@ window.recoverById = async function() {
   msgEl.style.color = 'var(--muted)';
   msgEl.textContent = 'Looking up your application…';
 
-  const { data: apps, error } = await CP.sb().rpc('get_apps_by_email', { p_email: email });
-  if (error || !apps || !apps.length) {
-    msgEl.style.color = '#991b1b';
-    msgEl.textContent = 'No application found for that email address. Please double-check and try again.';
-    return;
-  }
+  const sendBtn = document.querySelector('#recovery-form .btn');
+  if (sendBtn) sendBtn.disabled = true;
 
-  if (apps.length === 1) {
-    CP.Applications.sendRecoveryEmail(email, apps[0].app_id, window.location.origin).catch(() => {});
-    msgEl.style.color = '#065f46';
-    msgEl.textContent = '✓ Your Application ID has been sent to your inbox. Please check your email.';
-    document.getElementById('recovery-email').value = '';
-    return;
-  }
+  try {
+    await CP.sb().functions.invoke('send-inquiry', {
+      body: {
+        type: 'app_id_recovery_by_email',
+        email,
+        dashboard_url: window.location.origin + '/apply/dashboard.html',
+      },
+    });
+  } catch(_) {}
 
-  msgEl.textContent = '';
-  msgEl.innerHTML = `
-    <div style="margin-top:10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:14px">
-      <div style="font-size:13px;font-weight:600;margin-bottom:10px;color:#1e293b">
-        We found ${apps.length} applications for that email. Which one do you need?
-      </div>
-      ${apps.map(a => {
-        const date = new Date(a.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-        const addr = a.property_address || 'Property';
-        return `<button onclick="sendRecovery('${escapeHTML(email)}','${escapeHTML(a.app_id)}')" style="display:block;width:100%;text-align:left;background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:10px 12px;margin-bottom:8px;cursor:pointer;font-size:13px;line-height:1.5">
-          <span style="font-weight:600">${escapeHTML(addr)}</span><br>
-          <span style="color:#64748b">Submitted ${date}</span>
-        </button>`;
-      }).join('')}
-      <div style="font-size:12px;color:#94a3b8;margin-top:6px">
-        Your Application ID will be emailed to you after selection.
-      </div>
-    </div>`;
-};
-
-window.sendRecovery = async function(email, appId) {
-  const msgEl = document.getElementById('recovery-msg');
-  msgEl.innerHTML = '<span style="color:var(--muted)">Sending…</span>';
-  await CP.Applications.sendRecoveryEmail(email, appId, window.location.origin).catch(() => {});
-  msgEl.innerHTML = '';
+  if (sendBtn) sendBtn.disabled = false;
   msgEl.style.color = '#065f46';
-  msgEl.textContent = '✓ Your Application ID has been sent to your inbox. Please check your email.';
+  msgEl.textContent = '✓ If we have an application on file for that address, your Application ID has been sent to your inbox. Please check your email.';
   document.getElementById('recovery-email').value = '';
 };
 
