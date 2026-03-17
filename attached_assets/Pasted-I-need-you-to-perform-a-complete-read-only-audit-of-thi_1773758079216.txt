@@ -1,0 +1,49 @@
+I need you to perform a complete read-only audit of this project.
+
+The project was previously working correctly, but after making several updates with AI assistance, multiple features have stopped working or are behaving incorrectly. I’m not sure exactly which parts are failing or why, so I need a comprehensive diagnostic review.
+
+Your task is to analyze the entire system without making any modifications.
+
+Please perform a deep scan and report on the following areas:
+	1.	Full codebase review
+	•	Frontend code
+	•	Backend integrations
+	•	Project structure
+	•	Dependencies and package configuration
+	•	Environment setup and configuration files
+	2.	Supabase analysis
+	•	Database schema and relationships
+	•	Tables, columns, constraints, and indexes
+	•	Row Level Security (RLS) policies
+	•	Edge Functions
+	•	Storage configuration
+	•	Authentication setup
+	•	API usage and queries from the frontend
+	3.	Integration validation
+	•	Check how the frontend interacts with Supabase
+	•	Identify broken queries, incorrect endpoints, or mismatched schema usage
+	•	Detect configuration mismatches between the codebase and the Supabase project
+	4.	Configuration and deployment
+	•	Environment variables
+	•	Supabase client configuration
+	•	Build and deployment setup
+	•	Any missing or incorrect configuration that could break the system
+	5.	Issue detection
+	•	Identify any errors, misconfigurations, or inconsistencies
+	•	Detect broken logic, missing files, or incorrect imports
+	•	Highlight any security or permission issues
+	6.	Actionable report
+	•	Provide a clear and structured report explaining:
+	•	What is currently working
+	•	What is broken
+	•	The likely causes of each issue
+	•	Recommended solutions
+	•	If there are actions I need to perform manually (for example in the Supabase dashboard or environment configuration), clearly list them.
+
+Important instructions:
+	•	Do not implement or change anything.
+	•	Do not modify the database or codebase.
+	•	Perform read-only diagnostics only.
+	•	Your goal is to produce a complete technical report that another AI or developer could use to fix the issues efficiently.
+
+For this analysis, I have provided the Supabase service role key so you can access and inspect the Supabase project configuration if necessary.
