@@ -372,7 +372,7 @@ window.verifyOTP = async function() {
   if (!currentEmail) {
     showStep('step-email');
     const emailErr = document.getElementById('email-err');
-    if (emailErr) { emailErr.textContent = 'Please enter your email again to request a new code.'; emailErr.style.display = 'block'; }
+    if (emailErr) { emailErr.textContent = 'Session expired — please enter your email again.'; emailErr.style.display = 'block'; }
     return;
   }
 

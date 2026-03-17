@@ -176,10 +176,6 @@ async function loadLease() {
 function fmt(n) { return parseFloat(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function fmtDate(d) { return d ? new Date(d).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}) : '—'; }
 
-// LEASE_TEMPLATE_VERSION: v2
-// Browser display counterpart to supabase/functions/_shared/lease-articles.ts.
-// Articles 4–17 text must stay in sync with that shared module.
-// When updating any article wording, update both files and increment LEASE_TEMPLATE_VERSION.
 function buildLeaseText(app) {
   const tenantName    = `${app.first_name} ${app.last_name}`;
   const today         = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});

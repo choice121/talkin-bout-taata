@@ -83,8 +83,7 @@ function calcLeaseEnd(startDate: string, term: string): string {
   const t = (term || '').toLowerCase()
   // Month-to-month has no fixed end date — return empty so DB stores null
   if (t.includes('month-to-month') || t.includes('month to month')) { return '' }
-  // Match explicit "6 month" or "6-month" patterns only — avoid matching "16", "6 years", etc.
-  else if (/\b6[\s-]month/i.test(term || '')) { d.setMonth(d.getMonth() + 6) }
+  else if (t.includes('6')) { d.setMonth(d.getMonth() + 6) }
   else { d.setFullYear(d.getFullYear() + 1) }
   d.setDate(d.getDate() - 1)
   return d.toISOString().split('T')[0]
@@ -182,9 +181,7 @@ Deno.serve(async (req) => {
       tenantSignToken = generateToken()
     }
 
-    // DASHBOARD_URL: use env var if set; fall back to the caller's Origin header
-    // so lease links work even if the secret is not yet configured in Supabase.
-    const dashboardUrl = Deno.env.get('DASHBOARD_URL') || req.headers.get('origin') || ''
+    const dashboardUrl = Deno.env.get('DASHBOARD_URL') || ''
     const leaseLink    = `${dashboardUrl}/apply/lease.html?id=${app_id}&token=${tenantSignToken}`
     const coLeaseLink  = (app.has_co_applicant && coApplicantToken)
       ? `${dashboardUrl}/apply/lease.html?id=${app_id}&co_token=${coApplicantToken}`

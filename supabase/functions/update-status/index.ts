@@ -35,11 +35,6 @@ Deno.serve(async (req) => {
     const { app_id, status, notes } = await req.json()
     if (!app_id || !status) throw new Error('app_id and status required')
 
-    const ALLOWED_STATUSES = ['pending', 'under_review', 'approved', 'denied', 'waitlisted', 'withdrawn']
-    if (!ALLOWED_STATUSES.includes(status)) {
-      throw new Error(`Invalid status value: "${status}". Allowed values: ${ALLOWED_STATUSES.join(', ')}`)
-    }
-
     // Landlords may only update applications for their own properties
     if (!isAdmin && isLandlord) {
       const { data: appCheck } = await supabase

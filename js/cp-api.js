@@ -53,7 +53,7 @@ const ApplicantAuth = {
   async sendOTP(email) {
     const { error } = await sb().auth.signInWithOtp({
       email,
-      options: { shouldCreateUser: false },
+      options: { shouldCreateUser: true },
     });
     if (error) throw error;
   },
@@ -331,6 +331,13 @@ const UI = {
   },
 };
 
+// ── Generate property ID ──────────────────────────────────
+function generatePropertyId() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const rand = Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+  return `PROP-${rand}`;
+}
+
 // ── Expose globally ───────────────────────────────────────
 
 // ── XSS-safe HTML escape ─────────────────────────────────
@@ -346,7 +353,7 @@ function esc(str) {
 }
 window.CP_esc = esc;
 
-window.CP = { sb, Auth, ApplicantAuth, Applications, Properties, Inquiries, Landlords, EmailLogs, UI, subscribeToApplication, subscribeToApplications, subscribeToMessages };
+window.CP = { sb, Auth, ApplicantAuth, Applications, Properties, Inquiries, Landlords, EmailLogs, UI, subscribeToApplication, subscribeToApplications, subscribeToMessages, generatePropertyId };
 
 // ── ES Module exports — used by landlord pages and property.html ──────────────
 

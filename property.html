@@ -555,14 +555,12 @@ function renderProperty(p) {
   setMeta('ogUrl', window.location.href);
   document.querySelector('meta[name="description"]')?.setAttribute('content', ogDesc);
 
-  // Structured data — schema.org type mapped from property_type for Google Rich Results
-  const _schemaTypeMap = { apartment: 'Apartment', condo: 'Apartment', house: 'SingleFamilyResidence', townhouse: 'SingleFamilyResidence' };
-  const _schemaType = _schemaTypeMap[p.property_type] || 'Residence';
+  // Structured data — RealEstateListing schema for Google Rich Results
   const sd = document.createElement('script');
   sd.type = 'application/ld+json';
   sd.textContent = JSON.stringify({
     "@context": "https://schema.org",
-    "@type": _schemaType,
+    "@type": "RealEstateListing",
     "name": p.title,
     "description": p.description,
     "url": window.location.href,
