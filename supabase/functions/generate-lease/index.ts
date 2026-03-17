@@ -181,7 +181,9 @@ Deno.serve(async (req) => {
       tenantSignToken = generateToken()
     }
 
-    const dashboardUrl = Deno.env.get('DASHBOARD_URL') || ''
+    // DASHBOARD_URL: use env var if set; fall back to the caller's Origin header
+    // so lease links work even if the secret is not yet configured in Supabase.
+    const dashboardUrl = Deno.env.get('DASHBOARD_URL') || req.headers.get('origin') || ''
     const leaseLink    = `${dashboardUrl}/apply/lease.html?id=${app_id}&token=${tenantSignToken}`
     const coLeaseLink  = (app.has_co_applicant && coApplicantToken)
       ? `${dashboardUrl}/apply/lease.html?id=${app_id}&co_token=${coApplicantToken}`
