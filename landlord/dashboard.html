@@ -147,7 +147,7 @@
       </div>
 
       <!-- Draft notice — shown only when draft listings exist -->
-      <div id="draftNotice" style="display:none;margin:0 var(--s-5) var(--s-4);padding:12px 16px;background:#fef9ec;border:1px solid #f0d080;border-radius:8px;font-size:13px;color:#8a6000;display:flex;align-items:center;gap:10px">
+      <div id="draftNotice" style="display:none;margin:0 var(--s-5) var(--s-4);padding:12px 16px;background:#fef9ec;border:1px solid #f0d080;border-radius:8px;font-size:13px;color:#8a6000;align-items:center;gap:10px">
         <i class="fas fa-pencil-alt" style="flex-shrink:0"></i>
         <span id="draftNoticeText">You have draft listings that have not been submitted yet. Complete and submit them to make them live immediately.</span>
       </div>
@@ -488,13 +488,16 @@
   // ── Helpers ───────────────────────────────────────────────
   function statusBadgeHtml(status) {
     const map = {
-      active:   ['badge-green', 'Active'],
-      draft:    ['badge-slate', 'Draft'],
-      paused:   ['badge-dark',  'Paused'],
-      rented:   ['badge-amber', 'Rented'],
-      pending:  ['badge-amber', 'Pending'],
-      approved: ['badge-green', 'Approved'],
-      denied:   ['badge-red',   'Denied'],
+      active:        ['badge-green', 'Active'],
+      draft:         ['badge-slate', 'Draft'],
+      paused:        ['badge-dark',  'Paused'],
+      rented:        ['badge-amber', 'Rented'],
+      pending:       ['badge-amber', 'Pending'],
+      under_review:  ['badge-blue',  'Under Review'],
+      approved:      ['badge-green', 'Approved'],
+      denied:        ['badge-red',   'Denied'],
+      waitlisted:    ['badge-slate', 'Waitlisted'],
+      withdrawn:     ['badge-dark',  'Withdrawn'],
     };
     const [cls, label] = map[status] || ['badge-slate', status];
     return `<span class="badge ${cls}">${label}</span>`;
