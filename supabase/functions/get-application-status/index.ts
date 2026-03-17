@@ -60,20 +60,19 @@ Deno.serve(async (req) => {
       );
     }
 
-    const supabase = createClient(
+    // Use the service-role key so the RPC can always bypass RLS, regardless
+    // of whether the caller is authenticated or anonymous.  The same admin
+    // client is reused below for signed-URL generation to avoid a second init.
+    const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    const { data, error } = await supabase.rpc('get_application_status', { p_app_id: app_id });
+    const { data, error } = await supabaseAdmin.rpc('get_application_status', { p_app_id: app_id });
     if (error) throw new Error(error.message);
 
     // ── Generate a fresh signed URL for the lease PDF if stored as a path ──
     if (data?.application?.lease_pdf_url && !data.application.lease_pdf_url.startsWith('http')) {
-      const supabaseAdmin = createClient(
-        Deno.env.get('SUPABASE_URL')!,
-        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-      );
       const { data: signed } = await supabaseAdmin.storage
         .from('lease-pdfs')
         .createSignedUrl(data.application.lease_pdf_url, 604800);
