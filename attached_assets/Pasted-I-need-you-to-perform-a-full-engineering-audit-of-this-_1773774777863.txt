@@ -1,0 +1,91 @@
+I need you to perform a full engineering audit of this project in strict read-only mode.
+
+Your role is to act as a senior software engineer and system auditor whose goal is to fully understand the system and diagnose any issues before any modifications are made.
+
+IMPORTANT:  
+You must NOT modify, fix, delete, refactor, or implement anything.  
+This task is analysis only.
+
+You may inspect everything necessary to understand the system, including the Supabase dashboard, database schema, and project configuration. I have provided the Supabase service role key so you can review the backend configuration as well.
+
+Conduct a deep technical scan of the entire system, including but not limited to:
+
+SYSTEM ARCHITECTURE  
+• Project structure  
+• Frameworks and libraries being used  
+• Server setup and runtime configuration  
+• Environment variables and configuration files  
+• Deployment configuration
+
+CODEBASE ANALYSIS  
+• Frontend code structure and logic  
+• Backend logic and integrations  
+• API usage and request flows  
+• Error handling and logging systems  
+• Code patterns that may cause instability
+
+SUPABASE BACKEND REVIEW  
+• Database schema and table relationships  
+• Row Level Security (RLS) policies  
+• Authentication configuration  
+• Storage setup (if used)  
+• Edge Functions and their triggers  
+• Database permissions and roles  
+• Supabase configuration mismatches with the codebase
+
+DATA FLOW ANALYSIS  
+Trace how data moves through the system:
+
+User → Frontend → API / Edge Functions → Database → Response
+
+Identify any points where the flow may break or produce unexpected results.
+
+SECURITY REVIEW  
+Check for potential issues such as:
+• Overexposed service keys  
+• Missing RLS protections  
+• Unsafe client-side operations  
+• Improper authentication flows  
+• Misconfigured database permissions
+
+INCONSISTENCY DETECTION  
+Identify any mismatches between:
+• The codebase and the database schema  
+• Edge Functions and the database tables they expect  
+• Environment variables and actual configuration  
+• Frontend assumptions vs backend structure
+
+DEPLOYMENT & CONFIGURATION CHECK  
+Identify any required setup steps that may be missing, such as:
+• Supabase configuration steps  
+• Required environment variables  
+• Database migrations not applied  
+• Edge functions not deployed  
+• Permissions not enabled
+
+FINAL REPORT FORMAT
+
+Provide a structured diagnostic report with the following sections:
+
+1. System Overview  
+Explain how the platform currently works based on your analysis.
+
+2. Working Components  
+List parts of the system that appear to function correctly.
+
+3. Identified Problems  
+List all bugs, misconfigurations, missing components, or risks.
+
+4. Architecture Weaknesses  
+Highlight design issues that may cause problems later.
+
+5. Security Observations  
+Explain any vulnerabilities or risky configurations.
+
+6. Required Setup Actions  
+List actions that I may need to perform manually in Supabase or in the environment for the system to function correctly.
+
+7. Recommended Fix Strategy  
+Provide a logical order of fixes that would stabilize the platform.
+
+The report should be clear enough that another AI or developer could immediately understand the system and implement the fixes without needing additional investigation.
