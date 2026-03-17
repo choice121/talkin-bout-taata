@@ -8,7 +8,7 @@ Do these steps in order. Don't skip any.
 
 Generate a random 48-character secret. You can use any password manager, or run `openssl rand -hex 24` in your terminal.
 
-Save it somewhere (Notes app, password manager). You'll paste it in two places — both must be identical or emails won't send.
+Save it somewhere safe. You'll paste it in two places — both must match exactly or emails won't send.
 
 ---
 
@@ -16,15 +16,8 @@ Save it somewhere (Notes app, password manager). You'll paste it in two places �
 
 1. Go to **supabase.com** → create a new project
 2. Once it loads, go to **SQL Editor → New query**
-3. Paste the entire contents of `SCHEMA.sql` → click **Run** → wait for success
-4. Click **New query** again
-5. Paste the entire contents of `SECURITY-PATCHES.sql` → click **Run**
-6. Click **New query** again
-7. Paste the entire contents of `phase4-patches.sql` → click **Run**
-
-> Don't skip any of the patch files. They add required application columns (bankruptcy, criminal history, government ID, etc.), make the lease PDF bucket private, and fix critical dashboard functions.
->
-> **Alternatively**, if you have `SUPABASE_DB_URL` set in Replit Secrets (Supabase → Settings → Database → URI), you can run all patches automatically with: `node run-patches.js`
+3. Paste the **entire contents of `SETUP.sql`** → click **Run** → wait for the success message
+4. That's it — one file, one run. No additional patch files needed.
 
 **Save these from Supabase → Project Settings → API:**
 - Project URL (looks like `https://xxxx.supabase.co`)
@@ -32,13 +25,26 @@ Save it somewhere (Notes app, password manager). You'll paste it in two places �
 
 ---
 
-## Step 3 — Supabase Edge Function Secrets
+## Step 3 — Enable Email OTP in Supabase Auth
 
-In Supabase → **Edge Functions → Manage Secrets**, add these 7 secrets:
+Supabase → **Authentication → Providers → Email:**
+- Enable **OTP** (one-time code) — required for applicant login
+
+Supabase → **Authentication → URL Configuration:**
+- Site URL: `https://yourdomain.com`
+- Redirect URLs — add both:
+  - `https://yourdomain.com/landlord/login.html`
+  - `https://yourdomain.com/admin/login.html`
+
+---
+
+## Step 4 — Supabase Edge Function Secrets
+
+In Supabase → **Settings → Edge Functions → Environment Variables**, add these secrets:
 
 | Secret Name | Value |
 |---|---|
-| `GAS_EMAIL_URL` | Your GAS Web App URL (you'll get this in Step 4) |
+| `GAS_EMAIL_URL` | Your GAS Web App URL (you'll get this in Step 5) |
 | `GAS_RELAY_SECRET` | Your relay secret from Step 1 |
 | `IMAGEKIT_PRIVATE_KEY` | From ImageKit → Developer Options |
 | `IMAGEKIT_URL_ENDPOINT` | From ImageKit → Developer Options |
@@ -46,11 +52,11 @@ In Supabase → **Edge Functions → Manage Secrets**, add these 7 secrets:
 | `DASHBOARD_URL` | Your live site URL e.g. `https://yourdomain.com` |
 | `FRONTEND_ORIGIN` | Same as DASHBOARD_URL |
 
-> You can come back and add the ImageKit secrets later — everything else works without them.
+> You can add ImageKit secrets later — everything else works without them.
 
 ---
 
-## Step 4 — Google Apps Script Email Relay
+## Step 5 — Google Apps Script Email Relay
 
 1. Go to **script.google.com** → New project
 2. Delete all default code, paste the entire contents of `GAS-EMAIL-RELAY.gs`
@@ -69,26 +75,13 @@ In Supabase → **Edge Functions → Manage Secrets**, add these 7 secrets:
    - Type: **Web App**
    - Execute as: **Me**
    - Who has access: **Anyone**
-5. Copy the Web App URL → go back to Step 3 and add it as `GAS_EMAIL_URL`
+5. Copy the Web App URL → go back to Step 4 and add it as `GAS_EMAIL_URL`
 
 > Future updates: always use **Deploy → Manage deployments → Edit (pencil)** — never create a new deployment or you'll get a new URL and break everything.
 
 ---
 
-## Step 5 — Supabase Auth Settings
-
-Supabase → **Authentication → URL Configuration**:
-
-- Site URL: `https://yourdomain.com`
-- Redirect URLs — add both:
-  - `https://yourdomain.com/landlord/login.html`
-  - `https://yourdomain.com/admin/login.html`
-
----
-
 ## Step 6 — Cloudflare Pages Frontend Deploy
-
-The build command runs `generate-config.js` which injects your environment variables into `config.js` at deploy time. Cloudflare Pages runs this automatically on every push.
 
 1. Go to **dash.cloudflare.com** → **Workers & Pages** → **Create application** → **Pages** → **Connect to Git**
 2. Connect your GitHub account and select your repository
@@ -97,7 +90,7 @@ The build command runs `generate-config.js` which injects your environment varia
    - **Root directory**: `/` *(repository root)*
    - **Build command**: `node generate-config.js`
    - **Build output directory**: `.`
-4. Under **Environment variables**, click **Add variable** for each:
+4. Under **Environment variables**, add:
 
 | Variable | Value |
 |---|---|
@@ -112,46 +105,35 @@ The build command runs `generate-config.js` which injects your environment varia
 | `COMPANY_ADDRESS` | Your business address |
 | `ADMIN_EMAILS` | Your admin email |
 
-5. Click **Save and Deploy** — Cloudflare builds and goes live automatically
+5. Click **Save and Deploy**
 
-From now on: every push to `main` → Cloudflare Pages auto-redeploys the frontend. No action needed.
+From now on: every push to `main` → Cloudflare Pages auto-redeploys the frontend.
 
-> **Custom domain**: In Cloudflare Pages → your project → **Custom domains** → Add domain. Cloudflare handles SSL automatically.
+> **Custom domain**: Cloudflare Pages → your project → **Custom domains** → Add domain. SSL is automatic.
 
 ---
 
 ## Step 7 — Deploy Edge Functions (One Time)
 
-This deploys all 9 backend functions to Supabase. You only need to do this once. After that they stay live permanently unless you change them.
-
-**You need Node.js installed on your computer for this step.**
-Check by running `node -v` in your terminal. If you don't have it, download it from nodejs.org.
-
 1. Open your terminal and navigate to your project folder
-2. Run this command, replacing `YOUR_PROJECT_REF` with your Reference ID from your notes:
-
+2. Log in to Supabase CLI:
 ```
 npx supabase login
 ```
-
-3. It opens a browser — log in to your Supabase account and authorize
-4. Then run:
-
+3. Deploy all functions (replace `YOUR_PROJECT_REF` with your Reference ID from Supabase → Project Settings → General):
 ```
 npx supabase functions deploy --project-ref YOUR_PROJECT_REF
 ```
+4. Go to **Supabase → Edge Functions** — you should see all functions listed and active
 
-5. Wait for it to finish — it deploys all 9 functions one by one
-6. Go to **Supabase → Edge Functions** in the sidebar — you should see all 9 listed and active
-
-That's it. The functions are live permanently. You only need to repeat this if you ever edit the function code.
+Only repeat this step if you edit the function code.
 
 ---
 
 ## Step 8 — Create Your Admin Account
 
-1. Go to your live site and register as a landlord (or use any signup flow)
-2. Supabase → **Authentication → Users** → find your email → copy your User UID
+1. Register an account on your live site (any method)
+2. Supabase → **Authentication → Users** → find your email → copy your **User UID**
 3. Supabase → **SQL Editor → New query** → run:
 
 ```sql
@@ -159,7 +141,7 @@ INSERT INTO admin_roles (user_id, email)
 VALUES ('your-user-uid-here', 'your@email.com');
 ```
 
-4. Sign out and back in — you'll now have access to `/admin/dashboard.html`
+4. Sign out and back in — you now have access to `/admin/dashboard.html`
 
 ---
 
@@ -170,23 +152,23 @@ Update all of these — missing even one breaks something:
 - Supabase Secrets: `DASHBOARD_URL` and `FRONTEND_ORIGIN`
 - GAS Script Properties: `DASHBOARD_URL`
 - Supabase → Authentication → URL Configuration: Site URL and both Redirect URLs
-- Cloudflare Pages → your project → Custom domains (if using a custom domain)
+- Cloudflare Pages → your project → Custom domains (if applicable)
 
 ---
 
 ## Troubleshooting
 
 **Emails not sending / email_logs shows `failed`**
-→ Check Supabase → Edge Functions → click function → Logs tab for the exact error
+→ Supabase → Edge Functions → click the function → Logs tab for the exact error
 → Most common: `GAS_EMAIL_URL` secret is wrong or GAS not deployed yet
-→ Verify `GAS_RELAY_SECRET` in Supabase secrets matches `RELAY_SECRET` in GAS Script Properties exactly
+→ Verify `GAS_RELAY_SECRET` matches `RELAY_SECRET` in GAS Script Properties exactly
 
 **Site loads but shows errors / CONFIG not defined**
-→ Environment variables are not set in Cloudflare Pages → Settings → Environment variables
-→ Trigger a redeploy after setting them: Cloudflare Pages → your project → Deployments → Retry deployment
+→ Environment variables not set in Cloudflare Pages → Settings → Environment variables
+→ Trigger a redeploy: Cloudflare Pages → your project → Deployments → Retry deployment
 
 **Address autocomplete not working**
-→ `GEOAPIFY_API_KEY` environment variable is not set — add it in Cloudflare Pages → Settings → Environment variables and redeploy
+→ `GEOAPIFY_API_KEY` not set — add it in Cloudflare Pages environment variables and redeploy
 
 **Admin login redirects incorrectly after domain change**
 → Update redirect URLs in Supabase → Authentication → URL Configuration
@@ -195,7 +177,7 @@ Update all of these — missing even one breaks something:
 → `DASHBOARD_URL` in Supabase secrets is pointing to the old domain — update it
 
 **Images not loading**
-→ `IMAGEKIT_URL` environment variable is wrong or not set — the placeholder image shows as fallback until fixed
+→ `IMAGEKIT_URL` environment variable is wrong or not set
 
 ---
 

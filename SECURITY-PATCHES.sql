@@ -1,6 +1,14 @@
 -- ============================================================
--- CHOICE PROPERTIES — Security Patches
--- Run this ONCE in Supabase SQL Editor after running SCHEMA.sql
+-- ⚠️  SUPERSEDED — DO NOT USE FOR NEW PROJECTS
+-- ============================================================
+-- This file has been merged into SETUP.sql.
+-- All security patches from Phases 1–5 are included in SETUP.sql
+-- in their final, correct state.
+--
+-- For new Supabase projects: run SETUP.sql only.
+-- This file is kept for historical reference only.
+-- ============================================================
+-- CHOICE PROPERTIES — Security Patches (LEGACY)
 -- ============================================================
 
 

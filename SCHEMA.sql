@@ -1,8 +1,16 @@
 -- ============================================================
--- CHOICE PROPERTIES — Database Schema
--- Run this entire file once in: Supabase → SQL Editor
--- Run this ENTIRE file once in: Supabase → SQL Editor
--- This is the single source of truth going forward.
+-- ⚠️  SUPERSEDED — DO NOT USE FOR NEW PROJECTS
+-- ============================================================
+-- This file has been replaced by SETUP.sql which is the single
+-- authoritative database setup file. SETUP.sql includes all
+-- content from this file plus all security patches (previously
+-- in SECURITY-PATCHES.sql, APPLICANT-AUTH.sql, phase4-patches.sql)
+-- merged in the correct final state.
+--
+-- For new Supabase projects: run SETUP.sql only.
+-- This file is kept for historical reference only.
+-- ============================================================
+-- CHOICE PROPERTIES — Database Schema (LEGACY)
 -- ============================================================
 -- ORDER OF OPERATIONS:
 --   1. Enums

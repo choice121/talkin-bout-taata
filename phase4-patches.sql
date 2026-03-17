@@ -1,6 +1,14 @@
--- PHASE 4 PATCHES — Dashboard bug-fixes + Phase 2 column migrations
--- Apply in Supabase → SQL Editor, or run: node run-patches.js
--- All statements are idempotent — safe to re-run on any database.
+-- ============================================================
+-- ⚠️  SUPERSEDED — DO NOT USE FOR NEW PROJECTS
+-- ============================================================
+-- This file has been merged into SETUP.sql.
+-- All Phase 4 patches are included in SETUP.sql in their final
+-- corrected state.
+--
+-- For new Supabase projects: run SETUP.sql only.
+-- This file is kept for historical reference only.
+-- ============================================================
+-- PHASE 4 PATCHES (LEGACY)
 -- ============================================================
 
 

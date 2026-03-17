@@ -1,8 +1,15 @@
 -- ============================================================
--- CHOICE PROPERTIES — Applicant Identity Layer
--- Run this ONCE in Supabase → SQL Editor
--- This file is additive-safe (all statements use IF NOT EXISTS
--- or OR REPLACE). Re-running it will not destroy data.
+-- ⚠️  SUPERSEDED — DO NOT USE FOR NEW PROJECTS
+-- ============================================================
+-- This file has been merged into SETUP.sql.
+-- Applicant auth (applicant_user_id uuid column, RLS policy,
+-- get_my_applications, claim_application) are all included
+-- in SETUP.sql with the correct final types and constraints.
+--
+-- For new Supabase projects: run SETUP.sql only.
+-- This file is kept for historical reference only.
+-- ============================================================
+-- CHOICE PROPERTIES — Applicant Identity Layer (LEGACY)
 -- ============================================================
 -- What this adds:
 --   • applicant_user_id column on applications
