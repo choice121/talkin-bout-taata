@@ -331,13 +331,6 @@ const UI = {
   },
 };
 
-// ── Generate property ID ──────────────────────────────────
-function generatePropertyId() {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  const rand = Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-  return `PROP-${rand}`;
-}
-
 // ── Expose globally ───────────────────────────────────────
 
 // ── XSS-safe HTML escape ─────────────────────────────────
@@ -353,7 +346,7 @@ function esc(str) {
 }
 window.CP_esc = esc;
 
-window.CP = { sb, Auth, ApplicantAuth, Applications, Properties, Inquiries, Landlords, EmailLogs, UI, subscribeToApplication, subscribeToApplications, subscribeToMessages, generatePropertyId };
+window.CP = { sb, Auth, ApplicantAuth, Applications, Properties, Inquiries, Landlords, EmailLogs, UI, subscribeToApplication, subscribeToApplications, subscribeToMessages };
 
 // ── ES Module exports — used by landlord pages and property.html ──────────────
 
