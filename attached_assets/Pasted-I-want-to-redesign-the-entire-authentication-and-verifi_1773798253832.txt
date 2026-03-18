@@ -1,0 +1,71 @@
+I want to redesign the entire authentication and verification flow across the platform.
+
+Currently, the system uses email magic links for sign-in and verification. I want to replace this with a more controlled and professional approach using 6-digit OTP codes sent via Gmail SMTP.
+
+At this stage, this is planning only — do not implement any changes yet.
+
+Your task is to perform a focused audit of the authentication and verification system and propose how this transition should be handled safely.
+
+Scope of the request:
+
+1. Analyze the current authentication system
+- Supabase Auth configuration (OTP vs magic link)
+- How users sign in (applicants, landlords, admins)
+- Any Edge Functions involved in auth or verification
+- How email flows are currently triggered (Supabase vs GAS relay)
+
+2. Identify all areas affected by this change
+- Login flows (applicant, landlord, admin)
+- Email verification flows
+- Password reset flows (if applicable)
+- Any features that rely on current magic link behavior
+
+3. Evaluate the best implementation approach
+- Whether to use Supabase built-in OTP (email OTP)
+- Or fully custom OTP via Edge Functions + Gmail SMTP (GAS relay)
+- Tradeoffs between both approaches (security, scalability, control)
+
+4. OTP System Design Plan
+If switching to 6-digit OTP, define:
+- How OTPs will be generated
+- Expiration time
+- Storage method (database or temporary memory)
+- Verification flow (frontend → Edge Function → validation)
+- Rate limiting strategy
+
+5. Email System Planning
+- How Gmail SMTP / GAS relay will be used for OTP delivery
+- Whether to reuse the existing email relay system
+- Failure handling (retries, logging)
+
+6. Professional Email Templates
+Design clean, professional templates for:
+- Login OTP
+- Signup / verification OTP
+- Password reset OTP (if applicable)
+
+Templates should:
+- Use “Choice Properties” branding
+- Look modern and trustworthy
+- Be consistent with a real estate platform
+- Include clear instructions and expiration notices
+
+7. Security Considerations
+- Prevent OTP brute force attacks
+- Prevent email enumeration
+- Ensure tokens are not exposed
+- Proper rate limiting and expiration handling
+
+8. Impact & Migration Strategy
+- How to safely transition from magic links to OTP without breaking current users
+- Whether both systems should temporarily coexist
+- Any required changes in Supabase settings or Edge Functions
+
+9. Final Recommendation
+Provide a clear recommendation on the best approach for this platform, with reasoning.
+
+Important:
+Do NOT implement anything yet.  
+Do NOT modify any files, database, or settings.  
+
+The goal is to produce a complete implementation plan that we will review before making any changes.
