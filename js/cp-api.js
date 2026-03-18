@@ -394,18 +394,11 @@ export async function signIn(e, p)          { const { data, error } = await CP.s
 export async function signUp(email, password, profile) {
   const { data, error } = await CP.sb().auth.signUp({ email, password, options: { data: profile } });
   if (error) throw error;
-  // Only INSERT into landlords if we have an active session (email confirmation disabled).
-  // When email confirmation is required, data.session is null and auth.uid() is null on
-  // the database side — attempting the INSERT would violate the RLS policy.
-  // In that case we skip the INSERT here; createLandlordProfileIfMissing() will create
-  // the profile on first login using the user_metadata already stored above.
-  if (data.user && data.session) {
-    const { error: pe } = await CP.sb().from('landlords').insert({ user_id: data.user.id, email, contact_name: profile.contact_name, business_name: profile.business_name || null, phone: profile.phone || null, account_type: profile.account_type || 'landlord', avatar_url: profile.avatar_url || null });
-    if (pe) {
-      await CP.sb().auth.signOut();
-      throw new Error('Account setup failed: ' + pe.message + '. Please try registering again.');
-    }
-  }
+  // Never INSERT into landlords here — auth token is not yet propagated to the
+  // database connection at this point, causing auth.uid() to return null and
+  // failing the RLS check regardless of session state.
+  // createLandlordProfileIfMissing() handles profile creation safely on first login
+  // via requireLandlord(), when the user is fully authenticated.
   return data;
 }
 
@@ -422,8 +415,8 @@ async function createLandlordProfileIfMissing(user) {
     account_type:  meta.account_type  || 'landlord',
     avatar_url:    meta.avatar_url    || null,
   });
-  // Ignore duplicate key errors (row already exists — race condition or double-call)
-  if (error && !error.message.includes('duplicate') && !error.message.includes('unique')) {
+  // Ignore duplicate/already-exists errors (race condition or double-call)
+  if (error && !error.message.includes('duplicate') && !error.message.includes('unique') && !error.message.includes('already exists')) {
     throw new Error('Profile setup failed: ' + error.message);
   }
 }
