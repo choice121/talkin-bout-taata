@@ -10,23 +10,23 @@
   <link rel="stylesheet" href="/css/mobile.css?v=4">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
-.app-card{background:var(--surface2);border:1px solid var(--color-border);border-radius:10px;padding:20px;margin-bottom:14px;transition:border-color .15s}
-.app-card:hover{border-color:rgba(201,168,76,.3)}
+.app-card{background:var(--adm-surface2);border:1px solid var(--color-border);border-radius:10px;padding:20px;margin-bottom:14px;transition:border-color .15s}
+.app-card:hover{border-color:rgba(0,106,255,.3)}
 .app-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.app-id{font-family:monospace;font-size:.72rem;color:var(--muted);margin-bottom:4px}
-.app-name{font-size:1rem;font-weight:700;color:var(--text)}
-.app-contact{font-size:.78rem;color:var(--muted2);margin-top:3px}
+.app-id{font-family:monospace;font-size:.72rem;color:var(--adm-muted);margin-bottom:4px}
+.app-name{font-size:1rem;font-weight:700;color:var(--adm-text)}
+.app-contact{font-size:.78rem;color:var(--adm-muted2);margin-top:3px}
 .app-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 .app-card-mid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0;padding:14px 0;border-top:1px solid var(--color-border);border-bottom:1px solid var(--color-border)}
-.app-meta-item{font-size:.75rem}.app-meta-label{color:var(--muted);margin-bottom:2px;font-size:.65rem;text-transform:uppercase;letter-spacing:.06em}
+.app-meta-item{font-size:.75rem}.app-meta-label{color:var(--adm-muted);margin-bottom:2px;font-size:.65rem;text-transform:uppercase;letter-spacing:.06em}
 .app-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.detail-panel{background:var(--bg);border:1px solid var(--color-border);border-radius:8px;padding:16px;margin-top:14px;display:none;font-size:.78rem}
+.detail-panel{background:var(--adm-bg);border:1px solid var(--color-border);border-radius:8px;padding:16px;margin-top:14px;display:none;font-size:.78rem}
 .detail-panel.open{display:block}
 .detail-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}
-.detail-row{display:flex;flex-direction:column;gap:2px;padding:6px 0;border-bottom:1px solid rgba(30,58,95,.3)}
+.detail-row{display:flex;flex-direction:column;gap:2px;padding:6px 0;border-bottom:1px solid var(--adm-border)}
 .detail-row:last-child{border-bottom:none}
-.detail-key{color:var(--muted);font-size:.65rem;text-transform:uppercase;letter-spacing:.06em}
-.detail-val{color:var(--text)}
+.detail-key{color:var(--adm-muted);font-size:.65rem;text-transform:uppercase;letter-spacing:.06em}
+.detail-val{color:var(--adm-text)}
 </style>
 <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
 </head>
@@ -58,7 +58,7 @@
   <div class="topbar">
     <button class="mobile-menu-btn" id="menuBtn" aria-label="Open menu"><i class="fas fa-bars"></i></button>
     <div><div class="page-title">All Applications</div><div class="page-sub" id="count-label">Loading…</div></div>
-    <div class="topbar-right"><div class="live-dot"></div><span style="font-size:.72rem;color:var(--muted)">Live</span></div>
+    <div class="topbar-right"><div class="live-dot"></div><span style="font-size:.72rem;color:var(--adm-muted)">Live</span></div>
   </div>
   <div class="content">
 
@@ -134,7 +134,7 @@
         <div class="form-group"><label class="field-label">Late Fee — Daily ($)</label><input type="number" id="m-late-daily" value="10"></div>
       </div>
       <div class="form-group"><label class="field-label">Internal Notes</label><textarea id="m-lease-notes" style="width:100%;height:70px" placeholder="Optional notes for this lease…"></textarea></div>
-      <div style="background:rgba(201,168,76,.07);border:1px solid rgba(201,168,76,.2);border-radius:6px;padding:12px;font-size:.75rem;color:var(--muted2)">
+      <div style="background:rgba(0,106,255,.05);border:1px solid rgba(0,106,255,.15);border-radius:6px;padding:12px;font-size:.75rem;color:var(--adm-muted2)">
         Move-In Total = Monthly Rent + Security Deposit. The lease link will be emailed to the tenant and co-applicant (if any).
       </div>
     </div>
@@ -229,7 +229,7 @@ function renderApps(apps) {
       <div class="app-card-top">
         <div>
           <div class="app-id">${a.app_id}</div>
-          <div class="app-name">${CP_esc(a.first_name)} ${CP_esc(a.last_name)}${a.has_co_applicant ? ' <span style="font-size:.7rem;color:var(--muted2)">+ Co-Applicant</span>' : ''}</div>
+          <div class="app-name">${CP_esc(a.first_name)} ${CP_esc(a.last_name)}${a.has_co_applicant ? ' <span style="font-size:.7rem;color:var(--adm-muted2)">+ Co-Applicant</span>' : ''}</div>
           <div class="app-contact">📧 ${CP_esc(a.email)} &nbsp;·&nbsp; 📱 ${CP_esc(a.phone)}</div>
           <div class="app-badges">
             ${CP.UI.statusBadge(a.status)}
@@ -237,9 +237,9 @@ function renderApps(apps) {
             ${CP.UI.leaseBadge(a.lease_status)}
           </div>
         </div>
-        <div style="text-align:right;font-size:.72rem;color:var(--muted);white-space:nowrap">
+        <div style="text-align:right;font-size:.72rem;color:var(--adm-muted);white-space:nowrap">
           ${CP.UI.fmt.date(a.created_at)}<br>
-          ${a.property_address ? `<span style="color:var(--muted2)">${CP_esc(a.property_address.substring(0,40))}${a.property_address.length>40?'…':''}</span>` : ''}
+          ${a.property_address ? `<span style="color:var(--adm-muted2)">${CP_esc(a.property_address.substring(0,40))}${a.property_address.length>40?'…':''}</span>` : ''}
         </div>
       </div>
       <div class="app-card-mid">
@@ -249,7 +249,7 @@ function renderApps(apps) {
         <div class="app-meta-item"><div class="app-meta-label">Income</div>${a.monthly_income ? CP.UI.fmt.currency(a.monthly_income)+'/mo' : '—'}</div>
         <div class="app-meta-item"><div class="app-meta-label">Payment Pref.</div>${a.primary_payment_method || '—'}</div>
         <div class="app-meta-item"><div class="app-meta-label">Rent</div>${a.monthly_rent ? CP.UI.fmt.currency(a.monthly_rent)+'/mo' : '—'}</div>
-        <div class="app-meta-item"><div class="app-meta-label">App Fee</div>${a.application_fee > 0 ? CP.UI.fmt.currency(a.application_fee) : '<span style="color:var(--muted2)">Free</span>'}</div>
+        <div class="app-meta-item"><div class="app-meta-label">App Fee</div>${a.application_fee > 0 ? CP.UI.fmt.currency(a.application_fee) : '<span style="color:var(--adm-muted2)">Free</span>'}</div>
       </div>
       <div class="app-actions">
         <button class="btn btn-ghost btn-sm" onclick="toggleDetail('${a.app_id}')">🔍 View Details</button>
@@ -287,7 +287,7 @@ function renderApps(apps) {
                <div class="detail-row"><div class="detail-key">Occupants</div><div class="detail-val">${a.total_occupants || '—'}</div></div>
           </div>
         </div>
-        ${a.admin_notes ? `<div style="margin-top:12px;background:rgba(201,168,76,.07);border-left:3px solid var(--gold);padding:10px 14px;font-size:.78rem"><strong>Admin Notes:</strong> ${CP_esc(a.admin_notes)}</div>` : ''}
+        ${a.admin_notes ? `<div style="margin-top:12px;background:rgba(0,106,255,.05);border-left:3px solid var(--color-brand-light);padding:10px 14px;font-size:.78rem"><strong>Admin Notes:</strong> ${CP_esc(a.admin_notes)}</div>` : ''}
         ${a.document_url ? `<div style="margin-top:10px"><a href="${a.document_url}" target="_blank" class="btn btn-ghost btn-sm">📎 View Document</a></div>` : ''}
       </div>
     </div>`).join('');

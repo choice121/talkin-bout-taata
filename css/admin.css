@@ -317,6 +317,8 @@ label.field-label {
 .loading      { opacity: 0.5; pointer-events: none; }
 
 /* ── RESPONSIVE ───────────────────────────────────────────── */
+.mobile-menu-btn { display: none; }
+
 @media (max-width: 1024px) {
   .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; z-index: 200; }
   .sidebar.open { transform: translateX(0); }

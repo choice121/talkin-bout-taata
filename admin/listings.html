@@ -44,10 +44,11 @@ async function load(){
   if(status) q=q.eq('status',status);
   const {data}=await q; all=data||[]; applyFilter();
 }
-async function changeStatus(id, newStatus) {
+async function changeStatus(id, newStatus, selectEl) {
   if (!newStatus) return;
+  if (selectEl) selectEl.value = '';
   const {error} = await CP.sb().from('properties').update({status: newStatus}).eq('id', id);
-  if (error) { CP.UI.toast('Failed: ' + error.message, 'error'); return; }
+  if (error) { CP.UI.toast('Failed: ' + error.message, 'error'); await load(); return; }
   CP.UI.toast('Status updated to ' + newStatus, 'success');
   await load();
 }
@@ -59,7 +60,7 @@ function applyFilter(){
   if(!f.length){tb.innerHTML='<tr><td colspan="10" class="empty-state">No listings found</td></tr>';return;}
   const statusBadge=s=>{const m={active:'badge-success',draft:'badge-secondary',paused:'badge-warning',rented:'badge-info',archived:'badge-secondary'};return`<span class="badge ${m[s]||'badge-secondary'}">${s}</span>`;};
   tb.innerHTML=f.map(p=>`<tr>
-    <td><a href="/landlord/edit-listing.html?id=${p.id}&admin=1" target="_blank" style="font-weight:600;color:var(--gold);text-decoration:none">${p.title}</a></td>
+    <td><a href="/landlord/edit-listing.html?id=${p.id}&admin=1" target="_blank" style="font-weight:600;color:var(--color-brand-light);text-decoration:none">${p.title}</a></td>
     <td class="truncate">${p.address}, ${p.city}, ${p.state}</td>
     <td>${statusBadge(p.status)}</td>
     <td class="text-success">${CP.UI.fmt.currency(p.monthly_rent)}</td>
@@ -68,7 +69,7 @@ function applyFilter(){
     <td class="text-muted">${p.applications_count||0}</td>
     <td class="text-muted">${p.landlords?.business_name||p.landlords?.contact_name||'—'}</td>
     <td class="text-muted">${CP.UI.fmt.date(p.created_at)}</td>
-    <td><select onchange="changeStatus('${p.id}',this.value)" style="font-size:12px;padding:3px 6px;border:1px solid #ccc;border-radius:4px;cursor:pointer">
+    <td><select onchange="changeStatus('${p.id}',this.value,this)" style="font-size:12px;padding:3px 6px;border:1px solid #ccc;border-radius:4px;cursor:pointer">
       <option value="">— Action —</option>
       <option value="active">✅ Publish</option>
       <option value="draft">📝 Draft</option>

@@ -7,15 +7,15 @@
   <link rel="stylesheet" href="/css/mobile.css?v=4">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
-.thread{background:var(--surface2);border:1px solid var(--color-border);border-radius:8px;margin-bottom:12px;overflow:hidden}
+.thread{background:var(--adm-surface2);border:1px solid var(--color-border);border-radius:8px;margin-bottom:12px;overflow:hidden}
 .thread-header{padding:12px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:background .15s}
 .thread-header:hover{background:rgba(201,168,76,.05)}
 .thread-body{padding:16px;border-top:1px solid var(--color-border);display:none}
 .thread-body.open{display:block}
 .msg{margin-bottom:10px;padding:10px 12px;border-radius:6px;font-size:.8rem;line-height:1.6}
-.msg-admin{background:rgba(201,168,76,.08);border-left:3px solid var(--color-brand-light)}
-.msg-tenant{background:rgba(59,130,246,.06);border-left:3px solid var(--info)}
-.msg-meta{font-size:.65rem;color:var(--muted);margin-bottom:4px}
+.msg-admin{background:rgba(0,106,255,.06);border-left:3px solid var(--color-brand-light)}
+.msg-tenant{background:rgba(59,130,246,.06);border-left:3px solid var(--color-brand)}
+.msg-meta{font-size:.65rem;color:var(--adm-muted);margin-bottom:4px}
 .reply-row{display:flex;gap:8px;margin-top:12px}
 .reply-row textarea{flex:1;height:60px;font-size:.8rem}
 </style><link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
@@ -33,7 +33,7 @@
     <button class="sign-out" onclick="CP.sb().auth.signOut().then(()=>location.href='login.html')">Sign Out</button></div></aside>
 <div class="main"><div class="topbar">
     <button class="mobile-menu-btn" id="menuBtn" aria-label="Open menu"><i class="fas fa-bars"></i></button><div><div class="page-title">Tenant Messages</div><div class="page-sub">All admin ↔ tenant message threads</div></div></div>
-<div class="content"><div id="threads"><div class="empty-state" style="padding:48px 0;text-align:center;color:var(--muted)">Loading…</div></div></div></div>
+<div class="content"><div id="threads"><div class="empty-state" style="padding:48px 0;text-align:center;color:var(--adm-muted)">Loading…</div></div></div></div>
 <script type="module" src="/js/cp-api.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', async()=>{
@@ -48,8 +48,8 @@ document.addEventListener('DOMContentLoaded', async()=>{
   document.getElementById('threads').innerHTML=Object.entries(threads).map(([appId,t])=>`
     <div class="thread">
       <div class="thread-header" onclick="this.nextElementSibling.classList.toggle('open')">
-        <div><strong>${t.app?.first_name||''} ${t.app?.last_name||''}</strong> <span class="mono text-muted">${appId}</span><br><span style="font-size:.72rem;color:var(--muted2)">${t.app?.email||''}</span></div>
-        <div style="font-size:.72rem;color:var(--muted)">${t.msgs.length} message${t.msgs.length!==1?'s':''} · ${CP.UI.fmt.dateTime(t.msgs[0].created_at)}</div>
+        <div><strong>${t.app?.first_name||''} ${t.app?.last_name||''}</strong> <span class="mono text-muted">${appId}</span><br><span style="font-size:.72rem;color:var(--adm-muted2)">${t.app?.email||''}</span></div>
+        <div style="font-size:.72rem;color:var(--adm-muted)">${t.msgs.length} message${t.msgs.length!==1?'s':''} · ${CP.UI.fmt.dateTime(t.msgs[0].created_at)}</div>
       </div>
       <div class="thread-body">
         ${[...t.msgs].reverse().map(m=>`<div class="msg msg-${m.sender}">
@@ -67,8 +67,16 @@ async function sendReply(appId){
   const ta=document.getElementById('reply-'+appId);
   const msg=ta.value.trim(); if(!msg)return;
   const res=await CP.Applications.sendMessage(appId,msg,'admin','Choice Properties');
-  if(res.success){ta.value='';CP.UI.toast('Message sent','success');}
-  else CP.UI.toast('Error: '+res.error,'error');
+  if(res.success){
+    ta.value='';
+    CP.UI.toast('Message sent','success');
+    // Append sent message to the thread body immediately (no page reload needed)
+    const replyRow=ta.closest('.reply-row');
+    const newMsg=document.createElement('div');
+    newMsg.className='msg msg-admin';
+    newMsg.innerHTML=`<div class="msg-meta">Choice Properties · ${CP.UI.fmt.dateTime(new Date().toISOString())}</div>${CP_esc(msg)}`;
+    replyRow.parentNode.insertBefore(newMsg,replyRow);
+  } else CP.UI.toast('Error: '+res.error,'error');
 }
 </script>
 <script>

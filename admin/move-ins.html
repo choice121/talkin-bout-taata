@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', async()=>{
   const ok = await CP.Auth.requireAdmin();
   if (!ok) return;
   const user=await CP.Auth.getUser(); document.getElementById('admin-name').textContent=user?.email||'Admin';
-  const {data}=await CP.sb().from('applications').select('app_id,first_name,last_name,email,property_address,lease_signed_date,move_in_status,move_in_date_actual,lease_status').or('lease_status.in.(signed,co_signed),move_in_status.eq.pending').neq('move_in_status','completed').order('lease_signed_date',{ascending:false});
+  const {data}=await CP.sb().from('applications').select('app_id,first_name,last_name,email,property_address,lease_signed_date,move_in_status,move_in_date_actual,lease_status').or('lease_status.in.(signed,co_signed),move_in_status.eq.pending').or('move_in_status.is.null,move_in_status.neq.completed').order('lease_signed_date',{ascending:false});
   const tb=document.getElementById('tbody');
   if(!data?.length){tb.innerHTML='<tr><td colspan="8" class="empty-state">No signed leases yet</td></tr>';return;}
   tb.innerHTML=(data||[]).map(a=>`<tr id="row-${a.app_id}">

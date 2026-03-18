@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', async()=>{
       <span class="text-muted" style="font-size:.72rem;margin-left:8px">${CP.UI.fmt.date(l.created_at)}</span>
     </td>
   </tr>`).join('');
-})();
+});
 
 async function toggleVerify(id, currentlyVerified) {
   const { error } = await CP.sb().from('landlords').update({ verified: !currentlyVerified }).eq('id', id);

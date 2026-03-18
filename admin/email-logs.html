@@ -26,11 +26,23 @@
 <div class="filter-bar">
 <input type="text" id="f-app" placeholder="Filter by App ID…" oninput="applyFilter()">
 <select id="f-type" onchange="applyFilter()"><option value="">All Types</option>
-<option value="application_confirmation">Application Confirmation</option><option value="admin_notification">Admin Notification</option>
-<option value="payment_confirmation">Payment Confirmation</option><option value="status_update">Status Update</option>
-<option value="lease_sent">Lease Sent</option><option value="lease_signed_tenant">Lease Signed (Tenant)</option>
-<option value="lease_signed_admin">Lease Signed (Admin)</option><option value="move_in_confirmation">Move-In Confirmation</option>
-<option value="admin_message">Admin Message</option></select>
+<option value="application_confirmation">Application Confirmation</option>
+<option value="new_application">New Application (Admin)</option>
+<option value="admin_notification">Admin Notification</option>
+<option value="payment_confirmation">Payment Confirmation</option>
+<option value="status_update">Status Update</option>
+<option value="lease_sent">Lease Sent</option>
+<option value="lease_signed_tenant">Lease Signed (Tenant)</option>
+<option value="lease_signed_admin">Lease Signed (Admin)</option>
+<option value="lease_cosign_primary_notify">Lease Co-Sign (Primary Notify)</option>
+<option value="move_in_confirmation">Move-In Confirmation</option>
+<option value="admin_message">Admin Message</option>
+<option value="new_message_tenant">New Message (Tenant)</option>
+<option value="new_message_landlord">New Message (Landlord)</option>
+<option value="tenant_reply">Tenant Reply</option>
+<option value="co_applicant_notification">Co-Applicant Notification</option>
+<option value="app_id_recovery">App ID Recovery</option>
+<option value="inquiry_reply">Inquiry Reply</option></select>
 <select id="f-status" onchange="applyFilter()"><option value="">All Statuses</option><option value="success">Success</option><option value="sent">Sent</option><option value="failed">Failed</option></select>
 </div>
 <div class="card"><div class="table-wrap"><table>
