@@ -38,12 +38,21 @@ const Auth = {
     let { data } = await sb().from('landlords').select('*').eq('user_id', user.id).maybeSingle();
     // Profile missing — user signed up with email confirmation enabled and the INSERT
     // was intentionally deferred. Create it now from user_metadata on first login.
+    // createLandlordProfileIfMissing retries on RLS failures caused by JWT propagation delay.
     if (!data) {
+      let profileErr = null;
       try {
         await createLandlordProfileIfMissing(user);
         const result = await sb().from('landlords').select('*').eq('user_id', user.id).maybeSingle();
         data = result.data;
-      } catch (_) {}
+      } catch (err) {
+        profileErr = err;
+        console.error('[CP] requireLandlord: profile creation failed after retries:', err.message);
+      }
+      // Profile creation failed — user IS authenticated but the row could not be written.
+      // Do NOT redirect to login here: that causes an infinite login → dashboard loop.
+      // Return null so the calling page stops loading gracefully (no redirect loop).
+      if (!data && profileErr) return null;
     }
     if (!data) { location.href = redirectTo; return null; }
     return data;
@@ -404,9 +413,16 @@ export async function signUp(email, password, profile) {
 
 // Creates a landlord profile row from user_metadata if one doesn't exist yet.
 // Called after login to handle users who signed up with email confirmation enabled.
+//
+// Retry strategy: after auth.signUp() the JWT is valid for Supabase Auth but can
+// take a moment to propagate to PostgREST / Postgres, causing auth.uid() to return
+// NULL and triggering an RLS failure on the first INSERT attempt. We detect that
+// specific error and retry with linear backoff (400 ms, 800 ms, 1200 ms) before
+// giving up. Four attempts cover the observed worst-case propagation window without
+// introducing noticeable delay for the happy path.
 async function createLandlordProfileIfMissing(user) {
   const meta = user.user_metadata || {};
-  const { error } = await CP.sb().from('landlords').insert({
+  const payload = {
     user_id:       user.id,
     email:         user.email,
     contact_name:  meta.contact_name  || user.email,
@@ -414,9 +430,38 @@ async function createLandlordProfileIfMissing(user) {
     phone:         meta.phone         || null,
     account_type:  meta.account_type  || 'landlord',
     avatar_url:    meta.avatar_url    || null,
-  });
-  // Ignore duplicate/already-exists errors (race condition or double-call)
-  if (error && !error.message.includes('duplicate') && !error.message.includes('unique') && !error.message.includes('already exists')) {
+  };
+
+  const MAX_ATTEMPTS = 4;
+  const BACKOFF_MS   = 400; // linear: 400 ms, 800 ms, 1200 ms between retries
+
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    const { error } = await sb().from('landlords').insert(payload);
+
+    // Success
+    if (!error) return;
+
+    // Duplicate key — another concurrent call already created the row; treat as success
+    if (
+      error.message.includes('duplicate') ||
+      error.message.includes('unique')    ||
+      error.message.includes('already exists')
+    ) return;
+
+    // RLS violation — almost certainly auth.uid() is still NULL due to JWT propagation.
+    // Retry with linear backoff on all attempts except the last.
+    const isRlsError =
+      error.message.includes('row-level security') ||
+      error.message.includes('violates row-level');
+
+    if (isRlsError && attempt < MAX_ATTEMPTS) {
+      console.warn(`[CP] createLandlordProfileIfMissing: RLS failure on attempt ${attempt}, retrying in ${BACKOFF_MS * attempt} ms…`);
+      await new Promise(resolve => setTimeout(resolve, BACKOFF_MS * attempt));
+      continue;
+    }
+
+    // Non-retryable error, or RLS still failing after all attempts
+    console.error('[CP] createLandlordProfileIfMissing: failed (attempt %d/%d):', attempt, MAX_ATTEMPTS, error.message);
     throw new Error('Profile setup failed: ' + error.message);
   }
 }

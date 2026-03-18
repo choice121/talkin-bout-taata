@@ -548,10 +548,19 @@ CREATE POLICY "admin_roles_self_read" ON admin_roles
 
 -- landlords
 -- landlords_public_read covers all SELECT access (marketplace requires public profiles).
--- landlords_own_write scopes INSERT/UPDATE/DELETE to the owner's own row.
-CREATE POLICY "landlords_admin_all"   ON landlords FOR ALL   USING (is_admin());
-CREATE POLICY "landlords_public_read" ON landlords FOR SELECT USING (true);
-CREATE POLICY "landlords_own_write"   ON landlords FOR ALL   USING (user_id = auth.uid());
+-- landlords_own_insert / _update / _delete scope writes to the owner's own row.
+-- Splitting FOR ALL into operation-specific policies gives each one an explicit
+-- WITH CHECK so INSERT is unambiguously validated against the new row's user_id
+-- rather than relying on PostgreSQL's implicit USING-as-WITH-CHECK fallback.
+CREATE POLICY "landlords_admin_all"    ON landlords FOR ALL    USING (is_admin());
+CREATE POLICY "landlords_public_read"  ON landlords FOR SELECT USING (true);
+CREATE POLICY "landlords_own_insert"   ON landlords FOR INSERT
+  WITH CHECK (user_id = auth.uid());
+CREATE POLICY "landlords_own_update"   ON landlords FOR UPDATE
+  USING     (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
+CREATE POLICY "landlords_own_delete"   ON landlords FOR DELETE
+  USING     (user_id = auth.uid());
 
 -- properties
 CREATE POLICY "properties_admin_all" ON properties FOR ALL USING (is_admin());

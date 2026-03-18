@@ -1,0 +1,100 @@
+We are fixing a specific signup issue in the landlords flow.
+
+Error:
+"new row violates row-level security policy for table landlords"
+
+Context (confirmed):
+• The INSERT into landlords happens in createLandlordProfileIfMissing()
+• It is triggered immediately after signup inside requireLandlord()
+• auth.getUser() returns a valid user, but auth.uid() in Postgres is temporarily NULL due to JWT propagation delay
+• RLS policy landlords_own_write requires user_id = auth.uid()
+• This causes INSERT to fail on first attempt after signup
+
+Your task:
+Fix this issue in a safe, production-grade way without introducing security risks or breaking existing flows.
+
+---
+
+STRICT RULES:
+
+• Do NOT disable RLS  
+• Do NOT loosen policies in an unsafe way  
+• Do NOT use arbitrary delays like setTimeout hacks  
+• Do NOT modify unrelated parts of the system  
+• Do NOT refactor the entire auth system  
+
+Only fix what is necessary.
+
+---
+
+GOAL:
+
+Ensure that a newly signed-up user can successfully create their landlord profile without hitting the RLS error.
+
+---
+
+REQUIRED FIX APPROACH:
+
+You must implement a robust solution to handle JWT propagation timing, using ONE of the following safe patterns:
+
+1. Retry mechanism:
+- Detect RLS failure due to auth.uid() being NULL
+- Retry the insert a few times with short controlled backoff
+- Stop after a safe limit
+
+OR
+
+2. Session readiness check:
+- Ensure the Supabase session is fully ready before attempting DB insert
+
+Choose the safest and most reliable approach.
+
+---
+
+RLS POLICY FIX:
+
+Update the landlords policy to be explicit and correct:
+
+• Replace the current FOR ALL policy with:
+  - Separate policies for SELECT, INSERT, UPDATE
+  - Use explicit WITH CHECK for INSERT
+
+Ensure:
+• INSERT requires user_id = auth.uid()
+• No unintended access is granted
+
+---
+
+ERROR HANDLING FIX:
+
+• Do NOT silently swallow errors
+• If profile creation fails:
+  - Log the real error
+  - Show a clear message in UI (only if necessary)
+• Prevent redirect loops
+
+---
+
+VERIFICATION REQUIREMENTS:
+
+After implementing the fix, confirm:
+
+1. New user signup works without error
+2. Landlord profile is created successfully on first login
+3. No infinite redirects occur
+4. Existing users are unaffected
+5. RLS still enforces ownership correctly
+
+---
+
+OUTPUT FORMAT:
+
+1. Explain what you changed and why
+2. Show updated RLS policies
+3. Show updated createLandlordProfileIfMissing() logic
+4. Confirm all verification checks passed
+
+---
+
+Do not go beyond this scope.
+This fix must be minimal, secure, and stable.
