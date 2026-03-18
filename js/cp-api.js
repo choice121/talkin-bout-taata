@@ -35,7 +35,16 @@ const Auth = {
   async requireLandlord(redirectTo = '../landlord/login.html') {
     const user = await Auth.getUser();
     if (!user) { location.href = redirectTo; return null; }
-    const { data } = await sb().from('landlords').select('*').eq('user_id', user.id).maybeSingle();
+    let { data } = await sb().from('landlords').select('*').eq('user_id', user.id).maybeSingle();
+    // Profile missing — user signed up with email confirmation enabled and the INSERT
+    // was intentionally deferred. Create it now from user_metadata on first login.
+    if (!data) {
+      try {
+        await createLandlordProfileIfMissing(user);
+        const result = await sb().from('landlords').select('*').eq('user_id', user.id).maybeSingle();
+        data = result.data;
+      } catch (_) {}
+    }
     if (!data) { location.href = redirectTo; return null; }
     return data;
   },
@@ -385,16 +394,38 @@ export async function signIn(e, p)          { const { data, error } = await CP.s
 export async function signUp(email, password, profile) {
   const { data, error } = await CP.sb().auth.signUp({ email, password, options: { data: profile } });
   if (error) throw error;
-  if (data.user) {
+  // Only INSERT into landlords if we have an active session (email confirmation disabled).
+  // When email confirmation is required, data.session is null and auth.uid() is null on
+  // the database side — attempting the INSERT would violate the RLS policy.
+  // In that case we skip the INSERT here; createLandlordProfileIfMissing() will create
+  // the profile on first login using the user_metadata already stored above.
+  if (data.user && data.session) {
     const { error: pe } = await CP.sb().from('landlords').insert({ user_id: data.user.id, email, contact_name: profile.contact_name, business_name: profile.business_name || null, phone: profile.phone || null, account_type: profile.account_type || 'landlord', avatar_url: profile.avatar_url || null });
     if (pe) {
-      // Auth user was created but profile insert failed. Sign out the orphaned session
-      // so the user can retry registration cleanly without being stuck in a half-logged-in state.
       await CP.sb().auth.signOut();
       throw new Error('Account setup failed: ' + pe.message + '. Please try registering again.');
     }
   }
   return data;
+}
+
+// Creates a landlord profile row from user_metadata if one doesn't exist yet.
+// Called after login to handle users who signed up with email confirmation enabled.
+async function createLandlordProfileIfMissing(user) {
+  const meta = user.user_metadata || {};
+  const { error } = await CP.sb().from('landlords').insert({
+    user_id:       user.id,
+    email:         user.email,
+    contact_name:  meta.contact_name  || user.email,
+    business_name: meta.business_name || null,
+    phone:         meta.phone         || null,
+    account_type:  meta.account_type  || 'landlord',
+    avatar_url:    meta.avatar_url    || null,
+  });
+  // Ignore duplicate key errors (row already exists — race condition or double-call)
+  if (error && !error.message.includes('duplicate') && !error.message.includes('unique')) {
+    throw new Error('Profile setup failed: ' + error.message);
+  }
 }
 export async function signOut() {
   await CP.sb().auth.signOut();
